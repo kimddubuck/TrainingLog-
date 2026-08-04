@@ -1,0 +1,8 @@
+{
+  "name": "김상필 트레이닝 로그",
+  "short_name": "트레이닝로그",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1B1F23",
+  "theme_color": "#1B1F23"
+}

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="트레이닝 로그">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B1F23">
+<link rel="manifest" href="manifest.json">
+<title>김상필 트레이닝 로그</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#1B1F23;
+    --surface:#242A2F;
+    --surface-2:#2C333A;
+    --surface-3:#333B43;
+    --ink:#F2F0EA;
+    --ink-dim:#93A0A8;
+    --ink-faint:#5E6A72;
+    --accent-a:#E8A33D;
+    --accent-a-dim:#4A3B24;
+    --accent-b:#4FA8A0;
+    --accent-b-dim:#20393B;
+    --accent-pt:#C1666B;
+    --accent-pt-dim:#3A2529;
+    --border:rgba(242,240,234,0.10);
+    --border-strong:rgba(242,240,234,0.20);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans KR',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:640px;margin:0 auto;padding:20px 16px 80px;}
+
+  /* Header */
+  .header{margin-bottom:18px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    margin:0 0 2px;
+  }
+  h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:38px;
+    letter-spacing:.02em;
+    margin:0;
+    line-height:1;
+  }
+  .sub{color:var(--ink-dim);font-size:13px;margin-top:6px;}
+
+  /* Weekly rotation board — signature element */
+  .board{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+    margin:18px 0 22px;
+  }
+  .day-chip{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 2px 7px;
+    text-align:center;
+    position:relative;
+  }
+  .day-chip.today{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--border-strong) inset;}
+  .day-chip .dname{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--ink-dim);
+  }
+  .day-chip .dtag{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:14px;
+    letter-spacing:.03em;
+    margin-top:3px;
+  }
+  .day-chip.pt .dtag{color:var(--accent-pt);}
+  .day-chip.free .dtag{color:var(--ink-faint);}
+  .day-chip .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--accent-a);
+    margin:5px auto 0;
+    visibility:hidden;
+  }
+  .day-chip .dot.on{visibility:visible;}
+
+  /* Tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+  .tab{
+    flex:1;text-align:center;padding:10px 4px;
+    font-size:13.5px;font-weight:600;color:var(--ink-faint);
+    cursor:pointer;border-bottom:2px solid transparent;
+    transition:color .15s;
+  }
+  .tab.active{color:var(--ink);border-bottom-color:var(--accent-a);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* Cards */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+
+  label.field-label{
+    font-size:12px;color:var(--ink-dim);
+    display:block;margin-bottom:6px;
+  }
+  input[type=date]{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    padding:9px 10px;
+    border-radius:8px;
+    width:100%;
+  }
+
+  .daytype-banner{
+    display:flex;align-items:center;gap:10px;
+    padding:14px;border-radius:12px;
+    margin-bottom:14px;
+  }
+  .daytype-banner.pt{background:var(--accent-pt-dim);border:1px solid rgba(193,102,107,.35);}
+  .daytype-banner.free{background:var(--surface-2);border:1px solid var(--border);}
+  .daytype-banner .big{
+    font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.02em;
+  }
+  .daytype-banner.pt .big{color:var(--accent-pt);}
+  .daytype-banner p{margin:2px 0 0;font-size:12.5px;color:var(--ink-dim);}
+
+  .group-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .gbtn{
+    flex:1;padding:12px 10px;border-radius:12px;
+    border:1px solid var(--border);background:var(--surface-2);
+    cursor:pointer;text-align:left;
+  }
+  .gbtn .glabel{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.02em;}
+  .gbtn .gsub{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+  .gbtn.selA{border-color:var(--accent-a);background:var(--accent-a-dim);}
+  .gbtn.selA .glabel{color:var(--accent-a);}
+  .gbtn.selB{border-color:var(--accent-b);background:var(--accent-b-dim);}
+  .gbtn.selB .glabel{color:var(--accent-b);}
+  .suggest-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-faint);
+    letter-spacing:.05em;margin-bottom:8px;text-transform:uppercase;
+  }
+
+  .exercise{
+    border-top:1px solid var(--border);
+    padding-top:12px;margin-top:12px;
+  }
+  .exercise:first-child{border-top:none;margin-top:0;padding-top:0;}
+  .exercise .ename{font-size:14.5px;font-weight:600;margin-bottom:8px;}
+  .sets{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 8px;align-items:center;}
+  .sets .setno{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);
+    width:16px;
+  }
+  .sets input{
+    background:var(--surface-2);border:1px solid var(--border);
+    color:var(--ink);border-radius:8px;padding:8px 9px;
+    font-family:'IBM Plex Mono',monospace;font-size:13.5px;width:100%;
+  }
+  .sets input::placeholder{color:var(--ink-faint);}
+  .colhead{font-size:10px;color:var(--ink-faint);text-align:left;font-family:'IBM Plex Mono',monospace;}
+
+  .wgs-row{display:flex;gap:8px;margin-top:6px;}
+  .setchk{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+    padding:9px 4px;cursor:pointer;font-size:12.5px;color:var(--ink-dim);
+  }
+  .setchk.on{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
+
+  /* Water tracker */
+  .water-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:16px;margin-bottom:14px;
+  }
+  .water-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .water-top .wt-label{font-size:13px;color:var(--ink-dim);}
+  .water-top .wt-ml{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-faint);}
+  .water-counter{display:flex;align-items:center;justify-content:center;gap:22px;}
+  .wbtn{
+    width:44px;height:44px;border-radius:50%;border:1px solid var(--border-strong);
+    background:var(--surface-2);color:var(--ink);font-size:20px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .wbtn:active{background:var(--surface-3);}
+  .wcount{font-family:'Bebas Neue',sans-serif;font-size:44px;color:#6FB8DE;min-width:70px;text-align:center;}
+  .wcount-unit{font-size:12px;color:var(--ink-faint);text-align:center;margin-top:-4px;}
+
+  .cardio-row{display:flex;align-items:center;gap:10px;}
+  .cardio-row input[type=number]{
+    background:var(--surface-2);border:1px solid var(--border);color:var(--ink);
+    border-radius:8px;padding:9px 10px;font-family:'IBM Plex Mono',monospace;
+    font-size:13.5px;width:80px;
+  }
+  .toggle{
+    width:40px;height:23px;border-radius:20px;background:var(--surface-3);
+    position:relative;cursor:pointer;flex-shrink:0;
+  }
+  .toggle.on{background:var(--accent-b);}
+  .toggle .knob{
+    width:17px;height:17px;border-radius:50%;background:var(--ink);
+    position:absolute;top:3px;left:3px;transition:left .15s;
+  }
+  .toggle.on .knob{left:20px;}
+
+  textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);
+    color:var(--ink);border-radius:10px;padding:10px 11px;
+    font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;
+    resize:vertical;min-height:56px;
+  }
+
+  .save-btn{
+    width:100%;padding:14px;border:none;border-radius:12px;
+    background:var(--accent-a);color:#1B1F23;
+    font-size:15px;font-weight:700;cursor:pointer;
+    font-family:'IBM Plex Sans KR',sans-serif;
+  }
+  .save-btn:active{opacity:.85;}
+  .save-btn.pt-mode{background:var(--accent-pt);}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface-3);border:1px solid var(--border-strong);
+    padding:10px 18px;border-radius:20px;font-size:13px;
+    opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+  /* History */
+  .hist-entry{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:14px 16px;margin-bottom:10px;
+  }
+  .hist-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .hist-date{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-dim);}
+  .hist-tag{
+    font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.02em;
+    padding:2px 9px;border-radius:6px;
+  }
+  .hist-tag.A{background:var(--accent-a-dim);color:var(--accent-a);}
+  .hist-tag.B{background:var(--accent-b-dim);color:var(--accent-b);}
+  .hist-tag.PT{background:var(--accent-pt-dim);color:var(--accent-pt);}
+  .hist-body{margin-top:10px;font-size:13px;color:var(--ink-dim);line-height:1.7;}
+  .hist-body b{color:var(--ink);font-weight:600;}
+  .hist-note{
+    margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
+    font-size:12.5px;color:var(--ink-dim);font-style:normal;
+  }
+  .del-btn{
+    background:none;border:none;color:var(--ink-faint);font-size:12px;
+    cursor:pointer;padding:2px 4px;
+  }
+  .del-btn:hover{color:var(--accent-pt);}
+  .empty{
+    text-align:center;color:var(--ink-faint);font-size:13px;padding:40px 10px;
+  }
+
+  /* Graph */
+  .select-wrap{margin-bottom:14px;}
+  select{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);
+    color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px;
+    font-family:'IBM Plex Sans KR',sans-serif;
+  }
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .stat-row{display:flex;gap:10px;margin-top:14px;}
+  .stat{flex:1;background:var(--surface-2);border-radius:10px;padding:10px;text-align:center;}
+  .stat .v{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent-a);}
+  .stat .l{font-size:10.5px;color:var(--ink-faint);margin-top:2px;}
+
+  @media (max-width:380px){
+    .app{padding:16px 12px 80px;}
+    h1{font-size:32px;}
+    .day-chip{padding:7px 1px 6px;}
+    .day-chip .dtag{font-size:12px;}
+    .day-chip .dname{font-size:10px;}
+    .gbtn .glabel{font-size:17px;}
+    .wcount{font-size:38px;}
+    .sets input{padding:7px 6px;font-size:12.5px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
+    <h1>김상필 트레이닝 로그</h1>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록</p>
+  </div>
+
+  <div class="board" id="weekBoard"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="log">오늘 기록</div>
+    <div class="tab" data-tab="history">기록 보기</div>
+    <div class="tab" data-tab="graph">진행 그래프</div>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="panel active" id="panel-log">
+    <div class="card">
+      <label class="field-label">날짜</label>
+      <input type="date" id="dateInput">
+    </div>
+
+    <div class="water-card">
+      <div class="water-top">
+        <span class="wt-label">💧 수분 섭취</span>
+        <span class="wt-ml" id="waterMl">0ml</span>
+      </div>
+      <div class="water-counter">
+        <div class="wbtn" id="waterMinus">−</div>
+        <div>
+          <div class="wcount" id="waterCount">0</div>
+          <div class="wcount-unit">잔 (컵당 165ml)</div>
+        </div>
+        <div class="wbtn" id="waterPlus">+</div>
+      </div>
+    </div>
+
+    <div id="daytypeBanner"></div>
+    <div id="groupToggleWrap"></div>
+    <div class="card" id="exerciseCard" style="display:none;">
+      <div id="exerciseList"></div>
+    </div>
+
+    <div class="card">
+      <div class="exercise" style="border-top:none;padding-top:0;margin-top:0;">
+        <div class="ename">1. WGS스트레칭 <span style="color:var(--ink-faint);font-weight:400;">· 15개 X 3세트</span></div>
+        <div class="wgs-row" id="wgsRow"></div>
+      </div>
+      <div class="exercise">
+        <div class="row">
+          <div class="ename" style="margin-bottom:0;">8. 러닝머신</div>
+          <div class="toggle" id="cardioToggle"><div class="knob"></div></div>
+        </div>
+        <div class="cardio-row" style="margin-top:10px;" id="cardioMinWrap">
+          <input type="number" id="cardioMin" placeholder="0" min="0" max="90">
+          <span style="font-size:13px;color:var(--ink-dim);">분</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label class="field-label">특이사항 (불편함 · 통증 · 메모)</label>
+      <textarea id="noteInput" placeholder="예: 오버헤드프레스 시 오른쪽 어깨 뻐근함"></textarea>
+    </div>
+
+    <button class="save-btn" id="saveBtn">기록 저장</button>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div class="panel" id="panel-history">
+    <div id="historyList"></div>
+  </div>
+
+  <!-- GRAPH PANEL -->
+  <div class="panel" id="panel-graph">
+    <div class="select-wrap">
+      <select id="exerciseSelect"></select>
+    </div>
+    <div class="chart-card">
+      <canvas id="progressChart" height="220"></canvas>
+      <div class="stat-row" id="statRow"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GROUPS = {
+  A: { label:'A · Push', sub:'가슴 · 어깨 · 삼두', color:'#E8A33D',
+    exercises:[
+      {id:'bench', name:'2. 벤치프레스'},
+      {id:'ohp', name:'4. 오버헤드프레스'},
+      {id:'pushdown', name:'7. 케이블 푸쉬다운'},
+    ]},
+  B: { label:'B · Pull+하체', sub:'등 · 이두 · 하체', color:'#4FA8A0',
+    exercises:[
+      {id:'row', name:'3. 인버티드로우'},
+      {id:'latpull', name:'6. 암풀다운'},
+      {id:'squat', name:'5. 가블릿스쿼트'},
+    ]}
+};
+const ALL_EXERCISES = [...GROUPS.A.exercises, ...GROUPS.B.exercises];
+const CUP_ML = 165;
+let water = {}; // { 'YYYY-MM-DD': count }
+const PT_DAYS = [2,5]; // Tue, Fri (0=Sun)
+const DAY_NAMES = ['일','월','화','수','목','금','토'];
+
+let entries = [];
+let selectedGroup = 'A';
+let wgsChecks = [false,false,false];
+let cardioOn = false;
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dayOfWeek(dateStr){
+  return new Date(dateStr+'T00:00:00').getDay();
+}
+function isPTDay(dateStr){
+  return PT_DAYS.includes(dayOfWeek(dateStr));
+}
+
+async function loadEntries(){
+  try{
+    const raw = localStorage.getItem('workout-entries');
+    entries = raw ? JSON.parse(raw) : [];
+  }catch(e){ entries = []; }
+}
+async function persistEntries(){
+  try{ localStorage.setItem('workout-entries', JSON.stringify(entries)); }
+  catch(e){ console.error('save failed', e); }
+}
+
+async function loadWater(){
+  try{
+    const raw = localStorage.getItem('workout-water');
+    water = raw ? JSON.parse(raw) : {};
+  }catch(e){ water = {}; }
+}
+async function persistWater(){
+  try{ localStorage.setItem('workout-water', JSON.stringify(water)); }
+  catch(e){ console.error('water save failed', e); }
+}
+function renderWaterCounter(){
+  const dateStr = document.getElementById('dateInput').value;
+  const count = water[dateStr] || 0;
+  document.getElementById('waterCount').textContent = count;
+  document.getElementById('waterMl').textContent = (count*CUP_ML) + 'ml';
+}
+async function changeWater(delta){
+  const dateStr = document.getElementById('dateInput').value;
+  const next = Math.max(0, (water[dateStr]||0) + delta);
+  water[dateStr] = next;
+  await persistWater();
+  renderWaterCounter();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// ---------- Week board ----------
+function renderWeekBoard(){
+  const board = document.getElementById('weekBoard');
+  board.innerHTML = '';
+  const todayDow = new Date().getDay();
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay()+6)%7));
+  for(let i=0;i<7;i++){
+    const d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    const dow = d.getDay();
+    const dstr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const pt = PT_DAYS.includes(dow);
+    const hasEntry = entries.some(e=>e.date===dstr);
+    const chip = document.createElement('div');
+    chip.className = 'day-chip ' + (pt?'pt':'free') + (dow===todayDow?' today':'');
+    chip.innerHTML = `<div class="dname">${DAY_NAMES[dow]}</div><div class="dtag">${pt?'PT':'개인'}</div><div class="dot ${hasEntry?'on':''}"></div>`;
+    board.appendChild(chip);
+  }
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab==='history') renderHistory();
+    if(tab.dataset.tab==='graph') renderGraph();
+  });
+});
+
+// ---------- Log panel ----------
+function lastPersonalGroup(){
+  const past = entries.filter(e=>!e.pt).sort((a,b)=>b.date.localeCompare(a.date));
+  return past.length ? past[0].group : null;
+}
+function suggestGroup(){
+  const last = lastPersonalGroup();
+  return last==='A' ? 'B' : 'A';
+}
+
+function renderDayTypeAndForm(){
+  const dateStr = document.getElementById('dateInput').value;
+  const pt = isPTDay(dateStr);
+  const banner = document.getElementById('daytypeBanner');
+  const groupWrap = document.getElementById('groupToggleWrap');
+  const exCard = document.getElementById('exerciseCard');
+  const saveBtn = document.getElementById('saveBtn');
+
+  if(pt){
+    banner.innerHTML = `<div class="daytype-banner pt"><div><div class="big">PT 받는 날</div><p>선생님과 세션 진행 · 개인운동은 쉬고 WGS스트레칭만 기록하세요</p></div></div>`;
+    groupWrap.innerHTML = '';
+    exCard.style.display = 'none';
+    saveBtn.classList.add('pt-mode');
+    saveBtn.textContent = 'PT일 기록 저장';
+  }else{
+    banner.innerHTML = `<div class="daytype-banner free"><div><div class="big" style="color:var(--ink);">개인운동 날</div><p>2~7번 중 아래 그룹에서 3개를 진행하세요</p></div></div>`;
+    saveBtn.classList.remove('pt-mode');
+    saveBtn.textContent = '기록 저장';
+    exCard.style.display = 'block';
+    renderGroupToggle();
+    renderExercises();
+  }
+}
+
+function renderGroupToggle(){
+  const wrap = document.getElementById('groupToggleWrap');
+  const suggested = suggestGroup();
+  wrap.innerHTML = `
+    <div class="suggest-tag">추천 로테이션 &rarr; ${suggested}그룹 (직전 반대 부위)</div>
+    <div class="group-toggle">
+      <div class="gbtn ${selectedGroup==='A'?'selA':''}" id="btnA">
+        <div class="glabel">${GROUPS.A.label}</div>
+        <div class="gsub">${GROUPS.A.sub}</div>
+      </div>
+      <div class="gbtn ${selectedGroup==='B'?'selB':''}" id="btnB">
+        <div class="glabel">${GROUPS.B.label}</div>
+        <div class="gsub">${GROUPS.B.sub}</div>
+      </div>
+    </div>`;
+  document.getElementById('btnA').onclick = ()=>{selectedGroup='A'; renderGroupToggle(); renderExercises();};
+  document.getElementById('btnB').onclick = ()=>{selectedGroup='B'; renderGroupToggle(); renderExercises();};
+}
+
+function renderExercises(){
+  const list = document.getElementById('exerciseList');
+  list.innerHTML = '';
+  GROUPS[selectedGroup].exercises.forEach(ex=>{
+    const div = document.createElement('div');
+    div.className = 'exercise';
+    div.innerHTML = `
+      <div class="ename">${ex.name}</div>
+      <div class="colhead" style="grid-column:2;">무게 (kg)</div>
+      <div class="colhead" style="grid-column:3;">횟수 (reps)</div>
+      <div class="sets" id="sets-${ex.id}">
+        ${[1,2,3].map(n=>`
+          <div class="setno">${n}세트</div>
+          <input type="number" placeholder="0" min="0" step="0.5" data-ex="${ex.id}" data-field="weight" data-set="${n}">
+          <input type="number" placeholder="0" min="0" data-ex="${ex.id}" data-field="reps" data-set="${n}">
+        `).join('')}
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function renderWgsRow(){
+  const wrap = document.getElementById('wgsRow');
+  wrap.innerHTML = '';
+  [0,1,2].forEach(i=>{
+    const d = document.createElement('div');
+    d.className = 'setchk' + (wgsChecks[i]?' on':'');
+    d.textContent = (i+1)+'세트 완료';
+    d.onclick = ()=>{ wgsChecks[i] = !wgsChecks[i]; renderWgsRow(); };
+    wrap.appendChild(d);
+  });
+}
+
+document.getElementById('cardioToggle').onclick = function(){
+  cardioOn = !cardioOn;
+  this.classList.toggle('on', cardioOn);
+};
+
+document.getElementById('dateInput').value = todayStr();
+document.getElementById('dateInput').addEventListener('change', ()=>{
+  renderDayTypeAndForm();
+  renderWaterCounter();
+});
+document.getElementById('waterPlus').addEventListener('click', ()=>changeWater(1));
+document.getElementById('waterMinus').addEventListener('click', ()=>changeWater(-1));
+
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const dateStr = document.getElementById('dateInput').value;
+  const pt = isPTDay(dateStr);
+  const note = document.getElementById('noteInput').value.trim();
+  const cardioMin = document.getElementById('cardioMin').value;
+
+  let exData = [];
+  if(!pt){
+    exData = GROUPS[selectedGroup].exercises.map(ex=>{
+      const sets = [1,2,3].map(n=>{
+        const w = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${n}"]`).value;
+        const r = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${n}"]`).value;
+        return { weight: w?parseFloat(w):null, reps: r?parseInt(r):null };
+      });
+      return { id: ex.id, name: ex.name, sets };
+    });
+  }
+
+  const entry = {
+    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    date: dateStr,
+    pt: pt,
+    group: pt ? null : selectedGroup,
+    exercises: exData,
+    wgs: [...wgsChecks],
+    cardio: cardioOn ? (cardioMin?parseInt(cardioMin):0) : null,
+    note: note
+  };
+
+  entries = entries.filter(e=>!(e.date===dateStr)); // one record per date
+  entries.push(entry);
+  await persistEntries();
+  showToast('저장했어요');
+  renderWeekBoard();
+
+  // reset transient inputs
+  wgsChecks = [false,false,false];
+  cardioOn = false;
+  document.getElementById('cardioToggle').classList.remove('on');
+  document.getElementById('cardioMin').value = '';
+  document.getElementById('noteInput').value = '';
+  renderWgsRow();
+  if(!pt) renderExercises();
+});
+
+// ---------- History ----------
+function renderHistory(){
+  const wrap = document.getElementById('historyList');
+  const sorted = [...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){
+    wrap.innerHTML = '<div class="empty">아직 기록이 없어요. 오늘 기록 탭에서 첫 운동을 저장해보세요.</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  sorted.forEach(e=>{
+    const dow = DAY_NAMES[dayOfWeek(e.date)];
+    const tag = e.pt ? 'PT' : e.group;
+    const div = document.createElement('div');
+    div.className = 'hist-entry';
+    let body = '';
+    if(!e.pt){
+      body += e.exercises.map(ex=>{
+        const setsTxt = ex.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+        return `<div><b>${ex.name}</b> ${setsTxt||'<span style="color:var(--ink-faint);">기록 없음</span>'}</div>`;
+      }).join('');
+    }
+    const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
+    const w = water[e.date] || 0;
+    body += `<div style="margin-top:6px;"><b>WGS스트레칭</b> ${wgsDone}/3세트${e.cardio!=null?` · <b>러닝머신</b> ${e.cardio}분`:''}</div>`;
+    body += `<div style="margin-top:2px;"><b>💧 수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
+    div.innerHTML = `
+      <div class="hist-top">
+        <div>
+          <span class="hist-date">${e.date} (${dow})</span>
+          <span class="hist-tag ${tag}" style="margin-left:8px;">${tag}</span>
+        </div>
+        <button class="del-btn" data-id="${e.id}">삭제</button>
+      </div>
+      <div class="hist-body">${body}</div>
+      ${e.note?`<div class="hist-note">📝 ${e.note}</div>`:''}
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.onclick = async ()=>{
+      entries = entries.filter(e=>e.id!==btn.dataset.id);
+      await persistEntries();
+      renderHistory();
+      renderWeekBoard();
+    };
+  });
+}
+
+// ---------- Graph ----------
+let chartInstance = null;
+function populateExerciseSelect(){
+  const sel = document.getElementById('exerciseSelect');
+  sel.innerHTML = ALL_EXERCISES.map(ex=>`<option value="${ex.id}">${ex.name}</option>`).join('');
+}
+function renderGraph(){
+  const sel = document.getElementById('exerciseSelect');
+  const exId = sel.value || ALL_EXERCISES[0].id;
+  const points = [];
+  entries.filter(e=>!e.pt).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    const ex = e.exercises.find(x=>x.id===exId);
+    if(!ex) return;
+    const weights = ex.sets.map(s=>s.weight).filter(w=>w!=null);
+    if(!weights.length) return;
+    points.push({ date:e.date, top: Math.max(...weights) });
+  });
+
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+
+  const statRow = document.getElementById('statRow');
+  if(!points.length){
+    statRow.innerHTML = '';
+    chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]},
+      options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
+    ctx.canvas.parentElement.insertAdjacentHTML('beforeend','');
+    document.getElementById('progressChart').insertAdjacentHTML('afterend','');
+    statRow.innerHTML = '<div class="empty" style="width:100%;">이 운동에 대한 기록이 아직 없어요.</div>';
+    return;
+  }
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: points.map(p=>p.date.slice(5)),
+      datasets: [{
+        label: '최고 세트 무게(kg)',
+        data: points.map(p=>p.top),
+        borderColor: '#E8A33D',
+        backgroundColor: 'rgba(232,163,61,0.15)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+        pointBackgroundColor: '#E8A33D'
+      }]
+    },
+    options: {
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { ticks:{color:'#93A0A8', font:{family:'IBM Plex Mono'}}, grid:{color:'rgba(242,240,234,0.06)'} },
+        y: { ticks:{color:'#93A0A8', font:{family:'IBM Plex Mono'}}, grid:{color:'rgba(242,240,234,0.06)'} }
+      }
+    }
+  });
+
+  const first = points[0].top, last = points[points.length-1].top, max = Math.max(...points.map(p=>p.top));
+  statRow.innerHTML = `
+    <div class="stat"><div class="v">${last}kg</div><div class="l">최근 기록</div></div>
+    <div class="stat"><div class="v">${max}kg</div><div class="l">최고 기록</div></div>
+    <div class="stat"><div class="v">${last-first>=0?'+':''}${(last-first).toFixed(1)}kg</div><div class="l">전체 변화</div></div>
+  `;
+}
+document.getElementById('exerciseSelect').addEventListener('change', renderGraph);
+
+// ---------- Init ----------
+(async function init(){
+  await loadEntries();
+  await loadWater();
+  renderWeekBoard();
+  renderDayTypeAndForm();
+  renderWaterCounter();
+  renderWgsRow();
+  populateExerciseSelect();
+})();
+</script>
+</body>
+</html>
