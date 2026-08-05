@@ -509,12 +509,15 @@ document.querySelectorAll('.tab').forEach(tab=>{
 
 // ---------- Log panel ----------
 function lastPersonalGroup(){
-  const past = entries.filter(e=>!e.pt).sort((a,b)=>b.date.localeCompare(a.date));
+  const past = entries.filter(e=>!e.pt && e.date!==document.getElementById('dateInput').value).sort((a,b)=>b.date.localeCompare(a.date));
   return past.length ? past[0].group : null;
 }
 function suggestGroup(){
   const last = lastPersonalGroup();
   return last==='A' ? 'B' : 'A';
+}
+function entryForDate(dateStr){
+  return entries.find(e=>e.date===dateStr) || null;
 }
 
 function renderDayTypeAndForm(){
@@ -524,6 +527,15 @@ function renderDayTypeAndForm(){
   const groupWrap = document.getElementById('groupToggleWrap');
   const exCard = document.getElementById('exerciseCard');
   const saveBtn = document.getElementById('saveBtn');
+  const existing = entryForDate(dateStr);
+
+  // common fields: WGS / cardio / note
+  wgsChecks = existing && existing.wgs ? [...existing.wgs] : [false,false,false];
+  cardioOn = !!(existing && existing.cardio != null);
+  document.getElementById('cardioToggle').classList.toggle('on', cardioOn);
+  document.getElementById('cardioMin').value = (existing && existing.cardio) ? existing.cardio : '';
+  document.getElementById('noteInput').value = existing ? (existing.note||'') : '';
+  renderWgsRow();
 
   if(pt){
     banner.innerHTML = `<div class="daytype-banner pt"><div><div class="big">PT 받는 날</div><p>선생님과 세션 진행 · 개인운동은 쉬고 WGS스트레칭만 기록하세요</p></div></div>`;
@@ -536,8 +548,10 @@ function renderDayTypeAndForm(){
     saveBtn.classList.remove('pt-mode');
     saveBtn.textContent = '기록 저장';
     exCard.style.display = 'block';
+    selectedGroup = (existing && existing.group) ? existing.group : suggestGroup();
     renderGroupToggle();
     renderExercises();
+    prefillExerciseInputs(existing);
   }
 }
 
@@ -556,8 +570,8 @@ function renderGroupToggle(){
         <div class="gsub">${GROUPS.B.sub}</div>
       </div>
     </div>`;
-  document.getElementById('btnA').onclick = ()=>{selectedGroup='A'; renderGroupToggle(); renderExercises();};
-  document.getElementById('btnB').onclick = ()=>{selectedGroup='B'; renderGroupToggle(); renderExercises();};
+  document.getElementById('btnA').onclick = ()=>{selectedGroup='A'; renderGroupToggle(); renderExercises(); autoSave();};
+  document.getElementById('btnB').onclick = ()=>{selectedGroup='B'; renderGroupToggle(); renderExercises(); autoSave();};
 }
 
 function renderExercises(){
@@ -579,6 +593,23 @@ function renderExercises(){
       </div>`;
     list.appendChild(div);
   });
+  list.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', debouncedAutoSave);
+    inp.addEventListener('blur', autoSave);
+  });
+}
+
+function prefillExerciseInputs(existing){
+  if(!existing || !existing.exercises) return;
+  existing.exercises.forEach(ex=>{
+    ex.sets.forEach((s,idx)=>{
+      const n = idx+1;
+      const wInp = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${n}"]`);
+      const rInp = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${n}"]`);
+      if(wInp && s.weight!=null) wInp.value = s.weight;
+      if(rInp && s.reps!=null) rInp.value = s.reps;
+    });
+  });
 }
 
 function renderWgsRow(){
@@ -588,7 +619,7 @@ function renderWgsRow(){
     const d = document.createElement('div');
     d.className = 'setchk' + (wgsChecks[i]?' on':'');
     d.textContent = (i+1)+'세트 완료';
-    d.onclick = ()=>{ wgsChecks[i] = !wgsChecks[i]; renderWgsRow(); };
+    d.onclick = ()=>{ wgsChecks[i] = !wgsChecks[i]; renderWgsRow(); autoSave(); };
     wrap.appendChild(d);
   });
 }
@@ -596,7 +627,12 @@ function renderWgsRow(){
 document.getElementById('cardioToggle').onclick = function(){
   cardioOn = !cardioOn;
   this.classList.toggle('on', cardioOn);
+  autoSave();
 };
+document.getElementById('cardioMin').addEventListener('input', debouncedAutoSave);
+document.getElementById('cardioMin').addEventListener('blur', autoSave);
+document.getElementById('noteInput').addEventListener('input', debouncedAutoSave);
+document.getElementById('noteInput').addEventListener('blur', autoSave);
 
 document.getElementById('dateInput').value = todayStr();
 document.getElementById('dateInput').addEventListener('change', ()=>{
@@ -606,7 +642,8 @@ document.getElementById('dateInput').addEventListener('change', ()=>{
 document.getElementById('waterPlus').addEventListener('click', ()=>changeWater(1));
 document.getElementById('waterMinus').addEventListener('click', ()=>changeWater(-1));
 
-document.getElementById('saveBtn').addEventListener('click', async ()=>{
+// ---------- Auto-save (survives backgrounding / accidental close) ----------
+function buildEntryFromForm(){
   const dateStr = document.getElementById('dateInput').value;
   const pt = isPTDay(dateStr);
   const note = document.getElementById('noteInput').value.trim();
@@ -616,16 +653,19 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   if(!pt){
     exData = GROUPS[selectedGroup].exercises.map(ex=>{
       const sets = [1,2,3].map(n=>{
-        const w = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${n}"]`).value;
-        const r = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${n}"]`).value;
+        const wEl = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${n}"]`);
+        const rEl = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${n}"]`);
+        const w = wEl ? wEl.value : '';
+        const r = rEl ? rEl.value : '';
         return { weight: w?parseFloat(w):null, reps: r?parseInt(r):null };
       });
       return { id: ex.id, name: ex.name, sets };
     });
   }
 
-  const entry = {
-    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+  const existing = entryForDate(dateStr);
+  return {
+    id: existing ? existing.id : (Date.now()+'-'+Math.random().toString(36).slice(2,7)),
     date: dateStr,
     pt: pt,
     group: pt ? null : selectedGroup,
@@ -634,21 +674,29 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
     cardio: cardioOn ? (cardioMin?parseInt(cardioMin):0) : null,
     note: note
   };
+}
 
-  entries = entries.filter(e=>!(e.date===dateStr)); // one record per date
+let autoSaveTimer = null;
+function debouncedAutoSave(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSave, 400);
+}
+async function autoSave(){
+  clearTimeout(autoSaveTimer);
+  const entry = buildEntryFromForm();
+  entries = entries.filter(e=>e.date!==entry.date); // one record per date, merged
   entries.push(entry);
   await persistEntries();
-  showToast('저장했어요');
   renderWeekBoard();
+}
+// flush any pending debounce immediately when the app is backgrounded/closed
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') autoSave(); });
+window.addEventListener('pagehide', autoSave);
+window.addEventListener('blur', autoSave);
 
-  // reset transient inputs
-  wgsChecks = [false,false,false];
-  cardioOn = false;
-  document.getElementById('cardioToggle').classList.remove('on');
-  document.getElementById('cardioMin').value = '';
-  document.getElementById('noteInput').value = '';
-  renderWgsRow();
-  if(!pt) renderExercises();
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  await autoSave();
+  showToast('저장했어요 · 이전 입력값은 계속 남아있어요');
 });
 
 // ---------- History ----------
