@@ -193,11 +193,10 @@
   .ex-check .exlabel{font-size:13.5px;}
   .ex-check .expart{font-size:11px;color:var(--ink-faint);margin-left:auto;}
 
-  .add-inline{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-  .add-inline input{flex:1 1 100%;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:10px 11px;font-size:13.5px;font-family:'IBM Plex Sans KR',sans-serif;}
-  .add-inline .part-in{flex:1 1 0;min-width:0;}
-  .add-inline button{flex:0 0 auto;border:none;border-radius:8px;background:var(--accent-a);color:#1B1F23;font-weight:700;font-size:13.5px;padding:10px 18px;cursor:pointer;white-space:nowrap;}
-  .add-inline .second-row{display:flex;gap:8px;flex:1 1 100%;}
+  .add-inline{margin-top:12px;}
+  .add-inline input{display:block;width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:11px 12px;font-size:13.5px;font-family:'IBM Plex Sans KR',sans-serif;margin-bottom:8px;}
+  .add-inline button{display:block;width:100%;box-sizing:border-box;border:none;border-radius:8px;background:var(--accent-a);color:#1B1F23;font-weight:700;font-size:14px;padding:12px;cursor:pointer;}
+  .add-inline .second-row{display:none;}
 
   .master-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);}
   .master-item:first-of-type{border-top:none;}
@@ -1009,12 +1008,15 @@ document.querySelectorAll('.mtab').forEach(tab=>{
 
 function renderManageRoutines(){
   const wrap = document.getElementById('mpanel-routines');
-  let html = '<p class="section-label">각 루틴에 넣을 종목을 체크하세요. 같은 종목을 여러 루틴에 넣어도 됩니다.</p>';
+  let html = '<p class="section-label">각 루틴에 넣을 종목을 체크하세요. 같은 종목을 여러 루틴에 넣어도 됩니다. 루틴 이름/설명도 바로 고칠 수 있어요.</p>';
   routines.forEach(r=>{
     html += `<div class="routine-block" data-rid="${r.id}">
       <div class="routine-block-head">
-        <span class="rname" style="color:${r.color};">${r.label}${r.sub?` <span style="color:var(--ink-faint);font-family:'IBM Plex Sans KR';font-size:11px;">· ${r.sub}</span>`:''}</span>
-        <button class="rdel" data-rdel="${r.id}">루틴 삭제</button>
+        <div class="rname-edit" style="flex:1;display:flex;gap:6px;align-items:center;">
+          <input class="rname-input" data-rid="${r.id}" data-field="label" value="${(r.label||'').replace(/"/g,'&quot;')}" style="width:52px;color:${r.color};font-family:'Bebas Neue';font-size:18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;">
+          <input class="rname-input" data-rid="${r.id}" data-field="sub" value="${(r.sub||'').replace(/"/g,'&quot;')}" placeholder="설명" style="flex:1;min-width:0;font-size:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--ink-dim);">
+        </div>
+        <button class="rdel" data-rdel="${r.id}">삭제</button>
       </div>`;
     masterExercises.forEach(ex=>{
       const on = r.exerciseIds.includes(ex.id);
@@ -1029,12 +1031,24 @@ function renderManageRoutines(){
   });
   html += `<div class="add-inline">
     <input type="text" id="newRoutineName" placeholder="새 루틴 이름 (예: C)">
-    <div class="second-row">
-      <input type="text" id="newRoutineSub" class="part-in" placeholder="설명(선택)">
-      <button id="addRoutineBtn">루틴 추가</button>
-    </div>
+    <input type="text" id="newRoutineSub" placeholder="설명(선택)">
+    <button id="addRoutineBtn">루틴 추가</button>
   </div>`;
   wrap.innerHTML = html;
+
+  // 루틴 이름/설명 편집
+  wrap.querySelectorAll('.rname-input').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const r = routineById(inp.dataset.rid);
+      if(!r) return;
+      const v = inp.value.trim();
+      if(inp.dataset.field==='label'){ if(v) r.label = v; }
+      else r.sub = v;
+      await persistConfig();
+    });
+    // 편집 중 체크 토글 방지
+    inp.addEventListener('click', e=>e.stopPropagation());
+  });
 
   wrap.querySelectorAll('.ex-check').forEach(el=>{
     el.onclick = async ()=>{
@@ -1072,10 +1086,8 @@ function renderManageMaster(){
   if(!masterExercises.length) html += '<p class="section-label">아직 종목이 없어요.</p>';
   html += `<div class="add-inline">
     <input type="text" id="newMasterName" placeholder="운동 이름 (예: 랫풀다운)">
-    <div class="second-row">
-      <input type="text" id="newMasterPart" class="part-in" placeholder="부위 (예: 등)">
-      <button id="addMasterBtn">추가</button>
-    </div>
+    <input type="text" id="newMasterPart" placeholder="부위 (예: 등)">
+    <button id="addMasterBtn">추가</button>
   </div>`;
   wrap.innerHTML = html;
 
@@ -1468,7 +1480,7 @@ function renderIbChart(){
     const datasets = IB_METRICS.map((m,i)=>{
       const c = CHART_COLORS[i % CHART_COLORS.length];
       return { label:m.label, data:sorted.map(r=>r[m.key]??null),
-        borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:3, pointBackgroundColor:c, spanGaps:true };
+        borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:4, pointBackgroundColor:c, spanGaps:true };
     });
     ibChartInstance = new Chart(ctx,{ type:'line', data:{labels, datasets},
       options:{ plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12}}},
@@ -1492,7 +1504,7 @@ function renderIbChart(){
     data:{ labels: points.map(p=>p.date.slice(5)),
       datasets:[{ label:meta.label, data:points.map(p=>p[metric]),
         borderColor:'#4FA8A0', backgroundColor:'rgba(79,168,160,0.15)',
-        tension:0.3, fill:true, pointRadius:3, pointBackgroundColor:'#4FA8A0' }] },
+        tension:0.3, fill:true, pointRadius:4, pointBackgroundColor:'#4FA8A0' }] },
     options:{ plugins:{legend:{display:false}},
       scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
                y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } }
@@ -1580,7 +1592,7 @@ function renderGraph(){
         label: perEx[id].name,
         data: dates.map(d=> perEx[id].map[d] ?? null),
         borderColor: c, backgroundColor: c, tension:0.3, fill:false,
-        pointRadius:3, pointBackgroundColor:c, spanGaps:true
+        pointRadius:4, pointBackgroundColor:c, spanGaps:true
       };
     });
     chartInstance = new Chart(ctx, {
@@ -1614,7 +1626,7 @@ function renderGraph(){
         label: '최고 세트 무게(kg)',
         data: points.map(p=>p.top),
         borderColor: '#E8A33D', backgroundColor: 'rgba(232,163,61,0.15)',
-        tension: 0.3, fill: true, pointRadius: 3, pointBackgroundColor: '#E8A33D'
+        tension: 0.3, fill: true, pointRadius: 4, pointBackgroundColor: '#E8A33D'
       }]
     },
     options: {
