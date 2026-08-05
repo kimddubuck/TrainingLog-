@@ -11,6 +11,9 @@
 <link rel="manifest" href="manifest.json">
 <title>김상필 트레이닝 로그</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -169,7 +172,29 @@
     padding-top:12px;margin-top:12px;
   }
   .exercise:first-child{border-top:none;margin-top:0;padding-top:0;}
-  .exercise .ename{font-size:14.5px;font-weight:600;margin-bottom:8px;}
+  .exercise .ename{font-size:14.5px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+  .ex-del{background:none;border:none;color:var(--ink-faint);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;}
+  .ex-del:hover{color:var(--accent-pt);}
+
+  .add-ex-toggle{
+    margin-top:14px;text-align:center;font-size:12.5px;color:var(--ink-dim);
+    padding:10px;border:1px dashed var(--border-strong);border-radius:10px;cursor:pointer;
+  }
+  .add-ex-toggle:hover{color:var(--ink);}
+  .add-ex-panel{margin-top:10px;}
+  .add-ex-panel input[type=text]{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);
+    border-radius:8px;padding:10px 11px;font-size:13.5px;font-family:'IBM Plex Sans KR',sans-serif;
+    margin-bottom:8px;
+  }
+  .add-ex-btns{display:flex;gap:8px;}
+  .add-ex-btn{
+    flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--ink-dim);font-size:12.5px;cursor:pointer;
+    font-family:'IBM Plex Sans KR',sans-serif;font-weight:600;
+  }
+  .add-ex-btn.selA:active,.add-ex-btn.selA:hover{border-color:var(--accent-a);color:var(--accent-a);}
+  .add-ex-btn.selB:active,.add-ex-btn.selB:hover{border-color:var(--accent-b);color:var(--accent-b);}
   .sets{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 8px;align-items:center;}
   .sets .setno{
     font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);
@@ -302,9 +327,52 @@
     .wcount{font-size:38px;}
     .sets input{padding:7px 6px;font-size:12.5px;}
   }
+
+  /* Login screen */
+  #loginScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .login-card{
+    width:100%;max-width:340px;background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:28px 22px;
+  }
+  .login-card h2{
+    font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.02em;margin:0 0 4px;
+  }
+  .login-card p{color:var(--ink-dim);font-size:12.5px;margin:0 0 18px;}
+  .login-card input{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);
+    border-radius:8px;padding:11px 12px;font-size:14px;margin-bottom:10px;
+    font-family:'IBM Plex Sans KR',sans-serif;
+  }
+  .login-card button{
+    width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent-a);
+    color:#1B1F23;font-weight:700;font-size:14.5px;cursor:pointer;margin-top:4px;
+  }
+  .login-err{color:var(--accent-pt);font-size:12px;margin-top:10px;min-height:14px;}
+  #appRoot{display:none;}
+  .logout-btn{
+    font-size:11px;color:var(--ink-faint);cursor:pointer;text-decoration:underline;
+    text-align:right;margin-bottom:6px;
+  }
 </style>
 </head>
 <body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>트레이닝 로그</h2>
+    <p>본인 계정으로 로그인하세요</p>
+    <input type="email" id="loginEmail" placeholder="이메일">
+    <input type="password" id="loginPw" placeholder="비밀번호">
+    <button id="loginBtn">로그인</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<div id="appRoot">
+<div class="logout-btn" id="logoutBtn">로그아웃</div>
 <div class="app">
 
   <div class="header">
@@ -347,6 +415,14 @@
     <div id="groupToggleWrap"></div>
     <div class="card" id="exerciseCard" style="display:none;">
       <div id="exerciseList"></div>
+      <div class="add-ex-toggle" id="addExToggle">+ 종목 추가</div>
+      <div class="add-ex-panel" id="addExPanel" style="display:none;">
+        <input type="text" id="newExName" placeholder="운동 이름 (예: 랫풀다운 머신)">
+        <div class="add-ex-btns">
+          <button class="add-ex-btn selA" id="addToA">A그룹에 추가</button>
+          <button class="add-ex-btn selB" id="addToB">B그룹에 추가</button>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -393,23 +469,71 @@
 </div>
 
 <div class="toast" id="toast"></div>
+</div>
 
 <script>
-const GROUPS = {
-  A: { label:'A · Push', sub:'가슴 · 어깨 · 삼두', color:'#E8A33D',
-    exercises:[
-      {id:'bench', name:'2. 벤치프레스'},
-      {id:'ohp', name:'4. 오버헤드프레스'},
-      {id:'pushdown', name:'7. 케이블 푸쉬다운'},
-    ]},
-  B: { label:'B · Pull+하체', sub:'등 · 이두 · 하체', color:'#4FA8A0',
-    exercises:[
-      {id:'row', name:'3. 인버티드로우'},
-      {id:'latpull', name:'6. 암풀다운'},
-      {id:'squat', name:'5. 가블릿스쿼트'},
-    ]}
+// ====== Firebase 설정 ======
+// Firebase 콘솔 > 프로젝트 설정 > 일반 > 내 앱 에서 복사해서 아래에 그대로 붙여넣으세요.
+const firebaseConfig = {
+  apiKey: "AIzaSyDB-qmTWEIPhdKc9xdcvBk6sjaXLSwIgOY",
+  authDomain: "training-log-377f4.firebaseapp.com",
+  projectId: "training-log-377f4",
+  storageBucket: "training-log-377f4.firebasestorage.app",
+  messagingSenderId: "286910060476",
+  appId: "1:286910060476:web:4f93133b6348aaba557db9"
 };
-const ALL_EXERCISES = [...GROUPS.A.exercises, ...GROUPS.B.exercises];
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let docRef = null; // set after login, users/{uid}/log/data
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  try{
+    await auth.signInWithEmailAndPassword(email, pw);
+  }catch(e){
+    errEl.textContent = '로그인 실패: 이메일 또는 비밀번호를 확인하세요.';
+  }
+});
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ auth.signOut(); });
+
+auth.onAuthStateChanged(async (user)=>{
+  if(user){
+    docRef = db.collection('users').doc(user.uid).collection('log').doc('data');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
+    await bootApp();
+  }else{
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('appRoot').style.display = 'none';
+  }
+});
+
+const BASE_EXERCISES = {
+  A: [
+    {id:'bench', name:'2. 벤치프레스'},
+    {id:'ohp', name:'4. 오버헤드프레스'},
+    {id:'pushdown', name:'7. 케이블 푸쉬다운'},
+  ],
+  B: [
+    {id:'row', name:'3. 인버티드로우'},
+    {id:'latpull', name:'6. 암풀다운'},
+    {id:'squat', name:'5. 가블릿스쿼트'},
+  ]
+};
+const GROUPS = {
+  A: { label:'A · Push', sub:'가슴 · 어깨 · 삼두', color:'#E8A33D', exercises:[...BASE_EXERCISES.A] },
+  B: { label:'B · Pull+하체', sub:'등 · 이두 · 하체', color:'#4FA8A0', exercises:[...BASE_EXERCISES.B] }
+};
+let customExercises = []; // [{id, name, group, custom:true}]
+function rebuildGroups(){
+  GROUPS.A.exercises = [...BASE_EXERCISES.A, ...customExercises.filter(c=>c.group==='A')];
+  GROUPS.B.exercises = [...BASE_EXERCISES.B, ...customExercises.filter(c=>c.group==='B')];
+}
+function allExercises(){ return [...GROUPS.A.exercises, ...GROUPS.B.exercises]; }
 const CUP_ML = 165;
 let water = {}; // { 'YYYY-MM-DD': count }
 const PT_DAYS = [2,5]; // Tue, Fri (0=Sun)
@@ -419,6 +543,22 @@ let entries = [];
 let selectedGroup = 'A';
 let wgsChecks = [false,false,false];
 let cardioOn = false;
+
+async function persistCustomExercises(){
+  try{ await docRef.set({ customExercises }, { merge:true }); }
+  catch(e){ console.error('custom exercise save failed', e); }
+}
+async function addCustomExercise(name, group){
+  const id = 'custom-' + Date.now();
+  customExercises.push({ id, name, group, custom:true });
+  await persistCustomExercises();
+  rebuildGroups();
+}
+async function removeCustomExercise(id){
+  customExercises = customExercises.filter(c=>c.id!==id);
+  await persistCustomExercises();
+  rebuildGroups();
+}
 
 function todayStr(){
   const d = new Date();
@@ -431,25 +571,27 @@ function isPTDay(dateStr){
   return PT_DAYS.includes(dayOfWeek(dateStr));
 }
 
-async function loadEntries(){
+async function loadAllData(){
   try{
-    const raw = localStorage.getItem('workout-entries');
-    entries = raw ? JSON.parse(raw) : [];
-  }catch(e){ entries = []; }
+    const snap = await docRef.get();
+    const data = snap.exists ? snap.data() : {};
+    entries = data.entries || [];
+    water = data.water || {};
+    customExercises = data.customExercises || [];
+  }catch(e){
+    console.error('load failed', e);
+    entries = []; water = {}; customExercises = [];
+  }
+  rebuildGroups();
 }
+
 async function persistEntries(){
-  try{ localStorage.setItem('workout-entries', JSON.stringify(entries)); }
+  try{ await docRef.set({ entries }, { merge:true }); }
   catch(e){ console.error('save failed', e); }
 }
 
-async function loadWater(){
-  try{
-    const raw = localStorage.getItem('workout-water');
-    water = raw ? JSON.parse(raw) : {};
-  }catch(e){ water = {}; }
-}
 async function persistWater(){
-  try{ localStorage.setItem('workout-water', JSON.stringify(water)); }
+  try{ await docRef.set({ water }, { merge:true }); }
   catch(e){ console.error('water save failed', e); }
 }
 function renderWaterCounter(){
@@ -581,7 +723,7 @@ function renderExercises(){
     const div = document.createElement('div');
     div.className = 'exercise';
     div.innerHTML = `
-      <div class="ename">${ex.name}</div>
+      <div class="ename"><span>${ex.name}</span>${ex.custom?`<button class="ex-del" data-exid="${ex.id}">×</button>`:''}</div>
       <div class="colhead" style="grid-column:2;">무게 (kg)</div>
       <div class="colhead" style="grid-column:3;">횟수 (reps)</div>
       <div class="sets" id="sets-${ex.id}">
@@ -597,7 +739,33 @@ function renderExercises(){
     inp.addEventListener('input', debouncedAutoSave);
     inp.addEventListener('blur', autoSave);
   });
+  list.querySelectorAll('.ex-del').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      if(!confirm('이 종목을 목록에서 삭제할까요? (이전 기록은 남아있어요)')) return;
+      await removeCustomExercise(btn.dataset.exid);
+      renderExercises();
+      populateExerciseSelect();
+    });
+  });
 }
+
+document.getElementById('addExToggle').addEventListener('click', ()=>{
+  const panel = document.getElementById('addExPanel');
+  panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+});
+async function handleAddExercise(group){
+  const input = document.getElementById('newExName');
+  const name = input.value.trim();
+  if(!name) return;
+  await addCustomExercise(name, group);
+  input.value = '';
+  document.getElementById('addExPanel').style.display = 'none';
+  renderExercises();
+  populateExerciseSelect();
+}
+document.getElementById('addToA').addEventListener('click', ()=>handleAddExercise('A'));
+document.getElementById('addToB').addEventListener('click', ()=>handleAddExercise('B'));
 
 function prefillExerciseInputs(existing){
   if(!existing || !existing.exercises) return;
@@ -751,11 +919,12 @@ function renderHistory(){
 let chartInstance = null;
 function populateExerciseSelect(){
   const sel = document.getElementById('exerciseSelect');
-  sel.innerHTML = ALL_EXERCISES.map(ex=>`<option value="${ex.id}">${ex.name}</option>`).join('');
+  sel.innerHTML = allExercises().map(ex=>`<option value="${ex.id}">${ex.name}</option>`).join('');
 }
 function renderGraph(){
   const sel = document.getElementById('exerciseSelect');
-  const exId = sel.value || ALL_EXERCISES[0].id;
+  const all = allExercises();
+  const exId = sel.value || (all[0] && all[0].id);
   const points = [];
   entries.filter(e=>!e.pt).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     const ex = e.exercises.find(x=>x.id===exId);
@@ -813,15 +982,14 @@ function renderGraph(){
 document.getElementById('exerciseSelect').addEventListener('change', renderGraph);
 
 // ---------- Init ----------
-(async function init(){
-  await loadEntries();
-  await loadWater();
+async function bootApp(){
+  await loadAllData();
   renderWeekBoard();
   renderDayTypeAndForm();
   renderWaterCounter();
   renderWgsRow();
   populateExerciseSelect();
-})();
+}
 </script>
 </body>
 </html>
