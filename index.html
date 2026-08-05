@@ -614,6 +614,7 @@
 
     <div class="select-wrap" style="margin-top:16px;">
       <select id="ibMetricSelect">
+        <option value="__all__">전체 (체성분 종합)</option>
         <option value="weight">체중 (kg)</option>
         <option value="smm">골격근량 (kg)</option>
         <option value="bfm">체지방량 (kg)</option>
@@ -1452,14 +1453,38 @@ let ibChartInstance = null;
 document.getElementById('ibMetricSelect').addEventListener('change', renderIbChart);
 function renderIbChart(){
   const metric = document.getElementById('ibMetricSelect').value;
-  const meta = IB_METRICS.find(m=>m.key===metric);
-  const points = [...inbody].filter(r=>r[metric]!=null).sort((a,b)=>a.date.localeCompare(b.date));
   const ctx = document.getElementById('ibChart').getContext('2d');
   if(ibChartInstance) ibChartInstance.destroy();
   const statRow = document.getElementById('ibStatRow');
+
+  if(metric === '__all__'){
+    const sorted = [...inbody].sort((a,b)=>a.date.localeCompare(b.date));
+    if(!sorted.length){
+      statRow.innerHTML = '<div class="empty" style="width:100%;">아직 인바디 기록이 없어요.</div>';
+      ibChartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+      return;
+    }
+    const labels = sorted.map(r=>r.date.slice(5));
+    const datasets = IB_METRICS.map((m,i)=>{
+      const c = CHART_COLORS[i % CHART_COLORS.length];
+      return { label:m.label, data:sorted.map(r=>r[m.key]??null),
+        borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:3, pointBackgroundColor:c, spanGaps:true };
+    });
+    ibChartInstance = new Chart(ctx,{ type:'line', data:{labels, datasets},
+      options:{ plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12}}},
+        scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
+                 y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } } });
+    statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${sorted.length}</div><div class="l">측정 횟수</div></div>`;
+    renderIbHistory();
+    return;
+  }
+
+  const meta = IB_METRICS.find(m=>m.key===metric);
+  const points = [...inbody].filter(r=>r[metric]!=null).sort((a,b)=>a.date.localeCompare(b.date));
   if(!points.length){
     ibChartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
     statRow.innerHTML = '<div class="empty" style="width:100%;">아직 인바디 기록이 없어요.</div>';
+    renderIbHistory();
     return;
   }
   ibChartInstance = new Chart(ctx,{
@@ -1479,6 +1504,7 @@ function renderIbChart(){
     <div class="stat"><div class="v">${first}${meta.unit}</div><div class="l">처음</div></div>
     <div class="stat"><div class="v">${diff>=0?'+':''}${diff.toFixed(1)}${meta.unit}</div><div class="l">변화</div></div>
   `;
+  renderIbHistory();
 }
 
 function renderIbHistory(){
@@ -1504,38 +1530,82 @@ function renderIbHistory(){
 }
 
 // ---------- Graph ----------
+const CHART_COLORS = ['#E8A33D','#4FA8A0','#A78BD4','#C1666B','#6FB8DE','#8FBF66','#D98C5F','#7F9CF5'];
 let chartInstance = null;
 function populateExerciseSelect(){
   const sel = document.getElementById('exerciseSelect');
-  sel.innerHTML = allExercises().map(ex=>`<option value="${ex.id}">${ex.name}</option>`).join('');
+  const opts = ['<option value="__all__">전체 (모든 종목)</option>']
+    .concat(allExercises().map(ex=>`<option value="${ex.id}">${ex.name}</option>`));
+  sel.innerHTML = opts.join('');
 }
-function renderGraph(){
-  const sel = document.getElementById('exerciseSelect');
-  const all = allExercises();
-  const exId = sel.value || (all[0] && all[0].id);
+
+// 특정 종목의 날짜별 최고무게 시계열
+function exerciseSeries(exId){
   const points = [];
   entries.filter(e=>!e.pt).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
-    const ex = e.exercises.find(x=>x.id===exId);
+    const ex = (e.exercises||[]).find(x=>x.id===exId);
     if(!ex) return;
     const weights = ex.sets.map(s=>s.weight).filter(w=>w!=null);
     if(!weights.length) return;
     points.push({ date:e.date, top: Math.max(...weights) });
   });
+  return points;
+}
 
+function renderGraph(){
+  const sel = document.getElementById('exerciseSelect');
+  const val = sel.value || '__all__';
   const ctx = document.getElementById('progressChart').getContext('2d');
   if(chartInstance) chartInstance.destroy();
-
   const statRow = document.getElementById('statRow');
-  if(!points.length){
-    statRow.innerHTML = '';
-    chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]},
-      options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
-    ctx.canvas.parentElement.insertAdjacentHTML('beforeend','');
-    document.getElementById('progressChart').insertAdjacentHTML('afterend','');
-    statRow.innerHTML = '<div class="empty" style="width:100%;">이 운동에 대한 기록이 아직 없어요.</div>';
+
+  if(val === '__all__'){
+    // 모든 종목을 색선으로 겹쳐 표시. x축은 전체 기록 날짜 합집합
+    const dateSet = new Set();
+    const perEx = {};
+    allExercises().forEach(ex=>{
+      const s = exerciseSeries(ex.id);
+      if(s.length){ perEx[ex.id] = { name:ex.name, map:Object.fromEntries(s.map(p=>[p.date,p.top])) }; s.forEach(p=>dateSet.add(p.date)); }
+    });
+    const dates = [...dateSet].sort();
+    const exIds = Object.keys(perEx);
+    if(!exIds.length){
+      statRow.innerHTML = '<div class="empty" style="width:100%;">아직 무게를 입력한 기록이 없어요.</div>';
+      chartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+      return;
+    }
+    const datasets = exIds.map((id,i)=>{
+      const c = CHART_COLORS[i % CHART_COLORS.length];
+      return {
+        label: perEx[id].name,
+        data: dates.map(d=> perEx[id].map[d] ?? null),
+        borderColor: c, backgroundColor: c, tension:0.3, fill:false,
+        pointRadius:3, pointBackgroundColor:c, spanGaps:true
+      };
+    });
+    chartInstance = new Chart(ctx, {
+      type:'line',
+      data:{ labels: dates.map(d=>d.slice(5)), datasets },
+      options:{
+        plugins:{ legend:{ display:true, labels:{ color:'#93A0A8', font:{size:11}, boxWidth:12 } } },
+        scales:{
+          x:{ ticks:{color:'#93A0A8', font:{family:'IBM Plex Mono'}}, grid:{color:'rgba(242,240,234,0.06)'} },
+          y:{ ticks:{color:'#93A0A8', font:{family:'IBM Plex Mono'}}, grid:{color:'rgba(242,240,234,0.06)'} }
+        }
+      }
+    });
+    statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${exIds.length}</div><div class="l">기록된 종목 수</div></div>`;
     return;
   }
 
+  // 단일 종목
+  const points = exerciseSeries(val);
+  if(!points.length){
+    statRow.innerHTML = '<div class="empty" style="width:100%;">이 운동에 대한 기록이 아직 없어요.</div>';
+    chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]},
+      options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
+    return;
+  }
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
@@ -1543,12 +1613,8 @@ function renderGraph(){
       datasets: [{
         label: '최고 세트 무게(kg)',
         data: points.map(p=>p.top),
-        borderColor: '#E8A33D',
-        backgroundColor: 'rgba(232,163,61,0.15)',
-        tension: 0.3,
-        fill: true,
-        pointRadius: 3,
-        pointBackgroundColor: '#E8A33D'
+        borderColor: '#E8A33D', backgroundColor: 'rgba(232,163,61,0.15)',
+        tension: 0.3, fill: true, pointRadius: 3, pointBackgroundColor: '#E8A33D'
       }]
     },
     options: {
@@ -1559,7 +1625,6 @@ function renderGraph(){
       }
     }
   });
-
   const first = points[0].top, last = points[points.length-1].top, max = Math.max(...points.map(p=>p.top));
   statRow.innerHTML = `
     <div class="stat"><div class="v">${last}kg</div><div class="l">최근 기록</div></div>
