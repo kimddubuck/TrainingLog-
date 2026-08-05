@@ -520,7 +520,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v5</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v7</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -750,10 +750,14 @@ async function persistConfig(){
   catch(e){ console.error('config save failed', e); }
 }
 async function addMasterExercise(name, part){
+  // 같은 이름(공백·대소문자 무시) 중복 방지
+  const norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
+  const dup = masterExercises.find(e => norm(e.name) === norm(name));
+  if(dup) return { duplicate:true, existing:dup };
   const id = 'ex-' + Date.now();
   masterExercises.push({ id, name, part: part||'' });
   await persistConfig();
-  return id;
+  return { duplicate:false, id };
 }
 async function removeMasterExercise(id){
   masterExercises = masterExercises.filter(e=>e.id!==id);
@@ -761,11 +765,14 @@ async function removeMasterExercise(id){
   await persistConfig();
 }
 async function addRoutine(label, sub){
+  const norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
+  const dup = routines.find(r => norm(r.label) === norm(label));
+  if(dup) return { duplicate:true, existing:dup };
   const id = 'r-' + Date.now();
   const color = ROUTINE_COLORS[routines.length % ROUTINE_COLORS.length];
   routines.push({ id, label, sub: sub||'', color, exerciseIds:[] });
   await persistConfig();
-  return id;
+  return { duplicate:false, id };
 }
 async function removeRoutine(id){
   routines = routines.filter(r=>r.id!==id);
@@ -1098,7 +1105,11 @@ function renderManageRoutines(){
     const name = document.getElementById('newRoutineName').value.trim();
     const sub = document.getElementById('newRoutineSub').value.trim();
     if(!name) return;
-    await addRoutine(name, sub);
+    const res = await addRoutine(name, sub);
+    if(res && res.duplicate){
+      alert(`"${res.existing.label}" 루틴은 이미 있어요.`);
+      return;
+    }
     renderManageRoutines();
   };
 }
@@ -1133,7 +1144,13 @@ function renderManageMaster(){
     const name = document.getElementById('newMasterName').value.trim();
     const part = document.getElementById('newMasterPart').value.trim();
     if(!name) return;
-    await addMasterExercise(name, part);
+    const res = await addMasterExercise(name, part);
+    if(res && res.duplicate){
+      alert(`"${res.existing.name}"은(는) 이미 있는 종목이에요.`);
+      return;
+    }
+    document.getElementById('newMasterName').value = '';
+    document.getElementById('newMasterPart').value = '';
     renderManageMaster();
     renderManageRoutines();
   };
@@ -1251,10 +1268,13 @@ function entryCardHTML(e){
   const tag = e.pt ? 'PT' : e.group;
   let body = '';
   if(!e.pt && e.exercises){
-    body += e.exercises.map(ex=>{
+    const rows = e.exercises.map(ex=>{
       const setsTxt = ex.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
-      return `<div><b>${ex.name}</b> ${setsTxt||'<span style="color:var(--ink-faint);">기록 없음</span>'}</div>`;
-    }).join('');
+      if(!setsTxt) return ''; // 무게·횟수 입력 안 한 종목은 표시 안 함
+      return `<div><b>${ex.name}</b> ${setsTxt}</div>`;
+    }).filter(Boolean);
+    body += rows.join('');
+    if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
   }
   const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
   const w = water[e.date] || 0;
