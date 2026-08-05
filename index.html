@@ -151,6 +151,60 @@
   .daytype-banner p{margin:2px 0 0;font-size:12.5px;color:var(--ink-dim);}
 
   .group-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .routine-toggle{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .rbtn{
+    flex:1 1 30%;min-width:90px;padding:12px 10px;border-radius:12px;
+    border:1px solid var(--border);background:var(--surface-2);cursor:pointer;text-align:left;
+  }
+  .rbtn .glabel{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.02em;}
+  .rbtn .gsub{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+  .rbtn.manage-routines{flex:0 0 auto;min-width:60px;text-align:center;color:var(--ink-dim);font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+  /* Manage modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+  .modal{
+    background:var(--bg);border:1px solid var(--border-strong);border-radius:16px 16px 0 0;
+    width:100%;max-width:640px;max-height:85vh;display:flex;flex-direction:column;
+  }
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid var(--border);}
+  .modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.02em;}
+  .modal-close{background:none;border:none;color:var(--ink-dim);font-size:13px;cursor:pointer;text-decoration:underline;}
+  .modal-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--border);}
+  .mtab{flex:1;text-align:center;padding:11px 4px;font-size:13px;font-weight:600;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;}
+  .mtab.active{color:var(--ink);border-bottom-color:var(--accent-a);}
+  .modal-body{overflow-y:auto;padding:16px 18px 28px;}
+  .mpanel{display:none;} .mpanel.active{display:block;}
+
+  .routine-block{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+  .routine-block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .routine-block-head .rname{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.02em;}
+  .routine-block-head .rdel{background:none;border:none;color:var(--ink-faint);font-size:12px;cursor:pointer;text-decoration:underline;}
+  .ex-check{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border);cursor:pointer;}
+  .ex-check:first-of-type{border-top:none;}
+  .ex-check .cbox{
+    width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border-strong);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:#1B1F23;
+  }
+  .ex-check.on .cbox{background:var(--accent-a);border-color:var(--accent-a);}
+  .ex-check .exlabel{font-size:13.5px;}
+  .ex-check .expart{font-size:11px;color:var(--ink-faint);margin-left:auto;}
+
+  .add-inline{display:flex;gap:8px;margin-top:12px;}
+  .add-inline input{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:9px 10px;font-size:13px;font-family:'IBM Plex Sans KR',sans-serif;}
+  .add-inline input.part-in{flex:0 0 90px;}
+  .add-inline button{border:none;border-radius:8px;background:var(--accent-a);color:#1B1F23;font-weight:700;font-size:13px;padding:0 14px;cursor:pointer;white-space:nowrap;}
+
+  .master-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);}
+  .master-item:first-of-type{border-top:none;}
+  .master-item .mname{font-size:13.5px;}
+  .master-item .mpart{font-size:11px;color:var(--ink-faint);}
+  .master-item .mdel{margin-left:auto;background:none;border:none;color:var(--ink-faint);font-size:16px;cursor:pointer;}
+  .master-item .mdel:hover{color:var(--accent-pt);}
+  .section-label{font-size:12px;color:var(--ink-dim);margin:0 0 8px;}
+
   .gbtn{
     flex:1;padding:12px 10px;border-radius:12px;
     border:1px solid var(--border);background:var(--surface-2);
@@ -442,12 +496,23 @@
     <div id="groupToggleWrap"></div>
     <div class="card" id="exerciseCard" style="display:none;">
       <div id="exerciseList"></div>
-      <div class="add-ex-toggle" id="addExToggle">+ 종목 추가</div>
-      <div class="add-ex-panel" id="addExPanel" style="display:none;">
-        <input type="text" id="newExName" placeholder="운동 이름 (예: 랫풀다운 머신)">
-        <div class="add-ex-btns">
-          <button class="add-ex-btn selA" id="addToA">A그룹에 추가</button>
-          <button class="add-ex-btn selB" id="addToB">B그룹에 추가</button>
+      <div class="add-ex-toggle" id="addExToggle">⚙︎ 루틴 관리 · 종목 편집</div>
+    </div>
+
+    <!-- 루틴/종목 관리 모달 -->
+    <div class="modal-backdrop" id="manageModal" style="display:none;">
+      <div class="modal">
+        <div class="modal-head">
+          <span class="modal-title">루틴 · 종목 관리</span>
+          <button class="modal-close" id="manageClose">닫기</button>
+        </div>
+        <div class="modal-tabs">
+          <div class="mtab active" data-mtab="routines">루틴별 종목</div>
+          <div class="mtab" data-mtab="master">종목 목록</div>
+        </div>
+        <div class="modal-body">
+          <div class="mpanel active" id="mpanel-routines"></div>
+          <div class="mpanel" id="mpanel-master"></div>
         </div>
       </div>
     </div>
@@ -541,52 +606,78 @@ auth.onAuthStateChanged(async (user)=>{
   }
 });
 
-const BASE_EXERCISES = {
-  A: [
-    {id:'bench', name:'2. 벤치프레스'},
-    {id:'ohp', name:'4. 오버헤드프레스'},
-    {id:'pushdown', name:'7. 케이블 푸쉬다운'},
-  ],
-  B: [
-    {id:'row', name:'3. 인버티드로우'},
-    {id:'latpull', name:'6. 암풀다운'},
-    {id:'squat', name:'5. 가블릿스쿼트'},
-  ]
-};
-const GROUPS = {
-  A: { label:'A · Push', sub:'가슴 · 어깨 · 삼두', color:'#E8A33D', exercises:[...BASE_EXERCISES.A] },
-  B: { label:'B · Pull+하체', sub:'등 · 이두 · 하체', color:'#4FA8A0', exercises:[...BASE_EXERCISES.B] }
-};
-let customExercises = []; // [{id, name, group, custom:true}]
-function rebuildGroups(){
-  GROUPS.A.exercises = [...BASE_EXERCISES.A, ...customExercises.filter(c=>c.group==='A')];
-  GROUPS.B.exercises = [...BASE_EXERCISES.B, ...customExercises.filter(c=>c.group==='B')];
+// ====== 데이터 모델 ======
+// masterExercises: 모든 종목의 마스터 목록 [{id, name, part}]
+// routines: 루틴 목록 [{id, label, sub, color, exerciseIds:[...]}]
+const DEFAULT_MASTER = [
+  {id:'bench',    name:'벤치프레스',      part:'가슴'},
+  {id:'ohp',      name:'오버헤드프레스',  part:'어깨'},
+  {id:'pushdown', name:'케이블 푸쉬다운', part:'삼두'},
+  {id:'row',      name:'인버티드로우',    part:'등'},
+  {id:'latpull',  name:'암풀다운',        part:'등'},
+  {id:'squat',    name:'가블릿스쿼트',    part:'하체'},
+];
+const DEFAULT_ROUTINES = [
+  {id:'A', label:'A', sub:'가슴 · 어깨 · 삼두', color:'#E8A33D', exerciseIds:['bench','ohp','pushdown']},
+  {id:'B', label:'B', sub:'등 · 이두 · 하체', color:'#4FA8A0', exerciseIds:['row','latpull','squat']},
+];
+const ROUTINE_COLORS = ['#E8A33D','#4FA8A0','#A78BD4','#C1666B','#6FB8DE','#8FBF66'];
+
+let masterExercises = [];
+let routines = [];
+
+function exById(id){ return masterExercises.find(e=>e.id===id) || null; }
+function routineById(id){ return routines.find(r=>r.id===id) || null; }
+function routineExercises(routineId){
+  const r = routineById(routineId);
+  if(!r) return [];
+  return r.exerciseIds.map(exById).filter(Boolean);
 }
-function allExercises(){ return [...GROUPS.A.exercises, ...GROUPS.B.exercises]; }
+function allExercises(){ return masterExercises; }
+
 const CUP_ML = 165;
 let water = {}; // { 'YYYY-MM-DD': count }
 const PT_DAYS = [2,5]; // Tue, Fri (0=Sun)
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
 let entries = [];
-let selectedGroup = 'A';
+let selectedRoutine = null; // routine id
 let wgsChecks = [false,false,false];
 let cardioOn = false;
 
-async function persistCustomExercises(){
-  try{ await docRef.set({ customExercises }, { merge:true }); }
-  catch(e){ console.error('custom exercise save failed', e); }
+async function persistConfig(){
+  try{ await docRef.set({ masterExercises, routines }, { merge:true }); }
+  catch(e){ console.error('config save failed', e); }
 }
-async function addCustomExercise(name, group){
-  const id = 'custom-' + Date.now();
-  customExercises.push({ id, name, group, custom:true });
-  await persistCustomExercises();
-  rebuildGroups();
+async function addMasterExercise(name, part){
+  const id = 'ex-' + Date.now();
+  masterExercises.push({ id, name, part: part||'' });
+  await persistConfig();
+  return id;
 }
-async function removeCustomExercise(id){
-  customExercises = customExercises.filter(c=>c.id!==id);
-  await persistCustomExercises();
-  rebuildGroups();
+async function removeMasterExercise(id){
+  masterExercises = masterExercises.filter(e=>e.id!==id);
+  routines.forEach(r=>{ r.exerciseIds = r.exerciseIds.filter(eid=>eid!==id); });
+  await persistConfig();
+}
+async function addRoutine(label, sub){
+  const id = 'r-' + Date.now();
+  const color = ROUTINE_COLORS[routines.length % ROUTINE_COLORS.length];
+  routines.push({ id, label, sub: sub||'', color, exerciseIds:[] });
+  await persistConfig();
+  return id;
+}
+async function removeRoutine(id){
+  routines = routines.filter(r=>r.id!==id);
+  if(selectedRoutine===id) selectedRoutine = routines[0] ? routines[0].id : null;
+  await persistConfig();
+}
+async function toggleExerciseInRoutine(routineId, exId){
+  const r = routineById(routineId);
+  if(!r) return;
+  if(r.exerciseIds.includes(exId)) r.exerciseIds = r.exerciseIds.filter(x=>x!==exId);
+  else r.exerciseIds.push(exId);
+  await persistConfig();
 }
 
 function todayStr(){
@@ -601,17 +692,44 @@ function isPTDay(dateStr){
 }
 
 async function loadAllData(){
+  let data = {};
   try{
     const snap = await docRef.get();
-    const data = snap.exists ? snap.data() : {};
+    data = snap.exists ? snap.data() : {};
     entries = data.entries || [];
     water = data.water || {};
-    customExercises = data.customExercises || [];
   }catch(e){
     console.error('load failed', e);
-    entries = []; water = {}; customExercises = [];
+    entries = []; water = {};
   }
-  rebuildGroups();
+
+  // ----- 종목/루틴 로드 + 구버전 마이그레이션 -----
+  if(Array.isArray(data.masterExercises) && Array.isArray(data.routines)){
+    masterExercises = data.masterExercises;
+    routines = data.routines;
+  }else{
+    // 새 사용자거나 구버전(customExercises) 데이터 → 기본값 + 마이그레이션
+    masterExercises = DEFAULT_MASTER.map(e=>({...e}));
+    routines = DEFAULT_ROUTINES.map(r=>({...r, exerciseIds:[...r.exerciseIds]}));
+    const legacy = data.customExercises || [];
+    legacy.forEach(c=>{
+      // 구버전 커스텀 종목 이름에서 "n. " 접두어 제거
+      const cleanName = c.name.replace(/^\d+\.\s*/, '');
+      masterExercises.push({ id:c.id, name:cleanName, part:'' });
+      const r = routines.find(x=>x.id===c.group);
+      if(r && !r.exerciseIds.includes(c.id)) r.exerciseIds.push(c.id);
+    });
+    // 과거 entries에 등장하지만 마스터에 없는 종목도 흡수(그래프/기록 유지용)
+    entries.forEach(en=>{
+      (en.exercises||[]).forEach(ex=>{
+        if(!masterExercises.find(m=>m.id===ex.id)){
+          masterExercises.push({ id:ex.id, name:ex.name.replace(/^\d+\.\s*/, ''), part:'' });
+        }
+      });
+    });
+    await persistConfig();
+  }
+  if(!selectedRoutine && routines[0]) selectedRoutine = routines[0].id;
 }
 
 async function persistEntries(){
@@ -679,13 +797,17 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 
 // ---------- Log panel ----------
-function lastPersonalGroup(){
+function lastRoutineId(){
   const past = entries.filter(e=>!e.pt && e.date!==document.getElementById('dateInput').value).sort((a,b)=>b.date.localeCompare(a.date));
-  return past.length ? past[0].group : null;
+  return past.length ? (past[0].routineId || past[0].group || null) : null;
 }
-function suggestGroup(){
-  const last = lastPersonalGroup();
-  return last==='A' ? 'B' : 'A';
+function suggestRoutine(){
+  // 직전 루틴 다음 순번의 루틴을 제안 (순환)
+  if(!routines.length) return null;
+  const last = lastRoutineId();
+  const idx = routines.findIndex(r=>r.id===last);
+  if(idx === -1) return routines[0].id;
+  return routines[(idx+1) % routines.length].id;
 }
 function entryForDate(dateStr){
   return entries.find(e=>e.date===dateStr) || null;
@@ -715,44 +837,52 @@ function renderDayTypeAndForm(){
     saveBtn.classList.add('pt-mode');
     saveBtn.textContent = 'PT일 기록 저장';
   }else{
-    banner.innerHTML = `<div class="daytype-banner free"><div><div class="big" style="color:var(--ink);">개인운동 날</div><p>2~7번 중 아래 그룹에서 3개를 진행하세요</p></div></div>`;
+    banner.innerHTML = `<div class="daytype-banner free"><div><div class="big" style="color:var(--ink);">개인운동 날</div><p>아래에서 루틴을 고르고 종목별로 기록하세요</p></div></div>`;
     saveBtn.classList.remove('pt-mode');
     saveBtn.textContent = '기록 저장';
     exCard.style.display = 'block';
-    selectedGroup = (existing && existing.group) ? existing.group : suggestGroup();
-    renderGroupToggle();
+    const existingRoutine = existing && (existing.routineId || existing.group);
+    selectedRoutine = (existingRoutine && routineById(existingRoutine)) ? existingRoutine : suggestRoutine();
+    renderRoutineToggle();
     renderExercises();
     prefillExerciseInputs(existing);
   }
 }
 
-function renderGroupToggle(){
+function renderRoutineToggle(){
   const wrap = document.getElementById('groupToggleWrap');
-  const suggested = suggestGroup();
-  wrap.innerHTML = `
-    <div class="suggest-tag">추천 로테이션 &rarr; ${suggested}그룹 (직전 반대 부위)</div>
-    <div class="group-toggle">
-      <div class="gbtn ${selectedGroup==='A'?'selA':''}" id="btnA">
-        <div class="glabel">${GROUPS.A.label}</div>
-        <div class="gsub">${GROUPS.A.sub}</div>
-      </div>
-      <div class="gbtn ${selectedGroup==='B'?'selB':''}" id="btnB">
-        <div class="glabel">${GROUPS.B.label}</div>
-        <div class="gsub">${GROUPS.B.sub}</div>
-      </div>
-    </div>`;
-  document.getElementById('btnA').onclick = ()=>{selectedGroup='A'; renderGroupToggle(); renderExercises(); autoSave();};
-  document.getElementById('btnB').onclick = ()=>{selectedGroup='B'; renderGroupToggle(); renderExercises(); autoSave();};
+  const suggested = suggestRoutine();
+  const suggestedLabel = suggested ? (routineById(suggested)?.label||'') : '';
+  let html = `<div class="suggest-tag">추천 로테이션 &rarr; ${suggestedLabel} 루틴</div><div class="routine-toggle">`;
+  routines.forEach(r=>{
+    const sel = r.id===selectedRoutine;
+    html += `
+      <div class="rbtn ${sel?'sel':''}" data-rid="${r.id}" style="${sel?`border-color:${r.color};background:${r.color}22;`:''}">
+        <div class="glabel" style="${sel?`color:${r.color};`:''}">${r.label}</div>
+        <div class="gsub">${r.sub||''}</div>
+      </div>`;
+  });
+  html += `<div class="rbtn manage-routines" id="manageRoutinesBtn">⚙︎<div class="gsub">루틴 관리</div></div>`;
+  html += `</div>`;
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.rbtn[data-rid]').forEach(btn=>{
+    btn.onclick = ()=>{ selectedRoutine = btn.dataset.rid; renderRoutineToggle(); renderExercises(); autoSave(); };
+  });
+  document.getElementById('manageRoutinesBtn').onclick = openManageModal;
 }
 
 function renderExercises(){
   const list = document.getElementById('exerciseList');
   list.innerHTML = '';
-  GROUPS[selectedGroup].exercises.forEach(ex=>{
+  const exs = routineExercises(selectedRoutine);
+  if(!exs.length){
+    list.innerHTML = `<div class="empty" style="padding:20px 6px;">이 루틴에 담긴 종목이 없어요.<br>아래 "루틴 관리 · 종목 편집"에서 종목을 담아보세요.</div>`;
+  }
+  exs.forEach(ex=>{
     const div = document.createElement('div');
     div.className = 'exercise';
     div.innerHTML = `
-      <div class="ename"><span>${ex.name}</span>${ex.custom?`<button class="ex-del" data-exid="${ex.id}">×</button>`:''}</div>
+      <div class="ename"><span>${ex.name}${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span></div>
       <div class="colhead" style="grid-column:2;">무게 (kg)</div>
       <div class="colhead" style="grid-column:3;">횟수 (reps)</div>
       <div class="sets" id="sets-${ex.id}">
@@ -768,33 +898,124 @@ function renderExercises(){
     inp.addEventListener('input', debouncedAutoSave);
     inp.addEventListener('blur', autoSave);
   });
-  list.querySelectorAll('.ex-del').forEach(btn=>{
-    btn.addEventListener('click', async (e)=>{
-      e.stopPropagation();
-      if(!confirm('이 종목을 목록에서 삭제할까요? (이전 기록은 남아있어요)')) return;
-      await removeCustomExercise(btn.dataset.exid);
-      renderExercises();
-      populateExerciseSelect();
-    });
-  });
 }
 
-document.getElementById('addExToggle').addEventListener('click', ()=>{
-  const panel = document.getElementById('addExPanel');
-  panel.style.display = panel.style.display==='none' ? 'block' : 'none';
-});
-async function handleAddExercise(group){
-  const input = document.getElementById('newExName');
-  const name = input.value.trim();
-  if(!name) return;
-  await addCustomExercise(name, group);
-  input.value = '';
-  document.getElementById('addExPanel').style.display = 'none';
+// "종목/루틴 관리" 버튼 (운동 카드 아래)
+document.getElementById('addExToggle').addEventListener('click', openManageModal);
+
+// ---------- 루틴 · 종목 관리 모달 ----------
+function openManageModal(){
+  document.getElementById('manageModal').style.display = 'flex';
+  renderManageRoutines();
+  renderManageMaster();
+}
+function closeManageModal(){
+  document.getElementById('manageModal').style.display = 'none';
+  // 관리 후 메인 폼 갱신
+  if(selectedRoutine && !routineById(selectedRoutine)) selectedRoutine = routines[0] ? routines[0].id : null;
+  renderRoutineToggle();
   renderExercises();
   populateExerciseSelect();
 }
-document.getElementById('addToA').addEventListener('click', ()=>handleAddExercise('A'));
-document.getElementById('addToB').addEventListener('click', ()=>handleAddExercise('B'));
+document.getElementById('manageClose').addEventListener('click', closeManageModal);
+document.getElementById('manageModal').addEventListener('click', (e)=>{
+  if(e.target.id==='manageModal') closeManageModal();
+});
+document.querySelectorAll('.mtab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.mpanel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('mpanel-'+tab.dataset.mtab).classList.add('active');
+  });
+});
+
+function renderManageRoutines(){
+  const wrap = document.getElementById('mpanel-routines');
+  let html = '<p class="section-label">각 루틴에 넣을 종목을 체크하세요. 같은 종목을 여러 루틴에 넣어도 됩니다.</p>';
+  routines.forEach(r=>{
+    html += `<div class="routine-block" data-rid="${r.id}">
+      <div class="routine-block-head">
+        <span class="rname" style="color:${r.color};">${r.label}${r.sub?` <span style="color:var(--ink-faint);font-family:'IBM Plex Sans KR';font-size:11px;">· ${r.sub}</span>`:''}</span>
+        <button class="rdel" data-rdel="${r.id}">루틴 삭제</button>
+      </div>`;
+    masterExercises.forEach(ex=>{
+      const on = r.exerciseIds.includes(ex.id);
+      html += `<div class="ex-check ${on?'on':''}" data-rid="${r.id}" data-exid="${ex.id}">
+        <div class="cbox">${on?'✓':''}</div>
+        <span class="exlabel">${ex.name}</span>
+        ${ex.part?`<span class="expart">${ex.part}</span>`:''}
+      </div>`;
+    });
+    if(!masterExercises.length) html += '<p class="section-label" style="margin:6px 0 0;">종목이 없어요. "종목 목록" 탭에서 추가하세요.</p>';
+    html += `</div>`;
+  });
+  html += `<div class="add-inline">
+    <input type="text" id="newRoutineName" placeholder="새 루틴 이름 (예: C)">
+    <input type="text" id="newRoutineSub" class="part-in" placeholder="설명(선택)" style="flex:0 0 110px;">
+    <button id="addRoutineBtn">루틴 추가</button>
+  </div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.ex-check').forEach(el=>{
+    el.onclick = async ()=>{
+      await toggleExerciseInRoutine(el.dataset.rid, el.dataset.exid);
+      renderManageRoutines();
+    };
+  });
+  wrap.querySelectorAll('.rdel').forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(routines.length<=1){ alert('루틴은 최소 1개는 있어야 해요.'); return; }
+      if(!confirm('이 루틴을 삭제할까요? (종목 자체와 과거 기록은 남아있어요)')) return;
+      await removeRoutine(btn.dataset.rdel);
+      renderManageRoutines();
+    };
+  });
+  document.getElementById('addRoutineBtn').onclick = async ()=>{
+    const name = document.getElementById('newRoutineName').value.trim();
+    const sub = document.getElementById('newRoutineSub').value.trim();
+    if(!name) return;
+    await addRoutine(name, sub);
+    renderManageRoutines();
+  };
+}
+
+function renderManageMaster(){
+  const wrap = document.getElementById('mpanel-master');
+  let html = '<p class="section-label">모든 운동 종목을 관리해요. 여기서 추가한 종목을 "루틴별 종목"에서 각 루틴에 담습니다.</p>';
+  masterExercises.forEach(ex=>{
+    html += `<div class="master-item">
+      <span class="mname">${ex.name}</span>
+      ${ex.part?`<span class="mpart">· ${ex.part}</span>`:''}
+      <button class="mdel" data-exdel="${ex.id}">×</button>
+    </div>`;
+  });
+  if(!masterExercises.length) html += '<p class="section-label">아직 종목이 없어요.</p>';
+  html += `<div class="add-inline">
+    <input type="text" id="newMasterName" placeholder="운동 이름 (예: 랫풀다운)">
+    <input type="text" id="newMasterPart" class="part-in" placeholder="부위">
+    <button id="addMasterBtn">추가</button>
+  </div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.mdel').forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(!confirm('이 종목을 삭제할까요? 모든 루틴에서 빠지고, 과거 기록은 그대로 남아있어요.')) return;
+      await removeMasterExercise(btn.dataset.exdel);
+      renderManageMaster();
+      renderManageRoutines();
+    };
+  });
+  document.getElementById('addMasterBtn').onclick = async ()=>{
+    const name = document.getElementById('newMasterName').value.trim();
+    const part = document.getElementById('newMasterPart').value.trim();
+    if(!name) return;
+    await addMasterExercise(name, part);
+    renderManageMaster();
+    renderManageRoutines();
+  };
+}
+
 
 function prefillExerciseInputs(existing){
   if(!existing || !existing.exercises) return;
@@ -848,7 +1069,7 @@ function buildEntryFromForm(){
 
   let exData = [];
   if(!pt){
-    exData = GROUPS[selectedGroup].exercises.map(ex=>{
+    exData = routineExercises(selectedRoutine).map(ex=>{
       const sets = [1,2,3].map(n=>{
         const wEl = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${n}"]`);
         const rEl = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${n}"]`);
@@ -861,11 +1082,13 @@ function buildEntryFromForm(){
   }
 
   const existing = entryForDate(dateStr);
+  const routine = routineById(selectedRoutine);
   return {
     id: existing ? existing.id : (Date.now()+'-'+Math.random().toString(36).slice(2,7)),
     date: dateStr,
     pt: pt,
-    group: pt ? null : selectedGroup,
+    routineId: pt ? null : selectedRoutine,
+    group: pt ? null : (routine ? routine.label : selectedRoutine), // 기록 보기 태그 표시용
     exercises: exData,
     wgs: [...wgsChecks],
     cardio: cardioOn ? (cardioMin?parseInt(cardioMin):0) : null,
