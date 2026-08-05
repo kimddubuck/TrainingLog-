@@ -4,7 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>김상필 트레이닝 리포트</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+window.__chartReady = false;
+(function loadChart(){
+  var cdns = [
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js',
+    'https://esm.sh/chart.js@4.4.4/dist/chart.umd.js'
+  ];
+  var i = 0;
+  function tryNext(){
+    if(typeof Chart !== 'undefined'){ onReady(); return; }
+    if(i >= cdns.length){ console.error('모든 Chart CDN 실패'); return; }
+    var s = document.createElement('script');
+    s.src = cdns[i++];
+    s.onload = function(){ if(typeof Chart!=='undefined') onReady(); else tryNext(); };
+    s.onerror = tryNext;
+    document.head.appendChild(s);
+  }
+  function onReady(){
+    window.__chartReady = true;
+    try{
+      if(typeof renderGraph==='function' && document.getElementById('panel-graph') && document.getElementById('panel-graph').classList.contains('active')) renderGraph();
+      if(typeof renderIbChart==='function' && document.getElementById('panel-inbody') && document.getElementById('panel-inbody').classList.contains('active')) renderIbChart();
+    }catch(e){}
+  }
+  tryNext();
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
@@ -71,7 +99,7 @@
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v4</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v5</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -270,7 +298,7 @@ function exerciseSeries(exId){
 function renderGraph(){
   const statRow = document.getElementById('statRow');
   try{
-    if(typeof Chart === 'undefined'){ statRow.innerHTML = '<div class="empty" style="width:100%;">차트 라이브러리 로드 실패. 새로고침해주세요.</div>'; return; }
+    if(typeof Chart === 'undefined'){ statRow.innerHTML = '<div class="empty" style="width:100%;">차트를 불러오는 중이에요… 잠시 후 자동으로 표시돼요. (안 나오면 새로고침)</div>'; return; }
     const sel = document.getElementById('exerciseSelect');
     const val = sel.value || '__all__';
     const ctx = document.getElementById('progressChart').getContext('2d');
@@ -355,7 +383,7 @@ document.getElementById('ibMetricSelect').addEventListener('change', renderIbCha
 function renderIbChart(){
   const statRow = document.getElementById('ibStatRow');
   try{
-    if(typeof Chart === 'undefined'){ statRow.innerHTML = '<div class="empty" style="width:100%;">차트 라이브러리 로드 실패. 새로고침해주세요.</div>'; return; }
+    if(typeof Chart === 'undefined'){ statRow.innerHTML = '<div class="empty" style="width:100%;">차트를 불러오는 중이에요… 잠시 후 자동으로 표시돼요. (안 나오면 새로고침)</div>'; return; }
     const metric = document.getElementById('ibMetricSelect').value;
     const ctx = document.getElementById('ibChart').getContext('2d');
     if(ibChartInstance) ibChartInstance.destroy();
