@@ -356,6 +356,33 @@
     font-size:11px;color:var(--ink-faint);cursor:pointer;text-decoration:underline;
     text-align:right;margin-bottom:6px;
   }
+
+  /* History: summary + filter + month accordion */
+  .summary-row{display:flex;gap:8px;margin-bottom:14px;}
+  .summary-card{
+    flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:12px 8px;text-align:center;
+  }
+  .summary-card .sv{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent-a);line-height:1;}
+  .summary-card .sl{font-size:10.5px;color:var(--ink-faint);margin-top:4px;}
+  .filter-bar{display:flex;gap:6px;margin-bottom:14px;}
+  .fbtn{
+    flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:12.5px;font-weight:600;
+    border:1px solid var(--border);background:var(--surface-2);color:var(--ink-dim);cursor:pointer;
+  }
+  .fbtn.on{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
+  .month-group{margin-bottom:12px;}
+  .month-head{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:10px;
+    padding:11px 14px;cursor:pointer;user-select:none;
+  }
+  .month-head .mtitle{font-weight:600;font-size:14px;}
+  .month-head .mcount{font-size:12px;color:var(--ink-dim);}
+  .month-head .chev{color:var(--ink-faint);font-size:12px;transition:transform .15s;}
+  .month-group.open .chev{transform:rotate(90deg);}
+  .month-body{display:none;padding-top:10px;}
+  .month-group.open .month-body{display:block;}
 </style>
 </head>
 <body>
@@ -452,6 +479,8 @@
 
   <!-- HISTORY PANEL -->
   <div class="panel" id="panel-history">
+    <div id="historySummary"></div>
+    <div class="filter-bar" id="historyFilter"></div>
     <div id="historyList"></div>
   </div>
 
@@ -868,31 +897,25 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
 });
 
 // ---------- History ----------
-function renderHistory(){
-  const wrap = document.getElementById('historyList');
-  const sorted = [...entries].sort((a,b)=>b.date.localeCompare(a.date));
-  if(!sorted.length){
-    wrap.innerHTML = '<div class="empty">아직 기록이 없어요. 오늘 기록 탭에서 첫 운동을 저장해보세요.</div>';
-    return;
+let historyFilter = 'all'; // all | A | B | PT
+let openMonths = {}; // { 'YYYY-MM': true }
+
+function entryCardHTML(e){
+  const dow = DAY_NAMES[dayOfWeek(e.date)];
+  const tag = e.pt ? 'PT' : e.group;
+  let body = '';
+  if(!e.pt && e.exercises){
+    body += e.exercises.map(ex=>{
+      const setsTxt = ex.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+      return `<div><b>${ex.name}</b> ${setsTxt||'<span style="color:var(--ink-faint);">기록 없음</span>'}</div>`;
+    }).join('');
   }
-  wrap.innerHTML = '';
-  sorted.forEach(e=>{
-    const dow = DAY_NAMES[dayOfWeek(e.date)];
-    const tag = e.pt ? 'PT' : e.group;
-    const div = document.createElement('div');
-    div.className = 'hist-entry';
-    let body = '';
-    if(!e.pt){
-      body += e.exercises.map(ex=>{
-        const setsTxt = ex.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
-        return `<div><b>${ex.name}</b> ${setsTxt||'<span style="color:var(--ink-faint);">기록 없음</span>'}</div>`;
-      }).join('');
-    }
-    const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
-    const w = water[e.date] || 0;
-    body += `<div style="margin-top:6px;"><b>WGS스트레칭</b> ${wgsDone}/3세트${e.cardio!=null?` · <b>러닝머신</b> ${e.cardio}분`:''}</div>`;
-    body += `<div style="margin-top:2px;"><b>💧 수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
-    div.innerHTML = `
+  const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
+  const w = water[e.date] || 0;
+  body += `<div style="margin-top:6px;"><b>WGS스트레칭</b> ${wgsDone}/3세트${e.cardio!=null?` · <b>러닝머신</b> ${e.cardio}분`:''}</div>`;
+  body += `<div style="margin-top:2px;"><b>💧 수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
+  return `
+    <div class="hist-entry">
       <div class="hist-top">
         <div>
           <span class="hist-date">${e.date} (${dow})</span>
@@ -902,11 +925,83 @@ function renderHistory(){
       </div>
       <div class="hist-body">${body}</div>
       ${e.note?`<div class="hist-note">📝 ${e.note}</div>`:''}
-    `;
-    wrap.appendChild(div);
+    </div>`;
+}
+
+function renderHistorySummary(){
+  const wrap = document.getElementById('historySummary');
+  const now = new Date();
+  const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const thisMonth = entries.filter(e=>e.date.startsWith(ym));
+  const personal = thisMonth.filter(e=>!e.pt).length;
+  const ptCount = thisMonth.filter(e=>e.pt).length;
+  const waterVals = Object.keys(water).filter(d=>d.startsWith(ym)).map(d=>water[d]);
+  const avgWater = waterVals.length ? Math.round(waterVals.reduce((a,b)=>a+b,0)/waterVals.length) : 0;
+  wrap.innerHTML = `
+    <div class="summary-row">
+      <div class="summary-card"><div class="sv">${personal}</div><div class="sl">이번 달 개인운동</div></div>
+      <div class="summary-card"><div class="sv">${ptCount}</div><div class="sl">이번 달 PT</div></div>
+      <div class="summary-card"><div class="sv">${avgWater}</div><div class="sl">하루 평균 물(잔)</div></div>
+    </div>`;
+}
+
+function renderHistoryFilter(){
+  const wrap = document.getElementById('historyFilter');
+  const opts = [['all','전체'],['A','A'],['B','B'],['PT','PT']];
+  wrap.innerHTML = opts.map(([v,l])=>`<div class="fbtn ${historyFilter===v?'on':''}" data-f="${v}">${l}</div>`).join('');
+  wrap.querySelectorAll('.fbtn').forEach(btn=>{
+    btn.onclick = ()=>{ historyFilter = btn.dataset.f; renderHistory(); };
+  });
+}
+
+function renderHistory(){
+  renderHistorySummary();
+  renderHistoryFilter();
+  const wrap = document.getElementById('historyList');
+  let list = [...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if(historyFilter==='PT') list = list.filter(e=>e.pt);
+  else if(historyFilter==='A') list = list.filter(e=>!e.pt && e.group==='A');
+  else if(historyFilter==='B') list = list.filter(e=>!e.pt && e.group==='B');
+
+  if(!list.length){
+    wrap.innerHTML = '<div class="empty">해당하는 기록이 없어요.</div>';
+    return;
+  }
+
+  // group by month
+  const byMonth = {};
+  list.forEach(e=>{
+    const ym = e.date.slice(0,7); // YYYY-MM
+    (byMonth[ym] = byMonth[ym] || []).push(e);
+  });
+  const months = Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
+  // default: newest month open
+  if(Object.keys(openMonths).length===0 && months.length) openMonths[months[0]] = true;
+
+  wrap.innerHTML = months.map(ym=>{
+    const [y,m] = ym.split('-');
+    const isOpen = !!openMonths[ym];
+    const cards = byMonth[ym].map(entryCardHTML).join('');
+    return `
+      <div class="month-group ${isOpen?'open':''}" data-ym="${ym}">
+        <div class="month-head">
+          <span class="mtitle">${y}년 ${parseInt(m)}월</span>
+          <span><span class="mcount">${byMonth[ym].length}건</span> <span class="chev">▶</span></span>
+        </div>
+        <div class="month-body">${cards}</div>
+      </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.month-head').forEach(head=>{
+    head.onclick = ()=>{
+      const ym = head.parentElement.dataset.ym;
+      openMonths[ym] = !openMonths[ym];
+      head.parentElement.classList.toggle('open', openMonths[ym]);
+    };
   });
   wrap.querySelectorAll('.del-btn').forEach(btn=>{
-    btn.onclick = async ()=>{
+    btn.onclick = async (ev)=>{
+      ev.stopPropagation();
       entries = entries.filter(e=>e.id!==btn.dataset.id);
       await persistEntries();
       renderHistory();
