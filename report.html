@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>김상필 트레이닝 리포트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  :root{
+    --bg:#1B1F23; --surface:#242A2F; --surface-2:#2C333A;
+    --ink:#F2F0EA; --ink-dim:#93A0A8; --ink-faint:#5E6A72;
+    --accent-a:#E8A33D; --accent-a-dim:#4A3B24;
+    --accent-b:#4FA8A0; --accent-b-dim:#20393B;
+    --accent-pt:#C1666B; --accent-pt-dim:#3A2529;
+    --border:rgba(242,240,234,0.10); --border-strong:rgba(242,240,234,0.20);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans KR',sans-serif;-webkit-font-smoothing:antialiased;}
+  .app{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--ink-faint);text-transform:uppercase;margin:0 0 2px;}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.02em;margin:0;line-height:1;}
+  .sub{color:var(--ink-dim);font-size:12.5px;margin-top:6px;}
+  .tabs{display:flex;gap:6px;margin:18px 0;border-bottom:1px solid var(--border);}
+  .tab{flex:1;text-align:center;padding:10px 4px;font-size:13.5px;font-weight:600;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--ink);border-bottom-color:var(--accent-a);}
+  .panel{display:none;} .panel.active{display:block;}
+  .hist-entry{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  .hist-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .hist-date{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-dim);}
+  .hist-tag{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.02em;padding:2px 9px;border-radius:6px;}
+  .hist-tag.A{background:var(--accent-a-dim);color:var(--accent-a);}
+  .hist-tag.B{background:var(--accent-b-dim);color:var(--accent-b);}
+  .hist-tag.PT{background:var(--accent-pt-dim);color:var(--accent-pt);}
+  .hist-body{margin-top:10px;font-size:13px;color:var(--ink-dim);line-height:1.7;}
+  .hist-body b{color:var(--ink);font-weight:600;}
+  .hist-note{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12.5px;color:var(--ink-dim);}
+  .empty{text-align:center;color:var(--ink-faint);font-size:13px;padding:40px 10px;}
+  .summary-row{display:flex;gap:8px;margin-bottom:14px;}
+  .summary-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;}
+  .summary-card .sv{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent-a);line-height:1;}
+  .summary-card .sl{font-size:10.5px;color:var(--ink-faint);margin-top:4px;}
+  .filter-bar{display:flex;gap:6px;margin-bottom:14px;}
+  .fbtn{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--ink-dim);cursor:pointer;}
+  .fbtn.on{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
+  .month-group{margin-bottom:12px;}
+  .month-head{display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;cursor:pointer;user-select:none;}
+  .month-head .mtitle{font-weight:600;font-size:14px;}
+  .month-head .mcount{font-size:12px;color:var(--ink-dim);}
+  .month-head .chev{color:var(--ink-faint);font-size:12px;transition:transform .15s;}
+  .month-group.open .chev{transform:rotate(90deg);}
+  .month-body{display:none;padding-top:10px;}
+  .month-group.open .month-body{display:block;}
+  .ib-hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .ib-hist-date{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-dim);}
+  .ib-hist-vals{font-size:12px;color:var(--ink-dim);text-align:right;line-height:1.6;}
+  .ib-hist-vals b{color:var(--ink);}
+  .section-label{font-size:12px;color:var(--ink-dim);margin:0 0 8px;}
+  select{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px;font-family:'IBM Plex Sans KR',sans-serif;margin-bottom:14px;}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .stat-row{display:flex;gap:10px;margin-top:14px;}
+  .stat{flex:1;background:var(--surface-2);border-radius:10px;padding:10px;text-align:center;}
+  .stat .v{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent-a);}
+  .stat .l{font-size:10.5px;color:var(--ink-faint);margin-top:2px;}
+  .notice{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--ink-dim);margin-bottom:16px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
+  <h1>김상필 트레이닝 리포트</h1>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용</p>
+  <div class="notice" id="notice" style="display:none;"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="history">최근 기록</div>
+    <div class="tab" data-tab="graph">진행 그래프</div>
+    <div class="tab" data-tab="inbody">인바디</div>
+  </div>
+
+  <div class="panel active" id="panel-history">
+    <div id="historySummary"></div>
+    <div class="filter-bar" id="historyFilter"></div>
+    <div id="historyList"><div class="empty">불러오는 중...</div></div>
+  </div>
+  <div class="panel" id="panel-graph">
+    <select id="exerciseSelect"></select>
+    <div class="chart-card">
+      <canvas id="progressChart" height="220"></canvas>
+      <div class="stat-row" id="statRow"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-inbody">
+    <select id="ibMetricSelect">
+      <option value="__all__">전체 (체성분 종합)</option>
+      <option value="weight">체중 (kg)</option>
+      <option value="smm">골격근량 (kg)</option>
+      <option value="bfm">체지방량 (kg)</option>
+      <option value="bmi">BMI</option>
+      <option value="pbf">체지방률 (%)</option>
+    </select>
+    <div class="chart-card">
+      <canvas id="ibChart" height="220"></canvas>
+      <div class="stat-row" id="ibStatRow"></div>
+    </div>
+    <div id="ibHistory" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDB-qmTWEIPhdKc9xdcvBk6sjaXLSwIgOY",
+  authDomain: "training-log-377f4.firebaseapp.com",
+  projectId: "training-log-377f4",
+  storageBucket: "training-log-377f4.firebasestorage.app",
+  messagingSenderId: "286910060476",
+  appId: "1:286910060476:web:4f93133b6348aaba557db9"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const DEFAULT_MASTER = [
+  {id:'bench',name:'벤치프레스',part:'가슴'},{id:'ohp',name:'오버헤드프레스',part:'어깨'},{id:'pushdown',name:'케이블 푸쉬다운',part:'삼두'},
+  {id:'row',name:'인버티드로우',part:'등'},{id:'latpull',name:'암풀다운',part:'등'},{id:'squat',name:'가블릿스쿼트',part:'하체'}
+];
+const DAY_NAMES = ['일','월','화','수','목','금','토'];
+const CUP_ML = 165;
+let entries = [], water = {}, masterExercises = [], inbody = [];
+
+function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
+function allExercises(){ return masterExercises; }
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab==='graph') renderGraph();
+    if(tab.dataset.tab==='inbody') renderIbChart();
+  });
+});
+
+let historyFilter = 'all';
+let openMonths = {};
+
+function entryCardHTML(e){
+  const dow = DAY_NAMES[dayOfWeek(e.date)];
+  const tag = e.pt ? 'PT' : e.group;
+  let body = '';
+  if(!e.pt && e.exercises){
+    body += e.exercises.map(ex=>{
+      const setsTxt = ex.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+      return `<div><b>${ex.name}</b> ${setsTxt||'<span style="color:var(--ink-faint);">기록 없음</span>'}</div>`;
+    }).join('');
+  }
+  const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
+  const w = water[e.date] || 0;
+  body += `<div style="margin-top:6px;"><b>WGS스트레칭</b> ${wgsDone}/3세트${e.cardio!=null?` · <b>러닝머신</b> ${e.cardio}분`:''}</div>`;
+  body += `<div style="margin-top:2px;"><b>수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
+  return `
+    <div class="hist-entry">
+      <div class="hist-top">
+        <span class="hist-date">${e.date} (${dow})</span>
+        <span class="hist-tag ${tag}">${tag}</span>
+      </div>
+      <div class="hist-body">${body}</div>
+      ${e.note?`<div class="hist-note">📝 ${e.note}</div>`:''}
+    </div>`;
+}
+
+function renderHistorySummary(){
+  const wrap = document.getElementById('historySummary');
+  const now = new Date();
+  const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const thisMonth = entries.filter(e=>e.date.startsWith(ym));
+  const personal = thisMonth.filter(e=>!e.pt).length;
+  const ptCount = thisMonth.filter(e=>e.pt).length;
+  const waterVals = Object.keys(water).filter(d=>d.startsWith(ym)).map(d=>water[d]);
+  const avgWater = waterVals.length ? Math.round(waterVals.reduce((a,b)=>a+b,0)/waterVals.length) : 0;
+  wrap.innerHTML = `
+    <div class="summary-row">
+      <div class="summary-card"><div class="sv">${personal}</div><div class="sl">이번 달 개인운동</div></div>
+      <div class="summary-card"><div class="sv">${ptCount}</div><div class="sl">이번 달 PT</div></div>
+      <div class="summary-card"><div class="sv">${avgWater}</div><div class="sl">하루 평균 물(잔)</div></div>
+    </div>`;
+}
+
+function renderHistoryFilter(){
+  const wrap = document.getElementById('historyFilter');
+  const opts = [['all','전체'],['A','A'],['B','B'],['PT','PT']];
+  wrap.innerHTML = opts.map(([v,l])=>`<div class="fbtn ${historyFilter===v?'on':''}" data-f="${v}">${l}</div>`).join('');
+  wrap.querySelectorAll('.fbtn').forEach(btn=>{
+    btn.onclick = ()=>{ historyFilter = btn.dataset.f; renderHistory(); };
+  });
+}
+
+function renderHistory(){
+  renderHistorySummary();
+  renderHistoryFilter();
+  const wrap = document.getElementById('historyList');
+  let list = [...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if(historyFilter==='PT') list = list.filter(e=>e.pt);
+  else if(historyFilter==='A') list = list.filter(e=>!e.pt && e.group==='A');
+  else if(historyFilter==='B') list = list.filter(e=>!e.pt && e.group==='B');
+
+  if(!list.length){ wrap.innerHTML = '<div class="empty">해당하는 기록이 없어요.</div>'; return; }
+
+  const byMonth = {};
+  list.forEach(e=>{ const ym=e.date.slice(0,7); (byMonth[ym]=byMonth[ym]||[]).push(e); });
+  const months = Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
+  if(Object.keys(openMonths).length===0 && months.length) openMonths[months[0]] = true;
+
+  wrap.innerHTML = months.map(ym=>{
+    const [y,m] = ym.split('-');
+    const isOpen = !!openMonths[ym];
+    const cards = byMonth[ym].map(entryCardHTML).join('');
+    return `
+      <div class="month-group ${isOpen?'open':''}" data-ym="${ym}">
+        <div class="month-head">
+          <span class="mtitle">${y}년 ${parseInt(m)}월</span>
+          <span><span class="mcount">${byMonth[ym].length}건</span> <span class="chev">▶</span></span>
+        </div>
+        <div class="month-body">${cards}</div>
+      </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.month-head').forEach(head=>{
+    head.onclick = ()=>{
+      const ym = head.parentElement.dataset.ym;
+      openMonths[ym] = !openMonths[ym];
+      head.parentElement.classList.toggle('open', openMonths[ym]);
+    };
+  });
+}
+
+const CHART_COLORS = ['#E8A33D','#4FA8A0','#A78BD4','#C1666B','#6FB8DE','#8FBF66','#D98C5F','#7F9CF5'];
+let chartInstance = null;
+function populateExerciseSelect(){
+  const sel = document.getElementById('exerciseSelect');
+  const opts = ['<option value="__all__">전체 (모든 종목)</option>']
+    .concat(allExercises().map(ex=>`<option value="${ex.id}">${ex.name}</option>`));
+  sel.innerHTML = opts.join('');
+}
+function exerciseSeries(exId){
+  const points = [];
+  entries.filter(e=>!e.pt && e.exercises).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    const ex = e.exercises.find(x=>x.id===exId);
+    if(!ex) return;
+    const weights = ex.sets.map(s=>s.weight).filter(w=>w!=null);
+    if(!weights.length) return;
+    points.push({ date:e.date, top: Math.max(...weights) });
+  });
+  return points;
+}
+function renderGraph(){
+  const sel = document.getElementById('exerciseSelect');
+  const val = sel.value || '__all__';
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+  const statRow = document.getElementById('statRow');
+
+  if(val === '__all__'){
+    const dateSet = new Set(); const perEx = {};
+    allExercises().forEach(ex=>{
+      const s = exerciseSeries(ex.id);
+      if(s.length){ perEx[ex.id]={name:ex.name, map:Object.fromEntries(s.map(p=>[p.date,p.top]))}; s.forEach(p=>dateSet.add(p.date)); }
+    });
+    const dates=[...dateSet].sort(); const exIds=Object.keys(perEx);
+    if(!exIds.length){
+      statRow.innerHTML = '<div class="empty" style="width:100%;">아직 무게 기록이 없어요.</div>';
+      chartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+      return;
+    }
+    const datasets = exIds.map((id,i)=>{ const c=CHART_COLORS[i%CHART_COLORS.length];
+      return {label:perEx[id].name, data:dates.map(d=>perEx[id].map[d]??null), borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:3, pointBackgroundColor:c, spanGaps:true}; });
+    chartInstance = new Chart(ctx,{ type:'line', data:{labels:dates.map(d=>d.slice(5)), datasets},
+      options:{ plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12}}},
+        scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
+                 y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } } });
+    statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${exIds.length}</div><div class="l">기록된 종목 수</div></div>`;
+    return;
+  }
+
+  const points = exerciseSeries(val);
+  if(!points.length){
+    chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]}, options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
+    statRow.innerHTML = '<div class="empty" style="width:100%;">이 운동에 대한 기록이 아직 없어요.</div>';
+    return;
+  }
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{ labels: points.map(p=>p.date.slice(5)),
+      datasets:[{ label:'최고 세트 무게(kg)', data: points.map(p=>p.top),
+        borderColor:'#E8A33D', backgroundColor:'rgba(232,163,61,0.15)',
+        tension:0.3, fill:true, pointRadius:3, pointBackgroundColor:'#E8A33D' }] },
+    options:{ plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
+               y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } }
+  });
+  const first=points[0].top, last=points[points.length-1].top, max=Math.max(...points.map(p=>p.top));
+  statRow.innerHTML = `
+    <div class="stat"><div class="v">${last}kg</div><div class="l">최근 기록</div></div>
+    <div class="stat"><div class="v">${max}kg</div><div class="l">최고 기록</div></div>
+    <div class="stat"><div class="v">${last-first>=0?'+':''}${(last-first).toFixed(1)}kg</div><div class="l">전체 변화</div></div>
+  `;
+}
+document.getElementById('exerciseSelect').addEventListener('change', renderGraph);
+
+// ---------- InBody ----------
+const IB_METRICS = [
+  {key:'weight', label:'체중', unit:'kg'},
+  {key:'smm', label:'골격근량', unit:'kg'},
+  {key:'bfm', label:'체지방량', unit:'kg'},
+  {key:'bmi', label:'BMI', unit:''},
+  {key:'pbf', label:'체지방률', unit:'%'},
+];
+let ibChartInstance = null;
+document.getElementById('ibMetricSelect').addEventListener('change', renderIbChart);
+function renderIbChart(){
+  const metric = document.getElementById('ibMetricSelect').value;
+  const ctx = document.getElementById('ibChart').getContext('2d');
+  if(ibChartInstance) ibChartInstance.destroy();
+  const statRow = document.getElementById('ibStatRow');
+
+  if(metric === '__all__'){
+    const sorted = [...inbody].sort((a,b)=>a.date.localeCompare(b.date));
+    if(!sorted.length){
+      statRow.innerHTML = '<div class="empty" style="width:100%;">아직 인바디 기록이 없어요.</div>';
+      ibChartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+      renderIbHistory();
+      return;
+    }
+    const labels = sorted.map(r=>r.date.slice(5));
+    const datasets = IB_METRICS.map((m,i)=>{ const c=CHART_COLORS[i%CHART_COLORS.length];
+      return {label:m.label, data:sorted.map(r=>r[m.key]??null), borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:3, pointBackgroundColor:c, spanGaps:true}; });
+    ibChartInstance = new Chart(ctx,{ type:'line', data:{labels, datasets},
+      options:{ plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12}}},
+        scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
+                 y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } } });
+    statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${sorted.length}</div><div class="l">측정 횟수</div></div>`;
+    renderIbHistory();
+    return;
+  }
+
+  const meta = IB_METRICS.find(m=>m.key===metric);
+  const points = [...inbody].filter(r=>r[metric]!=null).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!points.length){
+    ibChartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+    statRow.innerHTML = '<div class="empty" style="width:100%;">아직 인바디 기록이 없어요.</div>';
+    renderIbHistory();
+    return;
+  }
+  ibChartInstance = new Chart(ctx,{
+    type:'line',
+    data:{ labels: points.map(p=>p.date.slice(5)),
+      datasets:[{ label:meta.label, data:points.map(p=>p[metric]),
+        borderColor:'#4FA8A0', backgroundColor:'rgba(79,168,160,0.15)',
+        tension:0.3, fill:true, pointRadius:3, pointBackgroundColor:'#4FA8A0' }] },
+    options:{ plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
+               y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } }
+  });
+  const first=points[0][metric], last=points[points.length-1][metric], diff=last-first;
+  statRow.innerHTML = `
+    <div class="stat"><div class="v">${last}${meta.unit}</div><div class="l">최근</div></div>
+    <div class="stat"><div class="v">${first}${meta.unit}</div><div class="l">처음</div></div>
+    <div class="stat"><div class="v">${diff>=0?'+':''}${diff.toFixed(1)}${meta.unit}</div><div class="l">변화</div></div>
+  `;
+  renderIbHistory();
+}
+function renderIbHistory(){
+  const wrap = document.getElementById('ibHistory');
+  const sorted = [...inbody].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = '<p class="section-label" style="margin-bottom:8px;">측정 기록</p>' + sorted.map(r=>{
+    const vals = IB_METRICS.filter(m=>r[m.key]!=null).map(m=>`${m.label} <b>${r[m.key]}${m.unit}</b>`).join(' · ');
+    return `<div class="ib-hist-item"><span class="ib-hist-date">${r.date}</span><span class="ib-hist-vals">${vals}</span></div>`;
+  }).join('');
+}
+
+(async function init(){
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get('uid');
+  const notice = document.getElementById('notice');
+  if(!uid){
+    notice.style.display = 'block';
+    notice.textContent = '링크에 uid 파라미터가 없어요. 예: report.html?uid=본인UID';
+    document.getElementById('historyList').innerHTML = '';
+    return;
+  }
+  try{
+    const snap = await db.collection('users').doc(uid).collection('log').doc('data').get();
+    const data = snap.exists ? snap.data() : {};
+    entries = data.entries || [];
+    water = data.water || {};
+    inbody = data.inbody || [];
+    if(Array.isArray(data.masterExercises) && data.masterExercises.length){
+      masterExercises = data.masterExercises;
+    }else{
+      // 구버전 호환: 기본 종목 + entries에 등장한 종목 흡수
+      masterExercises = DEFAULT_MASTER.map(e=>({...e}));
+      (data.customExercises||[]).forEach(c=>{
+        masterExercises.push({id:c.id, name:c.name.replace(/^\d+\.\s*/,''), part:''});
+      });
+      entries.forEach(en=>(en.exercises||[]).forEach(ex=>{
+        if(!masterExercises.find(m=>m.id===ex.id)) masterExercises.push({id:ex.id, name:ex.name.replace(/^\d+\.\s*/,''), part:''});
+      }));
+    }
+  }catch(e){
+    notice.style.display = 'block';
+    notice.textContent = '데이터를 불러오지 못했어요.';
+  }
+  renderHistory();
+  populateExerciseSelect();
+})();
+</script>
+</body>
+</html>
