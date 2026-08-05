@@ -14,6 +14,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -192,10 +193,11 @@
   .ex-check .exlabel{font-size:13.5px;}
   .ex-check .expart{font-size:11px;color:var(--ink-faint);margin-left:auto;}
 
-  .add-inline{display:flex;gap:8px;margin-top:12px;}
-  .add-inline input{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:9px 10px;font-size:13px;font-family:'IBM Plex Sans KR',sans-serif;}
-  .add-inline input.part-in{flex:0 0 90px;}
-  .add-inline button{border:none;border-radius:8px;background:var(--accent-a);color:#1B1F23;font-weight:700;font-size:13px;padding:0 14px;cursor:pointer;white-space:nowrap;}
+  .add-inline{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .add-inline input{flex:1 1 100%;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:10px 11px;font-size:13.5px;font-family:'IBM Plex Sans KR',sans-serif;}
+  .add-inline .part-in{flex:1 1 0;min-width:0;}
+  .add-inline button{flex:0 0 auto;border:none;border-radius:8px;background:var(--accent-a);color:#1B1F23;font-weight:700;font-size:13.5px;padding:10px 18px;cursor:pointer;white-space:nowrap;}
+  .add-inline .second-row{display:flex;gap:8px;flex:1 1 100%;}
 
   .master-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);}
   .master-item:first-of-type{border-top:none;}
@@ -437,6 +439,36 @@
   .month-group.open .chev{transform:rotate(90deg);}
   .month-body{display:none;padding-top:10px;}
   .month-group.open .month-body{display:block;}
+
+  /* InBody */
+  .ib-upload{
+    border:1.5px dashed var(--border-strong);border-radius:12px;padding:22px 14px;
+    text-align:center;cursor:pointer;background:var(--surface-2);
+  }
+  .ib-upload:active{background:var(--surface-3);}
+  .ib-upload-icon{font-size:28px;}
+  .ib-upload-text{font-size:14px;font-weight:600;margin-top:6px;}
+  .ib-upload-sub{font-size:11.5px;color:var(--ink-faint);margin-top:3px;}
+  .ib-ocr-status{font-size:12px;color:var(--accent-b);margin-top:10px;min-height:16px;text-align:center;}
+  .ib-fields{margin-top:8px;}
+  .ib-field{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border);}
+  .ib-field:first-child{border-top:none;}
+  .ib-field .iblabel{flex:1;font-size:13.5px;}
+  .ib-field input{
+    flex:0 0 110px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);
+    border-radius:8px;padding:9px 10px;font-family:'IBM Plex Mono',monospace;font-size:14px;text-align:right;
+  }
+  .ib-field .ibunit{flex:0 0 40px;font-size:12px;color:var(--ink-faint);}
+  .ib-preview{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--border);display:none;}
+  .ib-preview img{width:100%;display:block;}
+  .ib-hist-item{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .ib-hist-date{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-dim);}
+  .ib-hist-vals{font-size:12px;color:var(--ink-dim);text-align:right;line-height:1.6;}
+  .ib-hist-vals b{color:var(--ink);}
+  .ib-hist-item .del-btn{background:none;border:none;color:var(--ink-faint);font-size:12px;cursor:pointer;margin-left:10px;}
 </style>
 </head>
 <body>
@@ -468,6 +500,7 @@
     <div class="tab active" data-tab="log">오늘 기록</div>
     <div class="tab" data-tab="history">기록 보기</div>
     <div class="tab" data-tab="graph">진행 그래프</div>
+    <div class="tab" data-tab="inbody">인바디</div>
   </div>
 
   <!-- LOG PANEL -->
@@ -560,6 +593,42 @@
     </div>
   </div>
 
+  <!-- INBODY PANEL -->
+  <div class="panel" id="panel-inbody">
+    <div class="card">
+      <div class="ib-upload" id="ibUpload">
+        <div class="ib-upload-icon">📷</div>
+        <div class="ib-upload-text">인바디 결과 사진 올리기</div>
+        <div class="ib-upload-sub">사진 속 숫자를 자동으로 읽어 채워드려요</div>
+        <input type="file" id="ibFile" accept="image/*" style="display:none;">
+      </div>
+      <div class="ib-ocr-status" id="ibOcrStatus"></div>
+
+      <label class="field-label" style="margin-top:14px;">측정 날짜</label>
+      <input type="date" id="ibDate">
+
+      <div class="ib-fields" id="ibFields"></div>
+
+      <button class="save-btn" id="ibSaveBtn" style="margin-top:16px;">인바디 기록 저장</button>
+    </div>
+
+    <div class="select-wrap" style="margin-top:16px;">
+      <select id="ibMetricSelect">
+        <option value="weight">체중 (kg)</option>
+        <option value="smm">골격근량 (kg)</option>
+        <option value="bfm">체지방량 (kg)</option>
+        <option value="bmi">BMI</option>
+        <option value="pbf">체지방률 (%)</option>
+      </select>
+    </div>
+    <div class="chart-card">
+      <canvas id="ibChart" height="220"></canvas>
+      <div class="stat-row" id="ibStatRow"></div>
+    </div>
+
+    <div id="ibHistory" style="margin-top:16px;"></div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -637,6 +706,7 @@ function allExercises(){ return masterExercises; }
 
 const CUP_ML = 165;
 let water = {}; // { 'YYYY-MM-DD': count }
+let inbody = []; // [{date, weight, smm, bfm, bmi, pbf}]
 const PT_DAYS = [2,5]; // Tue, Fri (0=Sun)
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
@@ -698,9 +768,10 @@ async function loadAllData(){
     data = snap.exists ? snap.data() : {};
     entries = data.entries || [];
     water = data.water || {};
+    inbody = data.inbody || [];
   }catch(e){
     console.error('load failed', e);
-    entries = []; water = {};
+    entries = []; water = {}; inbody = [];
   }
 
   // ----- 종목/루틴 로드 + 구버전 마이그레이션 -----
@@ -740,6 +811,10 @@ async function persistEntries(){
 async function persistWater(){
   try{ await docRef.set({ water }, { merge:true }); }
   catch(e){ console.error('water save failed', e); }
+}
+async function persistInbody(){
+  try{ await docRef.set({ inbody }, { merge:true }); }
+  catch(e){ console.error('inbody save failed', e); }
 }
 function renderWaterCounter(){
   const dateStr = document.getElementById('dateInput').value;
@@ -793,6 +868,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
     if(tab.dataset.tab==='history') renderHistory();
     if(tab.dataset.tab==='graph') renderGraph();
+    if(tab.dataset.tab==='inbody') renderInbody();
   });
 });
 
@@ -952,8 +1028,10 @@ function renderManageRoutines(){
   });
   html += `<div class="add-inline">
     <input type="text" id="newRoutineName" placeholder="새 루틴 이름 (예: C)">
-    <input type="text" id="newRoutineSub" class="part-in" placeholder="설명(선택)" style="flex:0 0 110px;">
-    <button id="addRoutineBtn">루틴 추가</button>
+    <div class="second-row">
+      <input type="text" id="newRoutineSub" class="part-in" placeholder="설명(선택)">
+      <button id="addRoutineBtn">루틴 추가</button>
+    </div>
   </div>`;
   wrap.innerHTML = html;
 
@@ -993,8 +1071,10 @@ function renderManageMaster(){
   if(!masterExercises.length) html += '<p class="section-label">아직 종목이 없어요.</p>';
   html += `<div class="add-inline">
     <input type="text" id="newMasterName" placeholder="운동 이름 (예: 랫풀다운)">
-    <input type="text" id="newMasterPart" class="part-in" placeholder="부위">
-    <button id="addMasterBtn">추가</button>
+    <div class="second-row">
+      <input type="text" id="newMasterPart" class="part-in" placeholder="부위 (예: 등)">
+      <button id="addMasterBtn">추가</button>
+    </div>
   </div>`;
   wrap.innerHTML = html;
 
@@ -1229,6 +1309,196 @@ function renderHistory(){
       await persistEntries();
       renderHistory();
       renderWeekBoard();
+    };
+  });
+}
+
+// ---------- InBody ----------
+const IB_METRICS = [
+  {key:'weight', label:'체중', unit:'kg'},
+  {key:'smm',    label:'골격근량', unit:'kg'},
+  {key:'bfm',    label:'체지방량', unit:'kg'},
+  {key:'bmi',    label:'BMI', unit:''},
+  {key:'pbf',    label:'체지방률', unit:'%'},
+];
+
+function renderIbFields(prefill){
+  const wrap = document.getElementById('ibFields');
+  wrap.innerHTML = IB_METRICS.map(m=>`
+    <div class="ib-field">
+      <span class="iblabel">${m.label}</span>
+      <input type="number" step="0.1" id="ib-${m.key}" placeholder="0" value="${prefill&&prefill[m.key]!=null?prefill[m.key]:''}">
+      <span class="ibunit">${m.unit}</span>
+    </div>`).join('');
+}
+
+function inbodyForDate(dateStr){ return inbody.find(r=>r.date===dateStr) || null; }
+
+function renderInbody(){
+  const dateInput = document.getElementById('ibDate');
+  if(!dateInput.value) dateInput.value = todayStr();
+  renderIbFields(inbodyForDate(dateInput.value));
+  renderIbChart();
+  renderIbHistory();
+}
+
+document.getElementById('ibDate').addEventListener('change', ()=>{
+  renderIbFields(inbodyForDate(document.getElementById('ibDate').value));
+});
+
+// --- 사진 업로드 + OCR 자동인식 ---
+document.getElementById('ibUpload').addEventListener('click', ()=>{
+  document.getElementById('ibFile').click();
+});
+document.getElementById('ibFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const status = document.getElementById('ibOcrStatus');
+  status.textContent = '사진에서 숫자를 읽는 중... (10~20초)';
+
+  try{
+    const url = URL.createObjectURL(file);
+    // 왼쪽 값 컬럼만 잘라 인식률을 높인다
+    const cropped = await cropLeftColumn(url);
+    const { data } = await Tesseract.recognize(cropped, 'eng', {
+      tessedit_char_whitelist: '0123456789.'
+    });
+    const parsed = parseInbodyText(data.text);
+    if(Object.keys(parsed).length){
+      // 날짜도 원본에서 시도
+      const dateGuess = await tryReadDate(url);
+      if(dateGuess) document.getElementById('ibDate').value = dateGuess;
+      renderIbFields(parsed);
+      status.textContent = '✓ 읽었어요. 값이 맞는지 확인하고 저장하세요.';
+    }else{
+      status.textContent = '숫자를 잘 못 읽었어요. 직접 입력해주세요.';
+    }
+    URL.revokeObjectURL(url);
+  }catch(err){
+    console.error(err);
+    status.textContent = '인식 실패. 직접 입력해주세요.';
+  }
+});
+
+// 이미지 왼쪽 42% 컬럼만 크롭 (큰 숫자들이 있는 영역)
+function cropLeftColumn(url){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const cw = Math.floor(img.width*0.45);
+      const canvas = document.createElement('canvas');
+      // 2배 확대 + 그레이스케일로 인식률 향상
+      canvas.width = cw*2; canvas.height = img.height*2;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0,0, cw,img.height, 0,0, cw*2,img.height*2);
+      const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const d = imgData.data;
+      for(let i=0;i<d.length;i+=4){
+        const g = 0.3*d[i]+0.59*d[i+1]+0.11*d[i+2];
+        d[i]=d[i+1]=d[i+2]=g;
+      }
+      ctx.putImageData(imgData,0,0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// OCR 텍스트에서 값 5개 추출: 각 줄 첫 소수 중 "0.0"(변화값) 제외
+function parseInbodyText(text){
+  const keys = ['weight','smm','bfm','bmi','pbf'];
+  const vals = [];
+  text.split('\n').forEach(line=>{
+    const m = line.match(/(\d{1,3}\.\d)/);
+    if(m && m[1] !== '0.0') vals.push(parseFloat(m[1]));
+  });
+  const out = {};
+  keys.forEach((k,i)=>{ if(vals[i]!=null) out[k]=vals[i]; });
+  return out;
+}
+
+// 날짜 읽기 시도 (오른쪽 상단 2026.07.06 형태)
+async function tryReadDate(url){
+  try{
+    const { data } = await Tesseract.recognize(url, 'eng', { tessedit_char_whitelist:'0123456789.' });
+    const m = data.text.match(/(20\d{2})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+    if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  }catch(e){}
+  return null;
+}
+
+document.getElementById('ibSaveBtn').addEventListener('click', async ()=>{
+  const dateStr = document.getElementById('ibDate').value;
+  if(!dateStr){ showToast('날짜를 선택하세요'); return; }
+  const rec = { date: dateStr };
+  let hasVal = false;
+  IB_METRICS.forEach(m=>{
+    const v = document.getElementById('ib-'+m.key).value;
+    rec[m.key] = v ? parseFloat(v) : null;
+    if(v) hasVal = true;
+  });
+  if(!hasVal){ showToast('값을 하나 이상 입력하세요'); return; }
+  inbody = inbody.filter(r=>r.date!==dateStr);
+  inbody.push(rec);
+  await persistInbody();
+  document.getElementById('ibOcrStatus').textContent = '';
+  showToast('인바디 기록 저장했어요');
+  renderIbChart();
+  renderIbHistory();
+});
+
+let ibChartInstance = null;
+document.getElementById('ibMetricSelect').addEventListener('change', renderIbChart);
+function renderIbChart(){
+  const metric = document.getElementById('ibMetricSelect').value;
+  const meta = IB_METRICS.find(m=>m.key===metric);
+  const points = [...inbody].filter(r=>r[metric]!=null).sort((a,b)=>a.date.localeCompare(b.date));
+  const ctx = document.getElementById('ibChart').getContext('2d');
+  if(ibChartInstance) ibChartInstance.destroy();
+  const statRow = document.getElementById('ibStatRow');
+  if(!points.length){
+    ibChartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+    statRow.innerHTML = '<div class="empty" style="width:100%;">아직 인바디 기록이 없어요.</div>';
+    return;
+  }
+  ibChartInstance = new Chart(ctx,{
+    type:'line',
+    data:{ labels: points.map(p=>p.date.slice(5)),
+      datasets:[{ label:meta.label, data:points.map(p=>p[metric]),
+        borderColor:'#4FA8A0', backgroundColor:'rgba(79,168,160,0.15)',
+        tension:0.3, fill:true, pointRadius:3, pointBackgroundColor:'#4FA8A0' }] },
+    options:{ plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}},
+               y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } }
+  });
+  const first=points[0][metric], last=points[points.length-1][metric];
+  const diff = (last-first);
+  statRow.innerHTML = `
+    <div class="stat"><div class="v">${last}${meta.unit}</div><div class="l">최근</div></div>
+    <div class="stat"><div class="v">${first}${meta.unit}</div><div class="l">처음</div></div>
+    <div class="stat"><div class="v">${diff>=0?'+':''}${diff.toFixed(1)}${meta.unit}</div><div class="l">변화</div></div>
+  `;
+}
+
+function renderIbHistory(){
+  const wrap = document.getElementById('ibHistory');
+  const sorted = [...inbody].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<p class="section-label" style="margin-bottom:8px;">측정 기록</p>' + sorted.map(r=>{
+    const vals = IB_METRICS.filter(m=>r[m.key]!=null).map(m=>`${m.label} <b>${r[m.key]}${m.unit}</b>`).join(' · ');
+    return `<div class="ib-hist-item">
+      <span class="ib-hist-date">${r.date}</span>
+      <span class="ib-hist-vals">${vals}</span>
+      <button class="del-btn" data-ibdate="${r.date}">삭제</button>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.onclick = async ()=>{
+      inbody = inbody.filter(r=>r.date!==btn.dataset.ibdate);
+      await persistInbody();
+      renderIbChart();
+      renderIbHistory();
     };
   });
 }
