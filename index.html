@@ -498,6 +498,20 @@ window.__chartReady = false;
   .ib-hist-vals{font-size:12px;color:var(--ink-dim);text-align:right;line-height:1.6;}
   .ib-hist-vals b{color:var(--ink);}
   .ib-hist-item .del-btn{background:none;border:none;color:var(--ink-faint);font-size:12px;cursor:pointer;margin-left:10px;}
+
+  /* 최신 인바디 요약 (인바디 앱 스타일) */
+  .ib-latest-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;}
+  .ib-latest-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .ib-latest-head .t{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.02em;}
+  .ib-latest-head .d{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-faint);}
+  .ib-latest-img{width:100%;border-radius:10px;display:block;margin-bottom:14px;border:1px solid var(--border);}
+  .ib-metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .ib-metric{background:var(--surface-2);border-radius:10px;padding:11px 12px;}
+  .ib-metric .mlabel{font-size:11.5px;color:var(--ink-dim);}
+  .ib-metric .mval{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1.1;margin-top:2px;}
+  .ib-metric .mval .u{font-family:'IBM Plex Sans KR';font-size:12px;color:var(--ink-faint);font-weight:400;margin-left:2px;}
+  .ib-metric .mdiff{font-size:11px;margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+  .ib-metric .mdiff.up{color:#6FB8DE;} .ib-metric .mdiff.down{color:#C1666B;} .ib-metric .mdiff.same{color:var(--ink-faint);}
 </style>
 </head>
 <body>
@@ -520,7 +534,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v7</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v8</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -624,6 +638,9 @@ window.__chartReady = false;
 
   <!-- INBODY PANEL -->
   <div class="panel" id="panel-inbody">
+    <!-- 최신 인바디 요약: 원본 이미지 + 수치 카드 -->
+    <div id="ibLatest"></div>
+
     <div class="card">
       <div class="ib-upload" id="ibUpload">
         <div class="ib-upload-icon">📷</div>
@@ -1401,13 +1418,50 @@ function renderInbody(){
   const dateInput = document.getElementById('ibDate');
   if(!dateInput.value) dateInput.value = todayStr();
   renderIbFields(inbodyForDate(dateInput.value));
+  renderIbLatest();
   renderIbChart();
   renderIbHistory();
+}
+
+// 최신 인바디 요약(원본 이미지 + 수치 카드) 렌더
+function renderIbLatest(){
+  const wrap = document.getElementById('ibLatest');
+  if(!inbody.length){ wrap.innerHTML = ''; return; }
+  const sorted = [...inbody].sort((a,b)=>b.date.localeCompare(a.date));
+  const latest = sorted[0];
+  const prev = sorted[1]; // 직전 측정(변화량 계산용)
+  const imgHtml = latest.image
+    ? `<img class="ib-latest-img" src="${latest.image}" alt="인바디 결과">`
+    : '';
+  const cards = IB_METRICS.map(m=>{
+    const v = latest[m.key];
+    if(v==null) return '';
+    let diffHtml = '';
+    if(prev && prev[m.key]!=null){
+      const d = +(v - prev[m.key]).toFixed(1);
+      const cls = d>0?'up':(d<0?'down':'same');
+      diffHtml = `<div class="mdiff ${cls}">${d>0?'▲ +':d<0?'▼ ':''}${d===0?'변화 없음':Math.abs(d)+m.unit}</div>`;
+    }
+    return `<div class="ib-metric">
+      <div class="mlabel">${m.label}</div>
+      <div class="mval">${v}<span class="u">${m.unit}</span></div>
+      ${diffHtml}
+    </div>`;
+  }).filter(Boolean).join('');
+  wrap.innerHTML = `
+    <div class="ib-latest-card">
+      <div class="ib-latest-head"><span class="t">최근 인바디</span><span class="d">${latest.date}</span></div>
+      ${imgHtml}
+      <div class="ib-metric-grid">${cards}</div>
+    </div>`;
 }
 
 document.getElementById('ibDate').addEventListener('change', ()=>{
   renderIbFields(inbodyForDate(document.getElementById('ibDate').value));
 });
+
+// 방금 업로드한 이미지(압축본) 임시 보관
+let pendingIbImage = null;
 
 // --- 사진 업로드 + OCR 자동인식 ---
 document.getElementById('ibUpload').addEventListener('click', ()=>{
@@ -1421,6 +1475,8 @@ document.getElementById('ibFile').addEventListener('change', async (e)=>{
 
   try{
     const url = URL.createObjectURL(file);
+    // 저장용 이미지 압축본 준비 (원본 그대로 보여주되 용량 절감)
+    pendingIbImage = await compressImage(url, 900, 0.7);
     // 왼쪽 값 컬럼만 잘라 인식률을 높인다
     const cropped = await cropLeftColumn(url);
     const { data } = await Tesseract.recognize(cropped, 'eng', {
@@ -1428,13 +1484,12 @@ document.getElementById('ibFile').addEventListener('change', async (e)=>{
     });
     const parsed = parseInbodyText(data.text);
     if(Object.keys(parsed).length){
-      // 날짜도 원본에서 시도
       const dateGuess = await tryReadDate(url);
       if(dateGuess) document.getElementById('ibDate').value = dateGuess;
       renderIbFields(parsed);
-      status.textContent = '✓ 읽었어요. 값이 맞는지 확인하고 저장하세요.';
+      status.textContent = '✓ 읽었어요. 값이 맞는지 확인하고 저장하세요. (이미지도 함께 저장됩니다)';
     }else{
-      status.textContent = '숫자를 잘 못 읽었어요. 직접 입력해주세요.';
+      status.textContent = '숫자를 잘 못 읽었어요. 직접 입력해주세요. (이미지는 저장됩니다)';
     }
     URL.revokeObjectURL(url);
   }catch(err){
@@ -1442,6 +1497,24 @@ document.getElementById('ibFile').addEventListener('change', async (e)=>{
     status.textContent = '인식 실패. 직접 입력해주세요.';
   }
 });
+
+// 이미지를 최대폭 maxW로 축소 + JPEG 압축하여 dataURL 반환
+function compressImage(url, maxW, quality){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width*scale);
+      canvas.height = Math.round(img.height*scale);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0,0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 
 // 이미지 왼쪽 42% 컬럼만 크롭 (큰 숫자들이 있는 영역)
 function cropLeftColumn(url){
@@ -1502,11 +1575,25 @@ document.getElementById('ibSaveBtn').addEventListener('click', async ()=>{
     if(v) hasVal = true;
   });
   if(!hasVal){ showToast('값을 하나 이상 입력하세요'); return; }
+
+  // 이번에 업로드한 이미지가 있으면 붙이고, 없으면 같은 날짜 기존 이미지 유지
+  const existing = inbody.find(r=>r.date===dateStr);
+  if(pendingIbImage) rec.image = pendingIbImage;
+  else if(existing && existing.image) rec.image = existing.image;
+
   inbody = inbody.filter(r=>r.date!==dateStr);
   inbody.push(rec);
+
+  // 최신 1장만 이미지 보관: 가장 최근 날짜 외 나머지 레코드의 image 제거(용량 절감)
+  const sortedDesc = [...inbody].sort((a,b)=>b.date.localeCompare(a.date));
+  const latestDate = sortedDesc[0].date;
+  inbody.forEach(r=>{ if(r.date !== latestDate) delete r.image; });
+
   await persistInbody();
+  pendingIbImage = null;
   document.getElementById('ibOcrStatus').textContent = '';
   showToast('인바디 기록 저장했어요');
+  renderIbLatest();
   renderIbChart();
   renderIbHistory();
 });
@@ -1615,7 +1702,13 @@ function renderIbHistory(){
   wrap.querySelectorAll('.del-btn').forEach(btn=>{
     btn.onclick = async ()=>{
       inbody = inbody.filter(r=>r.date!==btn.dataset.ibdate);
+      // 최신 이미지 재정리
+      if(inbody.length){
+        const latestDate = [...inbody].sort((a,b)=>b.date.localeCompare(a.date))[0].date;
+        inbody.forEach(r=>{ if(r.date!==latestDate) delete r.image; });
+      }
       await persistInbody();
+      renderIbLatest();
       renderIbChart();
       renderIbHistory();
     };

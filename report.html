@@ -82,6 +82,18 @@ window.__chartReady = false;
   .month-body{display:none;padding-top:10px;}
   .month-group.open .month-body{display:block;}
   .ib-hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .ib-latest-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;}
+  .ib-latest-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .ib-latest-head .t{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.02em;}
+  .ib-latest-head .d{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-faint);}
+  .ib-latest-img{width:100%;border-radius:10px;display:block;margin-bottom:14px;border:1px solid var(--border);}
+  .ib-metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .ib-metric{background:var(--surface-2);border-radius:10px;padding:11px 12px;}
+  .ib-metric .mlabel{font-size:11.5px;color:var(--ink-dim);}
+  .ib-metric .mval{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1.1;margin-top:2px;}
+  .ib-metric .mval .u{font-family:'IBM Plex Sans KR';font-size:12px;color:var(--ink-faint);font-weight:400;margin-left:2px;}
+  .ib-metric .mdiff{font-size:11px;margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+  .ib-metric .mdiff.up{color:#6FB8DE;} .ib-metric .mdiff.down{color:#C1666B;} .ib-metric .mdiff.same{color:var(--ink-faint);}
   .ib-hist-date{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-dim);}
   .ib-hist-vals{font-size:12px;color:var(--ink-dim);text-align:right;line-height:1.6;}
   .ib-hist-vals b{color:var(--ink);}
@@ -99,7 +111,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v7</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v8</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -122,6 +134,7 @@ window.__chartReady = false;
   </div>
 
   <div class="panel" id="panel-inbody">
+    <div id="ibLatest"></div>
     <select id="ibMetricSelect">
       <option value="__all__">전체 (체성분 종합)</option>
       <option value="weight">체중 (kg)</option>
@@ -384,6 +397,7 @@ const IB_METRICS = [
 let ibChartInstance = null;
 document.getElementById('ibMetricSelect').addEventListener('change', renderIbChart);
 function renderIbChart(){
+  renderIbLatestReport();
   const statRow = document.getElementById('ibStatRow');
   try{
     if(typeof Chart === 'undefined'){ statRow.innerHTML = '<div class="empty" style="width:100%;">차트를 불러오는 중이에요… 잠시 후 자동으로 표시돼요. (안 나오면 새로고침)</div>'; return; }
@@ -451,6 +465,24 @@ function renderIbChart(){
   }catch(err){
     statRow.innerHTML = '<div class="empty" style="width:100%;color:var(--accent-pt);">차트 오류: '+(err&&err.message?err.message:err)+'</div>';
   }
+}
+function renderIbLatestReport(){
+  const wrap = document.getElementById('ibLatest');
+  if(!wrap) return;
+  if(!inbody.length){ wrap.innerHTML=''; return; }
+  const sorted = [...inbody].sort((a,b)=>b.date.localeCompare(a.date));
+  const latest = sorted[0], prev = sorted[1];
+  const imgHtml = latest.image ? `<img class="ib-latest-img" src="${latest.image}" alt="인바디 결과">` : '';
+  const cards = IB_METRICS.map(m=>{
+    const v = latest[m.key]; if(v==null) return '';
+    let diffHtml='';
+    if(prev && prev[m.key]!=null){ const d=+(v-prev[m.key]).toFixed(1); const cls=d>0?'up':(d<0?'down':'same');
+      diffHtml=`<div class="mdiff ${cls}">${d>0?'▲ +':d<0?'▼ ':''}${d===0?'변화 없음':Math.abs(d)+m.unit}</div>`; }
+    return `<div class="ib-metric"><div class="mlabel">${m.label}</div><div class="mval">${v}<span class="u">${m.unit}</span></div>${diffHtml}</div>`;
+  }).filter(Boolean).join('');
+  wrap.innerHTML = `<div class="ib-latest-card">
+    <div class="ib-latest-head"><span class="t">최근 인바디</span><span class="d">${latest.date}</span></div>
+    ${imgHtml}<div class="ib-metric-grid">${cards}</div></div>`;
 }
 function renderIbHistory(){
   const wrap = document.getElementById('ibHistory');
