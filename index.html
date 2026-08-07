@@ -294,6 +294,18 @@ window.__chartReady = false;
   .colhead{font-size:10px;color:var(--ink-faint);text-align:left;font-family:'IBM Plex Mono',monospace;}
 
   .wgs-row{display:flex;gap:8px;margin-top:6px;}
+
+  /* 식단 사진 */
+  .meal-grid{display:flex;flex-direction:column;gap:12px;margin-top:4px;}
+  .meal-slot{}
+  .meal-slot-label{font-size:12.5px;color:var(--ink-dim);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+  .meal-thumbs{display:flex;gap:8px;flex-wrap:wrap;}
+  .meal-thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface-2);}
+  .meal-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .meal-thumb .mdel{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .meal-add{width:84px;height:84px;border-radius:10px;border:1.5px dashed var(--border-strong);background:var(--surface-2);color:var(--ink-faint);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .meal-add:active{background:var(--surface-3);}
+  .meal-add-snack{font-size:12px;color:var(--ink-dim);background:none;border:1px dashed var(--border-strong);border-radius:8px;padding:6px 12px;cursor:pointer;margin-top:2px;align-self:flex-start;}
   .setchk{
     flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
     background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
@@ -534,7 +546,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v8</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v9</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -608,6 +620,11 @@ window.__chartReady = false;
           <span style="font-size:13px;color:var(--ink-dim);">분</span>
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <label class="field-label">🍽️ 오늘 식단 사진</label>
+      <div class="meal-grid" id="mealGrid"></div>
     </div>
 
     <div class="card">
@@ -754,6 +771,7 @@ function allExercises(){ return masterExercises; }
 const CUP_ML = 165;
 let water = {}; // { 'YYYY-MM-DD': count }
 let inbody = []; // [{date, weight, smm, bfm, bmi, pbf}]
+let meals = {}; // { 'YYYY-MM-DD': { breakfast:[img], lunch:[img], dinner:[img], snack:[img,...] } }
 const PT_DAYS = [2,5]; // Tue, Fri (0=Sun)
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
@@ -823,10 +841,14 @@ async function loadAllData(){
     entries = data.entries || [];
     water = data.water || {};
     inbody = data.inbody || [];
+    meals = data.meals || {};
   }catch(e){
     console.error('load failed', e);
-    entries = []; water = {}; inbody = [];
+    entries = []; water = {}; inbody = []; meals = {};
   }
+
+  // 4개월(약 123일) 지난 식단 사진 자동 정리
+  cleanupOldMeals();
 
   // ----- 종목/루틴 로드 + 구버전 마이그레이션 -----
   if(Array.isArray(data.masterExercises) && Array.isArray(data.routines)){
@@ -864,11 +886,22 @@ async function persistEntries(){
 
 async function persistWater(){
   try{ await docRef.set({ water }, { merge:true }); }
-  catch(e){ console.error('water save failed', e); }
-}
+  catch(e){ console.error('water save failed', e); }}
 async function persistInbody(){
   try{ await docRef.set({ inbody }, { merge:true }); }
   catch(e){ console.error('inbody save failed', e); }
+}
+async function persistMeals(){
+  try{ await docRef.set({ meals }, { merge:true }); }
+  catch(e){ console.error('meals save failed', e); }
+}
+function cleanupOldMeals(){
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 4); // 4개월 전
+  const cutoffStr = cutoff.getFullYear()+'-'+String(cutoff.getMonth()+1).padStart(2,'0')+'-'+String(cutoff.getDate()).padStart(2,'0');
+  let removed = false;
+  Object.keys(meals).forEach(d=>{ if(d < cutoffStr){ delete meals[d]; removed = true; } });
+  if(removed) persistMeals();
 }
 function renderWaterCounter(){
   const dateStr = document.getElementById('dateInput').value;
@@ -882,6 +915,83 @@ async function changeWater(delta){
   water[dateStr] = next;
   await persistWater();
   renderWaterCounter();
+}
+
+// ---------- 식단 사진 ----------
+const MEAL_SLOTS = [
+  {key:'breakfast', label:'아침'},
+  {key:'lunch', label:'점심'},
+  {key:'dinner', label:'저녁'},
+];
+function mealsForDate(dateStr){
+  if(!meals[dateStr]) meals[dateStr] = { breakfast:[], lunch:[], dinner:[], snack:[] };
+  const m = meals[dateStr];
+  m.breakfast = m.breakfast||[]; m.lunch = m.lunch||[]; m.dinner = m.dinner||[]; m.snack = m.snack||[];
+  return m;
+}
+function renderMeals(){
+  const dateStr = document.getElementById('dateInput').value;
+  const m = mealsForDate(dateStr);
+  const grid = document.getElementById('mealGrid');
+  // 아침/점심/저녁 각 1장, 간식 여러 장
+  let html = MEAL_SLOTS.map(s=>{
+    const imgs = m[s.key]||[];
+    const thumbs = imgs.map((src,i)=>`<div class="meal-thumb"><img src="${src}"><button class="mdel" data-slot="${s.key}" data-idx="${i}">×</button></div>`).join('');
+    const addBtn = imgs.length===0 ? `<div class="meal-add" data-slot="${s.key}">＋</div>` : '';
+    return `<div class="meal-slot">
+      <div class="meal-slot-label">${s.label}</div>
+      <div class="meal-thumbs">${thumbs}${addBtn}</div>
+    </div>`;
+  }).join('');
+  // 간식 (여러 장)
+  const snacks = m.snack||[];
+  const snackThumbs = snacks.map((src,i)=>`<div class="meal-thumb"><img src="${src}"><button class="mdel" data-slot="snack" data-idx="${i}">×</button></div>`).join('');
+  html += `<div class="meal-slot">
+    <div class="meal-slot-label">간식 <span style="color:var(--ink-faint);">${snacks.length?snacks.length+'개':''}</span></div>
+    <div class="meal-thumbs">${snackThumbs}<div class="meal-add" data-slot="snack">＋</div></div>
+  </div>`;
+  grid.innerHTML = html;
+
+  grid.querySelectorAll('.meal-add').forEach(btn=>{
+    btn.onclick = ()=> pickMealPhoto(btn.dataset.slot);
+  });
+  grid.querySelectorAll('.mdel').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const dateStr2 = document.getElementById('dateInput').value;
+      const mm = mealsForDate(dateStr2);
+      mm[btn.dataset.slot].splice(+btn.dataset.idx, 1);
+      await persistMeals();
+      renderMeals();
+    };
+  });
+}
+let mealFileInput = null;
+function pickMealPhoto(slot){
+  if(!mealFileInput){
+    mealFileInput = document.createElement('input');
+    mealFileInput.type = 'file';
+    mealFileInput.accept = 'image/*';
+    mealFileInput.style.display = 'none';
+    document.body.appendChild(mealFileInput);
+  }
+  mealFileInput.value = '';
+  mealFileInput.onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const dateStr = document.getElementById('dateInput').value;
+    const url = URL.createObjectURL(file);
+    try{
+      const compressed = await compressImage(url, 600, 0.6); // 식단은 더 작게(저용량)
+      const m = mealsForDate(dateStr);
+      if(slot==='snack') m.snack.push(compressed);
+      else m[slot] = [compressed]; // 아침/점심/저녁은 1장으로 교체
+      await persistMeals();
+      renderMeals();
+      showToast('식단 사진 저장했어요');
+    }catch(err){ console.error(err); showToast('사진 처리 실패'); }
+    URL.revokeObjectURL(url);
+  };
+  mealFileInput.click();
 }
 
 function showToast(msg){
@@ -1213,6 +1323,7 @@ document.getElementById('dateInput').value = todayStr();
 document.getElementById('dateInput').addEventListener('change', ()=>{
   renderDayTypeAndForm();
   renderWaterCounter();
+  renderMeals();
 });
 document.getElementById('waterPlus').addEventListener('click', ()=>changeWater(1));
 document.getElementById('waterMinus').addEventListener('click', ()=>changeWater(-1));
@@ -1878,6 +1989,7 @@ async function bootApp(){
   renderWeekBoard();
   renderDayTypeAndForm();
   renderWaterCounter();
+  renderMeals();
   renderWgsRow();
   populateExerciseSelect();
 }

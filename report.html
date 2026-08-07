@@ -111,7 +111,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v8</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v9</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -169,7 +169,7 @@ const DEFAULT_MASTER = [
 ];
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 const CUP_ML = 165;
-let entries = [], water = {}, masterExercises = [], inbody = [];
+let entries = [], water = {}, masterExercises = [], inbody = [], meals = {};
 
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
 function allExercises(){ return masterExercises; }
@@ -205,6 +205,19 @@ function entryCardHTML(e){
   const w = water[e.date] || 0;
   body += `<div style="margin-top:6px;"><b>WGS스트레칭</b> ${wgsDone}/3세트${e.cardio!=null?` · <b>러닝머신</b> ${e.cardio}분`:''}</div>`;
   body += `<div style="margin-top:2px;"><b>수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
+  // 식단 사진
+  const mm = meals[e.date];
+  let mealHtml = '';
+  if(mm){
+    const slots = [['breakfast','아침'],['lunch','점심'],['dinner','저녁'],['snack','간식']];
+    const rows = slots.map(([k,lbl])=>{
+      const imgs = mm[k]||[];
+      if(!imgs.length) return '';
+      const thumbs = imgs.map(src=>`<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">`).join('');
+      return `<div style="margin-top:6px;"><span style="font-size:12px;color:var(--ink-dim);">${lbl}</span><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;">${thumbs}</div></div>`;
+    }).filter(Boolean).join('');
+    if(rows) mealHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);"><b style="font-size:12.5px;">🍽️ 식단</b>${rows}</div>`;
+  }
   return `
     <div class="hist-entry">
       <div class="hist-top">
@@ -212,6 +225,7 @@ function entryCardHTML(e){
         <span class="hist-tag ${tag}">${tag}</span>
       </div>
       <div class="hist-body">${body}</div>
+      ${mealHtml}
       ${e.note?`<div class="hist-note">📝 ${e.note}</div>`:''}
     </div>`;
 }
@@ -510,6 +524,7 @@ function renderIbHistory(){
     entries = data.entries || [];
     water = data.water || {};
     inbody = data.inbody || [];
+    meals = data.meals || {};
     if(Array.isArray(data.masterExercises) && data.masterExercises.length){
       masterExercises = data.masterExercises;
     }else{
