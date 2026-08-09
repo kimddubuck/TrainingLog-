@@ -131,13 +131,14 @@ window.__chartReady = false;
   .day-chip .dot.on{visibility:visible;}
 
   /* Tabs */
-  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+  .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
   .tab{
-    flex:1;text-align:center;padding:10px 4px;
-    font-size:13.5px;font-weight:600;color:var(--ink-faint);
+    flex:1;text-align:center;padding:10px 2px;
+    font-size:13px;font-weight:600;color:var(--ink-faint);
     cursor:pointer;border-bottom:2px solid transparent;
-    transition:color .15s;
+    transition:color .15s;white-space:nowrap;
   }
+  @media (max-width:380px){ .tab{font-size:12px;padding:10px 1px;} }
   .tab.active{color:var(--ink);border-bottom-color:var(--accent-a);}
 
   .panel{display:none;}
@@ -306,6 +307,10 @@ window.__chartReady = false;
   .meal-add{width:84px;height:84px;border-radius:10px;border:1.5px dashed var(--border-strong);background:var(--surface-2);color:var(--ink-faint);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
   .meal-add:active{background:var(--surface-3);}
   .meal-add-snack{font-size:12px;color:var(--ink-dim);background:none;border:1px dashed var(--border-strong);border-radius:8px;padding:6px 12px;cursor:pointer;margin-top:2px;align-self:flex-start;}
+  .meal-datebar{display:flex;align-items:center;gap:10px;}
+  .meal-datebar input[type=date]{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:9px 10px;border-radius:8px;}
+  .meal-nav{width:40px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:20px;cursor:pointer;}
+  .meal-nav:active{background:var(--surface-3);}
   .setchk{
     flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
     background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
@@ -546,7 +551,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v9</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v10</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -554,8 +559,9 @@ window.__chartReady = false;
   <div class="tabs">
     <div class="tab active" data-tab="log">오늘 기록</div>
     <div class="tab" data-tab="history">기록 보기</div>
-    <div class="tab" data-tab="graph">진행 그래프</div>
+    <div class="tab" data-tab="graph">그래프</div>
     <div class="tab" data-tab="inbody">인바디</div>
+    <div class="tab" data-tab="meal">식단</div>
   </div>
 
   <!-- LOG PANEL -->
@@ -623,11 +629,6 @@ window.__chartReady = false;
     </div>
 
     <div class="card">
-      <label class="field-label">🍽️ 오늘 식단 사진</label>
-      <div class="meal-grid" id="mealGrid"></div>
-    </div>
-
-    <div class="card">
       <label class="field-label">특이사항 (불편함 · 통증 · 메모)</label>
       <textarea id="noteInput" placeholder="예: 오버헤드프레스 시 오른쪽 어깨 뻐근함"></textarea>
     </div>
@@ -691,6 +692,19 @@ window.__chartReady = false;
     </div>
 
     <div id="ibHistory" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- MEAL PANEL -->
+  <div class="panel" id="panel-meal">
+    <div class="card">
+      <div class="meal-datebar">
+        <button class="meal-nav" id="mealPrev">‹</button>
+        <input type="date" id="mealDate">
+        <button class="meal-nav" id="mealNext">›</button>
+      </div>
+      <div class="meal-grid" id="mealGrid" style="margin-top:14px;"></div>
+    </div>
+    <p class="section-label" style="text-align:center;">최근 4개월치 식단 사진이 보관돼요. 그 이전 사진은 자동으로 정리됩니다.</p>
   </div>
 
 </div>
@@ -929,8 +943,12 @@ function mealsForDate(dateStr){
   m.breakfast = m.breakfast||[]; m.lunch = m.lunch||[]; m.dinner = m.dinner||[]; m.snack = m.snack||[];
   return m;
 }
+function mealDateStr(){
+  const el = document.getElementById('mealDate');
+  return (el && el.value) ? el.value : todayStr();
+}
 function renderMeals(){
-  const dateStr = document.getElementById('dateInput').value;
+  const dateStr = mealDateStr();
   const m = mealsForDate(dateStr);
   const grid = document.getElementById('mealGrid');
   // 아침/점심/저녁 각 1장, 간식 여러 장
@@ -957,8 +975,7 @@ function renderMeals(){
   });
   grid.querySelectorAll('.mdel').forEach(btn=>{
     btn.onclick = async ()=>{
-      const dateStr2 = document.getElementById('dateInput').value;
-      const mm = mealsForDate(dateStr2);
+      const mm = mealsForDate(mealDateStr());
       mm[btn.dataset.slot].splice(+btn.dataset.idx, 1);
       await persistMeals();
       renderMeals();
@@ -978,7 +995,7 @@ function pickMealPhoto(slot){
   mealFileInput.onchange = async (e)=>{
     const file = e.target.files[0];
     if(!file) return;
-    const dateStr = document.getElementById('dateInput').value;
+    const dateStr = mealDateStr();
     const url = URL.createObjectURL(file);
     try{
       const compressed = await compressImage(url, 600, 0.6); // 식단은 더 작게(저용량)
@@ -992,6 +1009,14 @@ function pickMealPhoto(slot){
     URL.revokeObjectURL(url);
   };
   mealFileInput.click();
+}
+// 식단 탭 날짜 이동
+function shiftMealDate(days){
+  const el = document.getElementById('mealDate');
+  const d = new Date((el.value||todayStr())+'T00:00:00');
+  d.setDate(d.getDate()+days);
+  el.value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  renderMeals();
 }
 
 function showToast(msg){
@@ -1033,6 +1058,11 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab==='history') renderHistory();
     if(tab.dataset.tab==='graph') renderGraph();
     if(tab.dataset.tab==='inbody') renderInbody();
+    if(tab.dataset.tab==='meal'){
+      const md = document.getElementById('mealDate');
+      if(!md.value) md.value = todayStr();
+      renderMeals();
+    }
   });
 });
 
@@ -1323,10 +1353,13 @@ document.getElementById('dateInput').value = todayStr();
 document.getElementById('dateInput').addEventListener('change', ()=>{
   renderDayTypeAndForm();
   renderWaterCounter();
-  renderMeals();
 });
 document.getElementById('waterPlus').addEventListener('click', ()=>changeWater(1));
 document.getElementById('waterMinus').addEventListener('click', ()=>changeWater(-1));
+// 식단 탭 날짜 컨트롤
+document.getElementById('mealDate').addEventListener('change', renderMeals);
+document.getElementById('mealPrev').addEventListener('click', ()=>shiftMealDate(-1));
+document.getElementById('mealNext').addEventListener('click', ()=>shiftMealDate(1));
 
 // ---------- Auto-save (survives backgrounding / accidental close) ----------
 function buildEntryFromForm(){
@@ -1989,7 +2022,6 @@ async function bootApp(){
   renderWeekBoard();
   renderDayTypeAndForm();
   renderWaterCounter();
-  renderMeals();
   renderWgsRow();
   populateExerciseSelect();
 }
