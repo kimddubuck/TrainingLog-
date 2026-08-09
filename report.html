@@ -111,7 +111,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v10</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v11</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -164,8 +164,8 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 const DEFAULT_MASTER = [
-  {id:'bench',name:'벤치프레스',part:'가슴'},{id:'ohp',name:'오버헤드프레스',part:'어깨'},{id:'pushdown',name:'케이블 푸쉬다운',part:'삼두'},
-  {id:'row',name:'인버티드로우',part:'등'},{id:'latpull',name:'암풀다운',part:'등'},{id:'squat',name:'가블릿스쿼트',part:'하체'}
+  {id:'bench',name:'벤치프레스',part:'가슴',type:'strength'},{id:'ohp',name:'오버헤드프레스',part:'어깨',type:'strength'},{id:'pushdown',name:'케이블 푸쉬다운',part:'삼두',type:'strength'},
+  {id:'row',name:'인버티드로우',part:'등',type:'strength'},{id:'latpull',name:'암풀다운',part:'등',type:'strength'},{id:'squat',name:'가블릿스쿼트',part:'하체',type:'strength'}
 ];
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 const CUP_ML = 165;
@@ -173,6 +173,15 @@ let entries = [], water = {}, masterExercises = [], inbody = [], meals = {};
 
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
 function allExercises(){ return masterExercises; }
+function exById(id){ return masterExercises.find(e=>e.id===id)||null; }
+function exType(ex){ return (ex && ex.type)==='cardio'?'cardio':'strength'; }
+function setsToText(ex){
+  if(ex.type==='cardio'){
+    return (ex.sets||[]).filter(s=>s.duration||s.distance)
+      .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
+  }
+  return (ex.sets||[]).filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+}
 
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
@@ -192,9 +201,9 @@ function entryCardHTML(e){
   const dow = DAY_NAMES[dayOfWeek(e.date)];
   const tag = e.pt ? 'PT' : e.group;
   let body = '';
-  if(!e.pt && e.exercises){
+  if(e.exercises){
     const rows = e.exercises.map(ex=>{
-      const setsTxt = ex.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+      const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
       return `<div><b>${ex.name}</b> ${setsTxt}</div>`;
     }).filter(Boolean);
@@ -313,15 +322,25 @@ function populateExerciseSelect(){
   sel.innerHTML = opts.join('');
 }
 function exerciseSeries(exId){
+  const master = exById(exId);
+  const cardio = exType(master)==='cardio';
   const points = [];
-  entries.filter(e=>!e.pt && e.exercises).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+  entries.filter(e=>e.exercises).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     const ex = e.exercises.find(x=>x.id===exId);
     if(!ex || !Array.isArray(ex.sets)) return;
-    const weights = ex.sets.map(s=>s&&s.weight).filter(w=>w!=null && !isNaN(w));
-    if(!weights.length) return;
-    const setsText = ex.sets.filter(s=>s&&(s.weight!=null||s.reps!=null))
-      .map(s=>`${s.weight??'-'}kg×${s.reps??'-'}회`).join(', ');
-    points.push({ date:e.date, top: Math.max(...weights), setsText });
+    if(cardio){
+      const durs = ex.sets.map(s=>s&&s.duration).filter(v=>v!=null && !isNaN(v));
+      if(!durs.length) return;
+      const setsText = ex.sets.filter(s=>s&&(s.duration!=null||s.distance!=null))
+        .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
+      points.push({ date:e.date, top: Math.max(...durs), setsText, unit:'분' });
+    }else{
+      const weights = ex.sets.map(s=>s&&s.weight).filter(w=>w!=null && !isNaN(w));
+      if(!weights.length) return;
+      const setsText = ex.sets.filter(s=>s&&(s.weight!=null||s.reps!=null))
+        .map(s=>`${s.weight??'-'}kg×${s.reps??'-'}회`).join(', ');
+      points.push({ date:e.date, top: Math.max(...weights), setsText, unit:'kg' });
+    }
   });
   return points;
 }
