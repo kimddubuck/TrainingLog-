@@ -115,7 +115,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v12</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v13</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -173,7 +173,7 @@ const DEFAULT_MASTER = [
 ];
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 const CUP_ML = 165;
-let entries = [], water = {}, masterExercises = [], inbody = [], meals = {};
+let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dailyItems = [];
 
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
 function allExercises(){ return masterExercises; }
@@ -185,6 +185,31 @@ function setsToText(ex){
       .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
   }
   return (ex.sets||[]).filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+}
+function dailySetsToText(item, sets){
+  if(!sets || !sets.length) return '';
+  if(item.type==='bodyweight'){
+    const reps = sets.filter(s=>s.reps!=null).map(s=>s.reps);
+    return reps.length ? reps.join(', ')+'회' : '';
+  }else if(item.type==='cardio'){
+    return sets.filter(s=>s.duration!=null||s.distance!=null)
+      .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
+  }
+  return sets.filter(s=>s.weight!=null||s.reps!=null).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
+}
+function dailyToText(e){
+  const parts = [];
+  if(e.daily){
+    dailyItems.forEach(item=>{
+      const txt = dailySetsToText(item, e.daily[item.id]);
+      if(txt) parts.push(`<b>${item.name}</b> ${txt}`);
+    });
+  }else{
+    const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
+    if(wgsDone) parts.push(`<b>WGS스트레칭</b> ${wgsDone}세트`);
+    if(e.cardio!=null) parts.push(`<b>러닝머신</b> ${e.cardio}분`);
+  }
+  return parts.join(' · ');
 }
 
 document.querySelectorAll('.tab').forEach(tab=>{
@@ -214,9 +239,9 @@ function entryCardHTML(e){
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
   }
-  const wgsDone = e.wgs ? e.wgs.filter(Boolean).length : 0;
   const w = water[e.date] || 0;
-  body += `<div style="margin-top:6px;"><b>WGS스트레칭</b> ${wgsDone}/3세트${e.cardio!=null?` · <b>러닝머신</b> ${e.cardio}분`:''}</div>`;
+  const dailyTxt = dailyToText(e);
+  if(dailyTxt) body += `<div style="margin-top:6px;">${dailyTxt}</div>`;
   body += `<div style="margin-top:2px;"><b>수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
   // 식단 사진
   const mm = meals[e.date];
@@ -547,6 +572,7 @@ function renderIbHistory(){
     entries = data.entries || [];
     water = data.water || {};
     inbody = data.inbody || [];
+    dailyItems = Array.isArray(data.dailyItems) ? data.dailyItems : [];
     meals = data.meals || {};
     if(Array.isArray(data.masterExercises) && data.masterExercises.length){
       masterExercises = data.masterExercises;
