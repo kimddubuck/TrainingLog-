@@ -115,7 +115,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v13</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v14</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -183,6 +183,10 @@ function setsToText(ex){
   if(ex.type==='cardio'){
     return (ex.sets||[]).filter(s=>s.duration||s.distance)
       .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
+  }
+  if(ex.type==='bodyweight'){
+    const reps = (ex.sets||[]).filter(s=>s.reps!=null).map(s=>s.reps);
+    return reps.length ? reps.join(', ')+'회' : '';
   }
   return (ex.sets||[]).filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
 }
@@ -351,18 +355,21 @@ function populateExerciseSelect(){
   sel.innerHTML = opts.join('');
 }
 function exerciseSeries(exId){
-  const master = exById(exId);
-  const cardio = exType(master)==='cardio';
   const points = [];
   entries.filter(e=>e.exercises).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     const ex = e.exercises.find(x=>x.id===exId);
     if(!ex || !Array.isArray(ex.sets)) return;
-    if(cardio){
+    const t = ex.type || (exById(exId)?exById(exId).type:'strength') || 'strength';
+    if(t==='cardio'){
       const durs = ex.sets.map(s=>s&&s.duration).filter(v=>v!=null && !isNaN(v));
       if(!durs.length) return;
       const setsText = ex.sets.filter(s=>s&&(s.duration!=null||s.distance!=null))
         .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
       points.push({ date:e.date, top: Math.max(...durs), setsText, unit:'분' });
+    }else if(t==='bodyweight'){
+      const reps = ex.sets.map(s=>s&&s.reps).filter(v=>v!=null && !isNaN(v));
+      if(!reps.length) return;
+      points.push({ date:e.date, top: Math.max(...reps), setsText: reps.join(', ')+'회', unit:'회' });
     }else{
       const weights = ex.sets.map(s=>s&&s.weight).filter(w=>w!=null && !isNaN(w));
       if(!weights.length) return;
@@ -577,15 +584,16 @@ function renderIbHistory(){
     if(Array.isArray(data.masterExercises) && data.masterExercises.length){
       masterExercises = data.masterExercises;
     }else{
-      // 구버전 호환: 기본 종목 + entries에 등장한 종목 흡수
       masterExercises = DEFAULT_MASTER.map(e=>({...e}));
       (data.customExercises||[]).forEach(c=>{
         masterExercises.push({id:c.id, name:c.name.replace(/^\d+\.\s*/,''), part:''});
       });
-      entries.forEach(en=>(en.exercises||[]).forEach(ex=>{
-        if(!masterExercises.find(m=>m.id===ex.id)) masterExercises.push({id:ex.id, name:ex.name.replace(/^\d+\.\s*/,''), part:''});
-      }));
     }
+    // 기록에 등장한 종목은 항상 목록에 흡수(그래프 드롭다운/타입 판정용)
+    const seen = new Set(masterExercises.map(m=>m.id));
+    entries.forEach(en=>(en.exercises||[]).forEach(ex=>{
+      if(!seen.has(ex.id)){ masterExercises.push({id:ex.id, name:(ex.name||'').replace(/^\d+\.\s*/,''), part:ex.part||'', type:ex.type||'strength'}); seen.add(ex.id); }
+    }));
   }catch(e){
     notice.style.display = 'block';
     if(e && (e.code==='permission-denied' || /permission/i.test(e.message||''))){

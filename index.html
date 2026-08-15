@@ -310,6 +310,28 @@ window.__chartReady = false;
   .daily-item .di-name .di-type{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);margin-left:6px;font-weight:400;}
   .daily-item .di-name .di-type.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
   .daily-item .di-name .di-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
+  /* 운동 검색 */
+  .ex-search-wrap{position:relative;margin-bottom:6px;}
+  #exSearch{width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px;font-family:'IBM Plex Sans KR',sans-serif;}
+  .ex-search-results{margin-top:6px;display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;}
+  .ex-search-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;}
+  .ex-search-item:active{background:var(--surface-3);}
+  .ex-search-item.added{opacity:0.5;}
+  .ex-search-item .esi-name{flex:1;font-size:14px;}
+  .ex-search-item .esi-part{font-size:11px;color:var(--ink-faint);}
+  .ex-search-item .esi-type{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);}
+  .ex-search-item .esi-type.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
+  .ex-search-item .esi-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
+  .ex-search-item .esi-add{color:var(--accent-a);font-weight:700;font-size:16px;}
+  .ex-search-empty{padding:12px;text-align:center;color:var(--ink-faint);font-size:13px;}
+  .today-ex{padding:14px 0;border-top:1px solid var(--border);}
+  .today-ex:first-child{border-top:none;}
+  .today-ex-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .today-ex-head .tex-name{font-weight:600;font-size:14px;}
+  .today-ex-head .tex-name .tex-type{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);margin-left:6px;font-weight:400;}
+  .today-ex-head .tex-name .tex-type.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
+  .today-ex-head .tex-name .tex-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
+  .today-ex-head .tex-remove{background:none;border:none;color:var(--ink-faint);font-size:18px;cursor:pointer;padding:0 4px;}
   .di-manage-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--border);}
   .di-manage-row:first-child{border-top:none;}
   .di-manage-row .din{flex:1;font-size:14px;}
@@ -578,7 +600,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v13</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v14</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -614,26 +636,29 @@ window.__chartReady = false;
     </div>
 
     <div id="daytypeBanner"></div>
-    <div id="groupToggleWrap"></div>
-    <div class="card" id="exerciseCard" style="display:none;">
-      <div id="exerciseList"></div>
-      <div class="add-ex-toggle" id="addExToggle">⚙︎ 루틴 관리 · 종목 편집</div>
+
+    <!-- 오늘 한 운동 (검색해서 추가) -->
+    <div class="card">
+      <div class="daily-head">
+        <span class="field-label" style="margin:0;">🏋️ 오늘 한 운동</span>
+        <button class="daily-manage-btn" id="addExToggle">＋ 종목 추가/편집</button>
+      </div>
+      <div class="ex-search-wrap">
+        <input type="text" id="exSearch" placeholder="🔍 운동 검색 (예: 벤치, 스쿼트, 러닝)" autocomplete="off">
+        <div class="ex-search-results" id="exSearchResults"></div>
+      </div>
+      <div id="todayExerciseList"></div>
     </div>
 
-    <!-- 루틴/종목 관리 모달 -->
+    <!-- 종목 라이브러리 관리 모달 -->
     <div class="modal-backdrop" id="manageModal" style="display:none;">
       <div class="modal">
         <div class="modal-head">
-          <span class="modal-title">루틴 · 종목 관리</span>
+          <span class="modal-title">종목 목록 관리</span>
           <button class="modal-close" id="manageClose">닫기</button>
         </div>
-        <div class="modal-tabs">
-          <div class="mtab active" data-mtab="routines">루틴별 종목</div>
-          <div class="mtab" data-mtab="master">종목 목록</div>
-        </div>
         <div class="modal-body">
-          <div class="mpanel active" id="mpanel-routines"></div>
-          <div class="mpanel" id="mpanel-master"></div>
+          <div class="mpanel active" id="mpanel-master"></div>
         </div>
       </div>
     </div>
@@ -798,19 +823,73 @@ auth.onAuthStateChanged(async (user)=>{
 // ====== 데이터 모델 ======
 // masterExercises: 모든 종목의 마스터 목록 [{id, name, part}]
 // routines: 루틴 목록 [{id, label, sub, color, exerciseIds:[...]}]
+// 헬스장에서 많이 하는 기본 종목 라이브러리 (웨이트/유산소/맨몸)
 const DEFAULT_MASTER = [
-  {id:'bench',    name:'벤치프레스',      part:'가슴', type:'strength'},
-  {id:'ohp',      name:'오버헤드프레스',  part:'어깨', type:'strength'},
-  {id:'pushdown', name:'케이블 푸쉬다운', part:'삼두', type:'strength'},
-  {id:'row',      name:'인버티드로우',    part:'등',   type:'strength'},
-  {id:'latpull',  name:'암풀다운',        part:'등',   type:'strength'},
-  {id:'squat',    name:'가블릿스쿼트',    part:'하체', type:'strength'},
+  // ===== 웨이트(근력) =====
+  {id:'bench',      name:'벤치프레스',        part:'가슴', type:'strength'},
+  {id:'inclinebench',name:'인클라인 벤치프레스',part:'가슴', type:'strength'},
+  {id:'dbbench',    name:'덤벨 벤치프레스',    part:'가슴', type:'strength'},
+  {id:'chestfly',   name:'체스트 플라이',      part:'가슴', type:'strength'},
+  {id:'pecdeck',    name:'펙덱 플라이',        part:'가슴', type:'strength'},
+  {id:'cablecross', name:'케이블 크로스오버',  part:'가슴', type:'strength'},
+  {id:'ohp',        name:'오버헤드프레스',      part:'어깨', type:'strength'},
+  {id:'dbshoulder', name:'덤벨 숄더프레스',    part:'어깨', type:'strength'},
+  {id:'lateral',    name:'사이드 레터럴 레이즈',part:'어깨', type:'strength'},
+  {id:'frontraise', name:'프론트 레이즈',      part:'어깨', type:'strength'},
+  {id:'reardelt',   name:'리어 델트 플라이',   part:'어깨', type:'strength'},
+  {id:'facepull',   name:'페이스풀',          part:'어깨', type:'strength'},
+  {id:'latpull',    name:'랫풀다운',          part:'등',   type:'strength'},
+  {id:'pullup',     name:'풀업(턱걸이)',       part:'등',   type:'strength'},
+  {id:'barbellrow', name:'바벨 로우',          part:'등',   type:'strength'},
+  {id:'dbrow',      name:'덤벨 로우',          part:'등',   type:'strength'},
+  {id:'seatedrow',  name:'시티드 케이블 로우', part:'등',   type:'strength'},
+  {id:'inverted',   name:'인버티드로우',       part:'등',   type:'strength'},
+  {id:'deadlift',   name:'데드리프트',         part:'등',   type:'strength'},
+  {id:'bicepcurl',  name:'바벨 컬',            part:'이두', type:'strength'},
+  {id:'dbcurl',     name:'덤벨 컬',            part:'이두', type:'strength'},
+  {id:'hammercurl', name:'해머 컬',            part:'이두', type:'strength'},
+  {id:'pushdown',   name:'케이블 푸쉬다운',    part:'삼두', type:'strength'},
+  {id:'overheadext',name:'오버헤드 익스텐션',  part:'삼두', type:'strength'},
+  {id:'dips',       name:'딥스',              part:'삼두', type:'strength'},
+  {id:'squat',      name:'스쿼트',            part:'하체', type:'strength'},
+  {id:'gobletsquat',name:'가블릿 스쿼트',      part:'하체', type:'strength'},
+  {id:'legpress',   name:'레그프레스',         part:'하체', type:'strength'},
+  {id:'legext',     name:'레그 익스텐션',      part:'하체', type:'strength'},
+  {id:'legcurl',    name:'레그 컬',            part:'하체', type:'strength'},
+  {id:'lunge',      name:'런지',              part:'하체', type:'strength'},
+  {id:'rdl',        name:'루마니안 데드리프트',part:'하체', type:'strength'},
+  {id:'calfraise',  name:'카프 레이즈',        part:'하체', type:'strength'},
+  {id:'hipthrust',  name:'힙 쓰러스트',        part:'하체', type:'strength'},
+  // ===== 유산소 =====
+  {id:'treadmill_run',name:'러닝머신',         part:'유산소', type:'cardio'},
+  {id:'cycle',      name:'실내자전거',         part:'유산소', type:'cardio'},
+  {id:'elliptical', name:'일립티컬',          part:'유산소', type:'cardio'},
+  {id:'stairmaster',name:'스텝밀(천국의계단)', part:'유산소', type:'cardio'},
+  {id:'rower',      name:'로잉머신',          part:'유산소', type:'cardio'},
+  {id:'swim',       name:'수영',              part:'유산소', type:'cardio'},
+  {id:'jumprope',   name:'줄넘기',            part:'유산소', type:'cardio'},
+  {id:'walk',       name:'걷기',              part:'유산소', type:'cardio'},
+  {id:'run_out',    name:'야외 러닝',          part:'유산소', type:'cardio'},
+  {id:'bike_out',   name:'자전거(야외)',       part:'유산소', type:'cardio'},
+  {id:'hiking',     name:'등산',              part:'유산소', type:'cardio'},
+  // ===== 맨몸운동 =====
+  {id:'pushup',     name:'푸쉬업(팔굽혀펴기)', part:'가슴', type:'bodyweight'},
+  {id:'squat_bw',   name:'맨몸 스쿼트',        part:'하체', type:'bodyweight'},
+  {id:'lunge_bw',   name:'맨몸 런지',          part:'하체', type:'bodyweight'},
+  {id:'plank',      name:'플랭크',            part:'코어', type:'bodyweight'},
+  {id:'crunch',     name:'크런치',            part:'코어', type:'bodyweight'},
+  {id:'situp',      name:'싯업(윗몸)',         part:'코어', type:'bodyweight'},
+  {id:'legraise',   name:'레그 레이즈',        part:'코어', type:'bodyweight'},
+  {id:'mountain',   name:'마운틴 클라이머',    part:'코어', type:'bodyweight'},
+  {id:'burpee',     name:'버피',              part:'전신', type:'bodyweight'},
+  {id:'jumpingjack',name:'점핑잭',            part:'전신', type:'bodyweight'},
+  {id:'pullup_bw',  name:'턱걸이(맨몸)',       part:'등',   type:'bodyweight'},
+  {id:'dips_bw',    name:'딥스(맨몸)',         part:'삼두', type:'bodyweight'},
+  {id:'wallsit',    name:'월싯(벽 스쿼트)',    part:'하체', type:'bodyweight'},
+  {id:'glutebridge',name:'글루트 브릿지',      part:'하체', type:'bodyweight'},
+  {id:'superman',   name:'슈퍼맨',            part:'등',   type:'bodyweight'},
+  {id:'wgsstretch', name:'WGS스트레칭',        part:'스트레칭', type:'bodyweight'},
 ];
-const DEFAULT_ROUTINES = [
-  {id:'A', label:'A', sub:'가슴 · 어깨 · 삼두', color:'#E8A33D', exerciseIds:['bench','ohp','pushdown']},
-  {id:'B', label:'B', sub:'등 · 이두 · 하체', color:'#4FA8A0', exerciseIds:['row','latpull','squat']},
-];
-const ROUTINE_COLORS = ['#E8A33D','#4FA8A0','#A78BD4','#C1666B','#6FB8DE','#8FBF66'];
 
 // 매일 반복하는 고정 루틴 (근력/유산소/맨몸)
 const DEFAULT_DAILY = [
@@ -820,16 +899,11 @@ const DEFAULT_DAILY = [
 let dailyItems = []; // [{id,name,type}]
 
 let masterExercises = [];
-let routines = [];
+// 오늘 선택한 종목 id 목록 (날짜별 X, 폼 상태)
+let todayExerciseIds = [];
 
 function exById(id){ return masterExercises.find(e=>e.id===id) || null; }
-function exType(ex){ return (ex && ex.type) === 'cardio' ? 'cardio' : 'strength'; }
-function routineById(id){ return routines.find(r=>r.id===id) || null; }
-function routineExercises(routineId){
-  const r = routineById(routineId);
-  if(!r) return [];
-  return r.exerciseIds.map(exById).filter(Boolean);
-}
+function exType(ex){ return (ex && ex.type)==='cardio' ? 'cardio' : ((ex && ex.type)==='bodyweight'?'bodyweight':'strength'); }
 function allExercises(){ return masterExercises; }
 
 const CUP_ML = 165;
@@ -840,12 +914,9 @@ const PT_DAYS = [2,5]; // Tue, Fri (0=Sun)
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
 let entries = [];
-let selectedRoutine = null; // routine id
-let wgsChecks = [false,false,false];
-let cardioOn = false;
 
 async function persistConfig(){
-  try{ await docRef.set({ masterExercises, routines, dailyItems }, { merge:true }); }
+  try{ await docRef.set({ masterExercises, dailyItems }, { merge:true }); }
   catch(e){ console.error('config save failed', e); }
 }
 async function addMasterExercise(name, part, type){
@@ -854,35 +925,13 @@ async function addMasterExercise(name, part, type){
   const dup = masterExercises.find(e => norm(e.name) === norm(name));
   if(dup) return { duplicate:true, existing:dup };
   const id = 'ex-' + Date.now();
-  masterExercises.push({ id, name, part: part||'', type: type==='cardio'?'cardio':'strength' });
+  const t = (type==='cardio'||type==='bodyweight') ? type : 'strength';
+  masterExercises.push({ id, name, part: part||'', type: t });
   await persistConfig();
   return { duplicate:false, id };
 }
 async function removeMasterExercise(id){
   masterExercises = masterExercises.filter(e=>e.id!==id);
-  routines.forEach(r=>{ r.exerciseIds = r.exerciseIds.filter(eid=>eid!==id); });
-  await persistConfig();
-}
-async function addRoutine(label, sub){
-  const norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
-  const dup = routines.find(r => norm(r.label) === norm(label));
-  if(dup) return { duplicate:true, existing:dup };
-  const id = 'r-' + Date.now();
-  const color = ROUTINE_COLORS[routines.length % ROUTINE_COLORS.length];
-  routines.push({ id, label, sub: sub||'', color, exerciseIds:[] });
-  await persistConfig();
-  return { duplicate:false, id };
-}
-async function removeRoutine(id){
-  routines = routines.filter(r=>r.id!==id);
-  if(selectedRoutine===id) selectedRoutine = routines[0] ? routines[0].id : null;
-  await persistConfig();
-}
-async function toggleExerciseInRoutine(routineId, exId){
-  const r = routineById(routineId);
-  if(!r) return;
-  if(r.exerciseIds.includes(exId)) r.exerciseIds = r.exerciseIds.filter(x=>x!==exId);
-  else r.exerciseIds.push(exId);
   await persistConfig();
 }
 
@@ -911,50 +960,43 @@ async function loadAllData(){
     entries = []; water = {}; inbody = []; meals = {};
   }
 
-  // 4개월(약 123일) 지난 식단 사진 자동 정리
+  // 4개월 지난 식단 사진 자동 정리
   cleanupOldMeals();
 
-  // ----- 종목/루틴 로드 + 구버전 마이그레이션 -----
-  if(Array.isArray(data.masterExercises) && Array.isArray(data.routines)){
-    masterExercises = data.masterExercises;
-    routines = data.routines;
-    // type 없는 기존 종목은 근력형으로 보정
-    masterExercises.forEach(e=>{ if(!e.type) e.type = 'strength'; });
-  }else{
-    // 새 사용자거나 구버전(customExercises) 데이터 → 기본값 + 마이그레이션
-    masterExercises = DEFAULT_MASTER.map(e=>({...e}));
-    routines = DEFAULT_ROUTINES.map(r=>({...r, exerciseIds:[...r.exerciseIds]}));
-    const legacy = data.customExercises || [];
-    legacy.forEach(c=>{
-      // 구버전 커스텀 종목 이름에서 "n. " 접두어 제거
-      const cleanName = c.name.replace(/^\d+\.\s*/, '');
-      masterExercises.push({ id:c.id, name:cleanName, part:'', type:'strength' });
-      const r = routines.find(x=>x.id===c.group);
-      if(r && !r.exerciseIds.includes(c.id)) r.exerciseIds.push(c.id);
+  // ----- 종목 라이브러리 로드 -----
+  // 기본 라이브러리를 항상 기반으로 깔고, 사용자가 추가한 종목/과거 기록 종목을 흡수
+  masterExercises = DEFAULT_MASTER.map(e=>({...e}));
+  const seen = new Set(masterExercises.map(e=>e.id));
+  const seenNames = new Set(masterExercises.map(e=>e.name.replace(/\s+/g,'').toLowerCase()));
+  // 이전 버전에서 사용자가 저장한 커스텀 종목 흡수 (중복 이름은 스킵)
+  (Array.isArray(data.masterExercises)?data.masterExercises:[]).forEach(e=>{
+    const nm = (e.name||'').replace(/\s+/g,'').toLowerCase();
+    if(!seen.has(e.id) && !seenNames.has(nm)){
+      masterExercises.push({ id:e.id, name:e.name, part:e.part||'', type:e.type||'strength' });
+      seen.add(e.id); seenNames.add(nm);
+    }
+  });
+  // 과거 기록(entries)에 등장하지만 라이브러리에 없는 종목 흡수 (그래프/기록 유지)
+  entries.forEach(en=>{
+    (en.exercises||[]).forEach(ex=>{
+      if(!seen.has(ex.id)){
+        const nm = (ex.name||'').replace(/\s+/g,'').toLowerCase();
+        if(seenNames.has(nm)) return;
+        masterExercises.push({ id:ex.id, name:(ex.name||'').replace(/^\d+\.\s*/,''), part:'', type:ex.type||'strength' });
+        seen.add(ex.id); seenNames.add(nm);
+      }
     });
-    // 과거 entries에 등장하지만 마스터에 없는 종목도 흡수(그래프/기록 유지용)
-    entries.forEach(en=>{
-      (en.exercises||[]).forEach(ex=>{
-        if(!masterExercises.find(m=>m.id===ex.id)){
-          masterExercises.push({ id:ex.id, name:ex.name.replace(/^\d+\.\s*/, ''), part:'', type:'strength' });
-        }
-      });
-    });
-    await persistConfig();
-  }
-  if(!selectedRoutine && routines[0]) selectedRoutine = routines[0].id;
+  });
 
   // ----- 매일 루틴 로드 + 마이그레이션 -----
   if(Array.isArray(data.dailyItems) && data.dailyItems.length){
     dailyItems = data.dailyItems;
   }else{
     dailyItems = DEFAULT_DAILY.map(d=>({...d}));
-    // 기존 entries의 wgs(맨몸 3세트 완료) / cardio(러닝 분)를 daily 형태로 이전
     entries.forEach(en=>{
-      if(en.daily) return; // 이미 이전됨
+      if(en.daily) return;
       en.daily = {};
       if(Array.isArray(en.wgs)){
-        // 완료한 세트 수만큼 맨몸 세트(횟수 15개씩)로 기록
         const done = en.wgs.filter(Boolean).length;
         if(done>0) en.daily['wgs'] = Array.from({length:done}, ()=>({reps:15}));
       }
@@ -1166,83 +1208,16 @@ document.querySelectorAll('.tab').forEach(tab=>{
   });
 });
 
-// ---------- Log panel ----------
-function lastRoutineId(){
-  const past = entries.filter(e=>!e.pt && e.date!==document.getElementById('dateInput').value).sort((a,b)=>b.date.localeCompare(a.date));
-  return past.length ? (past[0].routineId || past[0].group || null) : null;
-}
-function suggestRoutine(){
-  // 직전 루틴 다음 순번의 루틴을 제안 (순환)
-  if(!routines.length) return null;
-  const last = lastRoutineId();
-  const idx = routines.findIndex(r=>r.id===last);
-  if(idx === -1) return routines[0].id;
-  return routines[(idx+1) % routines.length].id;
-}
+// ---------- Log panel (검색 기반 종목 선택) ----------
 function entryForDate(dateStr){
   return entries.find(e=>e.date===dateStr) || null;
 }
 
-function renderDayTypeAndForm(){
-  const dateStr = document.getElementById('dateInput').value;
-  const pt = isPTDay(dateStr);
-  const banner = document.getElementById('daytypeBanner');
-  const groupWrap = document.getElementById('groupToggleWrap');
-  const exCard = document.getElementById('exerciseCard');
-  const saveBtn = document.getElementById('saveBtn');
-  const existing = entryForDate(dateStr);
-  setCounts = {}; // 날짜 바뀌면 세트수 초기화
-  dailySetCounts = {}; // 매일루틴 세트수도 초기화
-
-  document.getElementById('noteInput').value = existing ? (existing.note||'') : '';
-  renderDaily(existing);
-
-  // PT날이든 개인운동날이든 루틴+종목 기록칸을 모두 연다
-  if(pt){
-    banner.innerHTML = `<div class="daytype-banner pt"><div><div class="big">PT 받는 날</div><p>선생님과 세션 진행 · 배운 운동과 무게를 기록해두세요</p></div></div>`;
-    saveBtn.classList.add('pt-mode');
-    saveBtn.textContent = 'PT일 기록 저장';
-  }else{
-    banner.innerHTML = `<div class="daytype-banner free"><div><div class="big" style="color:var(--ink);">개인운동 날</div><p>아래에서 루틴을 고르고 종목별로 기록하세요</p></div></div>`;
-    saveBtn.classList.remove('pt-mode');
-    saveBtn.textContent = '기록 저장';
-  }
-  exCard.style.display = 'block';
-  const existingRoutine = existing && (existing.routineId || existing.group);
-  selectedRoutine = (existingRoutine && routineById(existingRoutine)) ? existingRoutine : suggestRoutine();
-  renderRoutineToggle();
-  renderExercises(existing);
-  prefillExerciseInputs(existing);
-}
-
-function renderRoutineToggle(){
-  const wrap = document.getElementById('groupToggleWrap');
-  const suggested = suggestRoutine();
-  const suggestedLabel = suggested ? (routineById(suggested)?.label||'') : '';
-  let html = `<div class="suggest-tag">추천 로테이션 &rarr; ${suggestedLabel} 루틴</div><div class="routine-toggle">`;
-  routines.forEach(r=>{
-    const sel = r.id===selectedRoutine;
-    html += `
-      <div class="rbtn ${sel?'sel':''}" data-rid="${r.id}" style="${sel?`border-color:${r.color};background:${r.color}22;`:''}">
-        <div class="glabel" style="${sel?`color:${r.color};`:''}">${r.label}</div>
-        <div class="gsub">${r.sub||''}</div>
-      </div>`;
-  });
-  html += `<div class="rbtn manage-routines" id="manageRoutinesBtn">⚙︎<div class="gsub">루틴 관리</div></div>`;
-  html += `</div>`;
-  wrap.innerHTML = html;
-  wrap.querySelectorAll('.rbtn[data-rid]').forEach(btn=>{
-    btn.onclick = ()=>{ selectedRoutine = btn.dataset.rid; renderRoutineToggle(); renderExercises(); autoSave(); };
-  });
-  document.getElementById('manageRoutinesBtn').onclick = openManageModal;
-}
-
-// 종목별 현재 세트 수 (런타임). 기록 불러올 때 데이터에 맞춰 조정됨.
+// 종목별 세트 수 (런타임)
 let setCounts = {}; // { exId: n }
 function getSetCount(ex, existing){
   if(setCounts[ex.id]!=null) return setCounts[ex.id];
-  // 기존 기록이 있으면 그 세트 수, 없으면 기본 3
-  let n = 3;
+  let n = exType(ex)==='cardio' ? 1 : 3;
   if(existing && existing.exercises){
     const e = existing.exercises.find(x=>x.id===ex.id);
     if(e && Array.isArray(e.sets) && e.sets.length) n = e.sets.length;
@@ -1251,44 +1226,121 @@ function getSetCount(ex, existing){
   return n;
 }
 
-function renderExercises(existing){
-  const list = document.getElementById('exerciseList');
-  list.innerHTML = '';
-  const exs = routineExercises(selectedRoutine);
-  if(!exs.length){
-    list.innerHTML = `<div class="empty" style="padding:20px 6px;">이 루틴에 담긴 종목이 없어요.<br>아래 "루틴 관리 · 종목 편집"에서 종목을 담아보세요.</div>`;
+function renderDayTypeAndForm(){
+  const dateStr = document.getElementById('dateInput').value;
+  const pt = isPTDay(dateStr);
+  const banner = document.getElementById('daytypeBanner');
+  const saveBtn = document.getElementById('saveBtn');
+  const existing = entryForDate(dateStr);
+  setCounts = {};
+  dailySetCounts = {};
+
+  document.getElementById('noteInput').value = existing ? (existing.note||'') : '';
+  renderDaily(existing);
+
+  if(pt){
+    banner.innerHTML = `<div class="daytype-banner pt"><div><div class="big">PT 받는 날</div><p>선생님과 세션 진행 · 배운 운동을 검색해서 기록해두세요</p></div></div>`;
+    saveBtn.classList.add('pt-mode');
+    saveBtn.textContent = 'PT일 기록 저장';
+  }else{
+    banner.innerHTML = `<div class="daytype-banner free"><div><div class="big" style="color:var(--ink);">개인운동 날</div><p>오늘 한 운동을 검색해서 추가하고 기록하세요</p></div></div>`;
+    saveBtn.classList.remove('pt-mode');
+    saveBtn.textContent = '기록 저장';
   }
-  exs.forEach(ex=>{
-    const cardio = exType(ex)==='cardio';
+
+  // 기존 기록의 종목을 오늘 목록으로 불러오기
+  todayExerciseIds = existing && existing.exercises ? existing.exercises.map(x=>x.id).filter(id=>exById(id)) : [];
+  document.getElementById('exSearch').value = '';
+  document.getElementById('exSearchResults').innerHTML = '';
+  renderTodayExercises(existing);
+}
+
+// 검색 결과 렌더
+function renderSearchResults(query){
+  const box = document.getElementById('exSearchResults');
+  const q = (query||'').replace(/\s+/g,'').toLowerCase();
+  if(!q){ box.innerHTML=''; return; }
+  const matches = masterExercises.filter(ex=>{
+    const hay = (ex.name+ (ex.part||'')).replace(/\s+/g,'').toLowerCase();
+    return hay.includes(q);
+  }).slice(0, 12);
+  if(!matches.length){
+    box.innerHTML = `<div class="ex-search-empty">"${query}" 검색 결과가 없어요. <br>＋ 종목 추가/편집에서 새로 만들 수 있어요.</div>`;
+    return;
+  }
+  box.innerHTML = matches.map(ex=>{
+    const t = exType(ex);
+    const tl = t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
+    const added = todayExerciseIds.includes(ex.id);
+    return `<div class="ex-search-item ${added?'added':''}" data-exid="${ex.id}">
+      <span class="esi-name">${ex.name}</span>
+      ${ex.part?`<span class="esi-part">${ex.part}</span>`:''}
+      <span class="esi-type ${t}">${tl}</span>
+      <span class="esi-add">${added?'✓':'＋'}</span>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.ex-search-item').forEach(item=>{
+    item.onclick = ()=>{
+      const id = item.dataset.exid;
+      if(!todayExerciseIds.includes(id)){
+        todayExerciseIds.push(id);
+        renderTodayExercises(buildEntryFromForm());
+        autoSave();
+      }
+      // 검색창 비우고 결과 닫기
+      document.getElementById('exSearch').value = '';
+      document.getElementById('exSearchResults').innerHTML = '';
+    };
+  });
+}
+
+// 오늘 선택한 운동 목록 렌더
+function renderTodayExercises(existing){
+  const list = document.getElementById('todayExerciseList');
+  list.innerHTML = '';
+  if(!todayExerciseIds.length){
+    list.innerHTML = `<div class="empty" style="padding:18px 6px;">위 검색창에서 오늘 한 운동을 찾아 추가하세요.</div>`;
+    return;
+  }
+  todayExerciseIds.forEach(exId=>{
+    const ex = exById(exId);
+    if(!ex) return;
+    const t = exType(ex);
+    const cardio = t==='cardio';
+    const bodyweight = t==='bodyweight';
     const n = getSetCount(ex, existing);
-    const col1 = cardio ? '시간 (분)' : '무게 (kg)';
-    const col2 = cardio ? '거리 (km)' : '횟수 (회)';
-    const f1 = cardio ? 'duration' : 'weight';
-    const f2 = cardio ? 'distance' : 'reps';
-    const rowLabel = cardio ? '' : '세트';
-    let setsHtml = `
-      <div class="setno"></div>
-      <div class="colhead">${col1}</div>
-      <div class="colhead">${col2}</div>`;
-    for(let i=1;i<=n;i++){
-      setsHtml += `
-        <div class="setno">${i}${rowLabel? rowLabel : '차'}</div>
-        <input type="number" inputmode="decimal" placeholder="0" min="0" step="${cardio?'0.1':'0.5'}" data-ex="${ex.id}" data-field="${f1}" data-set="${i}">
-        <input type="number" inputmode="decimal" placeholder="0" min="0" step="${cardio?'0.1':'1'}" data-ex="${ex.id}" data-field="${f2}" data-set="${i}">`;
+    const tl = cardio?'유산소':(bodyweight?'맨몸':'웨이트');
+    let setsHtml, cols;
+    if(bodyweight){
+      cols = 'grid-template-columns:auto 1fr;';
+      setsHtml = `<div class="setno"></div><div class="colhead">횟수 (회)</div>`;
+      for(let i=1;i<=n;i++) setsHtml += `<div class="setno">${i}세트</div><input type="number" inputmode="numeric" placeholder="0" min="0" data-ex="${ex.id}" data-field="reps" data-set="${i}">`;
+    }else if(cardio){
+      cols = '';
+      setsHtml = `<div class="setno"></div><div class="colhead">시간 (분)</div><div class="colhead">거리 (km)</div>`;
+      for(let i=1;i<=n;i++) setsHtml += `<div class="setno">${i}차</div><input type="number" inputmode="decimal" placeholder="0" min="0" step="0.1" data-ex="${ex.id}" data-field="duration" data-set="${i}"><input type="number" inputmode="decimal" placeholder="0" min="0" step="0.1" data-ex="${ex.id}" data-field="distance" data-set="${i}">`;
+    }else{
+      cols = '';
+      setsHtml = `<div class="setno"></div><div class="colhead">무게 (kg)</div><div class="colhead">횟수 (회)</div>`;
+      for(let i=1;i<=n;i++) setsHtml += `<div class="setno">${i}세트</div><input type="number" inputmode="decimal" placeholder="0" min="0" step="0.5" data-ex="${ex.id}" data-field="weight" data-set="${i}"><input type="number" inputmode="numeric" placeholder="0" min="0" data-ex="${ex.id}" data-field="reps" data-set="${i}">`;
     }
     const div = document.createElement('div');
-    div.className = 'exercise';
+    div.className = 'today-ex';
     div.innerHTML = `
-      <div class="ename">
-        <span>${ex.name}${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}${cardio?` <span style="color:var(--accent-b);font-weight:400;font-size:11px;">유산소</span>`:''}</span>
+      <div class="today-ex-head">
+        <span class="tex-name">${ex.name}<span class="tex-type ${t}">${tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
+        <button class="tex-remove" data-rmex="${ex.id}">×</button>
       </div>
-      <div class="sets" id="sets-${ex.id}">${setsHtml}</div>
+      <div class="sets" style="${cols}">${setsHtml}</div>
       <div class="set-ctrl">
         <button class="set-btn" data-act="remove" data-ex="${ex.id}" ${n<=1?'disabled':''}>➖ 세트</button>
         <button class="set-btn" data-act="add" data-ex="${ex.id}">➕ 세트</button>
       </div>`;
     list.appendChild(div);
   });
+  // 값 복원
+  prefillExerciseInputs(existing);
+  // 이벤트 연결
   list.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener('input', debouncedAutoSave);
     inp.addEventListener('blur', autoSave);
@@ -1296,19 +1348,34 @@ function renderExercises(existing){
   list.querySelectorAll('.set-btn').forEach(btn=>{
     btn.onclick = ()=>{
       const id = btn.dataset.ex;
-      const cur = setCounts[id] || 3;
+      const ex = exById(id);
+      const def = exType(ex)==='cardio'?1:3;
+      const cur = setCounts[id] || def;
       if(btn.dataset.act==='add') setCounts[id] = cur+1;
       else if(cur>1) setCounts[id] = cur-1;
-      // 현재 입력값 보존 후 다시 그림
       const snapshot = buildEntryFromForm();
-      renderExercises(snapshot);
-      prefillExerciseInputs(snapshot);
+      renderTodayExercises(snapshot);
+      autoSave();
+    };
+  });
+  list.querySelectorAll('.tex-remove').forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.rmex;
+      const snapshot = buildEntryFromForm();
+      todayExerciseIds = todayExerciseIds.filter(x=>x!==id);
+      delete setCounts[id];
+      renderTodayExercises(snapshot);
       autoSave();
     };
   });
 }
 
-// "종목/루틴 관리" 버튼 (운동 카드 아래)
+// 검색창 입력
+document.getElementById('exSearch').addEventListener('input', (e)=>{
+  renderSearchResults(e.target.value);
+});
+
+// "＋ 종목 추가/편집" 버튼
 document.getElementById('addExToggle').addEventListener('click', openManageModal);
 
 // ---------- 매일 루틴 관리 모달 ----------
@@ -1365,120 +1432,47 @@ function renderDailyManage(){
 // ---------- 루틴 · 종목 관리 모달 ----------
 function openManageModal(){
   document.getElementById('manageModal').style.display = 'flex';
-  renderManageRoutines();
   renderManageMaster();
 }
 function closeManageModal(){
   document.getElementById('manageModal').style.display = 'none';
-  // 관리 후 메인 폼 갱신
-  if(selectedRoutine && !routineById(selectedRoutine)) selectedRoutine = routines[0] ? routines[0].id : null;
-  renderRoutineToggle();
-  renderExercises();
+  // 관리 후 검색 결과/오늘목록 갱신
+  renderSearchResults(document.getElementById('exSearch').value);
+  renderTodayExercises(buildEntryFromForm());
   populateExerciseSelect();
 }
 document.getElementById('manageClose').addEventListener('click', closeManageModal);
 document.getElementById('manageModal').addEventListener('click', (e)=>{
   if(e.target.id==='manageModal') closeManageModal();
 });
-document.querySelectorAll('.mtab').forEach(tab=>{
-  tab.addEventListener('click', ()=>{
-    document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.mpanel').forEach(p=>p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('mpanel-'+tab.dataset.mtab).classList.add('active');
-  });
-});
 
-function renderManageRoutines(){
-  const wrap = document.getElementById('mpanel-routines');
-  let html = '<p class="section-label">각 루틴에 넣을 종목을 체크하세요. 같은 종목을 여러 루틴에 넣어도 됩니다. 루틴 이름/설명도 바로 고칠 수 있어요.</p>';
-  routines.forEach(r=>{
-    html += `<div class="routine-block" data-rid="${r.id}">
-      <div class="routine-block-head">
-        <div class="rname-edit" style="flex:1;display:flex;gap:6px;align-items:center;">
-          <input class="rname-input" data-rid="${r.id}" data-field="label" value="${(r.label||'').replace(/"/g,'&quot;')}" style="width:52px;color:${r.color};font-family:'Bebas Neue';font-size:18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;">
-          <input class="rname-input" data-rid="${r.id}" data-field="sub" value="${(r.sub||'').replace(/"/g,'&quot;')}" placeholder="설명" style="flex:1;min-width:0;font-size:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--ink-dim);">
-        </div>
-        <button class="rdel" data-rdel="${r.id}">삭제</button>
-      </div>`;
-    masterExercises.forEach(ex=>{
-      const on = r.exerciseIds.includes(ex.id);
-      html += `<div class="ex-check ${on?'on':''}" data-rid="${r.id}" data-exid="${ex.id}">
-        <div class="cbox">${on?'✓':''}</div>
-        <span class="exlabel">${ex.name}</span>
-        ${ex.part?`<span class="expart">${ex.part}</span>`:''}
-      </div>`;
-    });
-    if(!masterExercises.length) html += '<p class="section-label" style="margin:6px 0 0;">종목이 없어요. "종목 목록" 탭에서 추가하세요.</p>';
-    html += `</div>`;
-  });
-  html += `<div class="add-inline">
-    <input type="text" id="newRoutineName" placeholder="새 루틴 이름 (예: C)">
-    <input type="text" id="newRoutineSub" placeholder="설명(선택)">
-    <button id="addRoutineBtn">루틴 추가</button>
-  </div>`;
-  wrap.innerHTML = html;
 
-  // 루틴 이름/설명 편집
-  wrap.querySelectorAll('.rname-input').forEach(inp=>{
-    inp.addEventListener('change', async ()=>{
-      const r = routineById(inp.dataset.rid);
-      if(!r) return;
-      const v = inp.value.trim();
-      if(inp.dataset.field==='label'){ if(v) r.label = v; }
-      else r.sub = v;
-      await persistConfig();
-    });
-    // 편집 중 체크 토글 방지
-    inp.addEventListener('click', e=>e.stopPropagation());
-  });
-
-  wrap.querySelectorAll('.ex-check').forEach(el=>{
-    el.onclick = async ()=>{
-      await toggleExerciseInRoutine(el.dataset.rid, el.dataset.exid);
-      renderManageRoutines();
-    };
-  });
-  wrap.querySelectorAll('.rdel').forEach(btn=>{
-    btn.onclick = async ()=>{
-      if(routines.length<=1){ alert('루틴은 최소 1개는 있어야 해요.'); return; }
-      if(!confirm('이 루틴을 삭제할까요? (종목 자체와 과거 기록은 남아있어요)')) return;
-      await removeRoutine(btn.dataset.rdel);
-      renderManageRoutines();
-    };
-  });
-  document.getElementById('addRoutineBtn').onclick = async ()=>{
-    const name = document.getElementById('newRoutineName').value.trim();
-    const sub = document.getElementById('newRoutineSub').value.trim();
-    if(!name) return;
-    const res = await addRoutine(name, sub);
-    if(res && res.duplicate){
-      alert(`"${res.existing.label}" 루틴은 이미 있어요.`);
-      return;
-    }
-    renderManageRoutines();
-  };
-}
 
 function renderManageMaster(){
   const wrap = document.getElementById('mpanel-master');
-  let html = '<p class="section-label">모든 운동 종목을 관리해요. 근력은 무게×횟수, 유산소는 시간·거리로 기록됩니다.</p>';
-  masterExercises.forEach(ex=>{
-    const cardio = exType(ex)==='cardio';
-    html += `<div class="master-item">
-      <span class="mname">${ex.name}</span>
-      ${ex.part?`<span class="mpart">· ${ex.part}</span>`:''}
-      <span class="mtype ${cardio?'cardio':''}">${cardio?'유산소':'근력'}</span>
-      <button class="mdel" data-exdel="${ex.id}">×</button>
-    </div>`;
+  const typeLabel = t => t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
+  let html = '<p class="section-label">전체 운동 종목 목록이에요. 검색해서 오늘 운동에 추가할 수 있어요. 없는 운동은 아래에서 새로 추가하세요.</p>';
+  // 타입별로 그룹핑해서 보여주기
+  ['strength','cardio','bodyweight'].forEach(t=>{
+    const items = masterExercises.filter(ex=>exType(ex)===t);
+    if(!items.length) return;
+    html += `<div class="section-label" style="margin-top:12px;color:var(--ink-dim);font-weight:600;">${typeLabel(t)} (${items.length})</div>`;
+    items.forEach(ex=>{
+      html += `<div class="master-item">
+        <span class="mname">${ex.name}</span>
+        ${ex.part?`<span class="mpart">· ${ex.part}</span>`:''}
+        <span class="mtype ${t}">${typeLabel(t)}</span>
+        <button class="mdel" data-exdel="${ex.id}">×</button>
+      </div>`;
+    });
   });
-  if(!masterExercises.length) html += '<p class="section-label">아직 종목이 없어요.</p>';
-  html += `<div class="add-inline">
+  html += `<div class="add-inline" style="margin-top:16px;">
     <input type="text" id="newMasterName" placeholder="운동 이름 (예: 랫풀다운)">
     <input type="text" id="newMasterPart" placeholder="부위 (예: 등)">
     <div class="type-pick">
-      <button class="type-btn on" data-type="strength">근력 (무게×횟수)</button>
-      <button class="type-btn" data-type="cardio">유산소 (시간·거리)</button>
+      <button class="type-btn on" data-type="strength">웨이트</button>
+      <button class="type-btn" data-type="cardio">유산소</button>
+      <button class="type-btn" data-type="bodyweight">맨몸</button>
     </div>
     <button id="addMasterBtn">추가</button>
   </div>`;
@@ -1494,10 +1488,10 @@ function renderManageMaster(){
 
   wrap.querySelectorAll('.mdel').forEach(btn=>{
     btn.onclick = async ()=>{
-      if(!confirm('이 종목을 삭제할까요? 모든 루틴에서 빠지고, 과거 기록은 그대로 남아있어요.')) return;
+      if(!confirm('이 종목을 목록에서 삭제할까요? 과거 기록은 그대로 남아있어요.')) return;
       await removeMasterExercise(btn.dataset.exdel);
+      todayExerciseIds = todayExerciseIds.filter(id=>id!==btn.dataset.exdel);
       renderManageMaster();
-      renderManageRoutines();
     };
   });
   document.getElementById('addMasterBtn').onclick = async ()=>{
@@ -1512,7 +1506,6 @@ function renderManageMaster(){
     document.getElementById('newMasterName').value = '';
     document.getElementById('newMasterPart').value = '';
     renderManageMaster();
-    renderManageRoutines();
   };
 }
 
@@ -1630,23 +1623,32 @@ function buildEntryFromForm(){
   const pt = isPTDay(dateStr);
   const note = document.getElementById('noteInput').value.trim();
 
-  // PT날/개인운동날 모두 종목 기록을 저장한다
-  const exData = routineExercises(selectedRoutine).map(ex=>{
-    const cardio = exType(ex)==='cardio';
-    const n = setCounts[ex.id] || 3;
-    const f1 = cardio ? 'duration' : 'weight';
-    const f2 = cardio ? 'distance' : 'reps';
+  // 오늘 선택한 종목 기록
+  const exData = todayExerciseIds.map(exId=>{
+    const ex = exById(exId);
+    if(!ex) return null;
+    const t = exType(ex);
+    const cardio = t==='cardio', bodyweight = t==='bodyweight';
+    const def = cardio?1:3;
+    const n = setCounts[ex.id] || def;
     const sets = [];
     for(let i=1;i<=n;i++){
-      const el1 = document.querySelector(`input[data-ex="${ex.id}"][data-field="${f1}"][data-set="${i}"]`);
-      const el2 = document.querySelector(`input[data-ex="${ex.id}"][data-field="${f2}"][data-set="${i}"]`);
-      const v1 = el1 ? el1.value : '';
-      const v2 = el2 ? el2.value : '';
-      if(cardio) sets.push({ duration: v1?parseFloat(v1):null, distance: v2?parseFloat(v2):null });
-      else sets.push({ weight: v1?parseFloat(v1):null, reps: v2?parseInt(v2):null });
+      if(bodyweight){
+        const el = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${i}"]`);
+        const v = el?el.value:'';
+        sets.push({ reps: v?parseInt(v):null });
+      }else if(cardio){
+        const e1 = document.querySelector(`input[data-ex="${ex.id}"][data-field="duration"][data-set="${i}"]`);
+        const e2 = document.querySelector(`input[data-ex="${ex.id}"][data-field="distance"][data-set="${i}"]`);
+        sets.push({ duration: e1&&e1.value?parseFloat(e1.value):null, distance: e2&&e2.value?parseFloat(e2.value):null });
+      }else{
+        const e1 = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${i}"]`);
+        const e2 = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${i}"]`);
+        sets.push({ weight: e1&&e1.value?parseFloat(e1.value):null, reps: e2&&e2.value?parseInt(e2.value):null });
+      }
     }
-    return { id: ex.id, name: ex.name, type: cardio?'cardio':'strength', sets };
-  });
+    return { id: ex.id, name: ex.name, type: t, part: ex.part||'', sets };
+  }).filter(Boolean);
 
   // 매일 루틴 값 수집
   const daily = {};
@@ -1672,13 +1674,11 @@ function buildEntryFromForm(){
   });
 
   const existing = entryForDate(dateStr);
-  const routine = routineById(selectedRoutine);
   return {
     id: existing ? existing.id : (Date.now()+'-'+Math.random().toString(36).slice(2,7)),
     date: dateStr,
     pt: pt,
-    routineId: selectedRoutine,
-    group: routine ? routine.label : selectedRoutine, // 기록 보기 태그 표시용
+    group: pt ? 'PT' : '운동', // 기록 보기 태그 표시용
     exercises: exData,
     daily: daily,
     note: note
@@ -1713,15 +1713,13 @@ let historyFilter = 'all'; // all | A | B | PT
 let openMonths = {}; // { 'YYYY-MM': true }
 
 function setsToText(ex){
-  const cardio = (ex.type==='cardio');
-  if(cardio){
+  if(ex.type==='cardio'){
     return (ex.sets||[]).filter(s=>s.duration||s.distance)
-      .map(s=>{
-        const parts = [];
-        if(s.duration!=null) parts.push(`${s.duration}분`);
-        if(s.distance!=null) parts.push(`${s.distance}km`);
-        return parts.join(' ');
-      }).filter(Boolean).join(', ');
+      .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
+  }
+  if(ex.type==='bodyweight'){
+    const reps = (ex.sets||[]).filter(s=>s.reps!=null).map(s=>s.reps);
+    return reps.length ? reps.join(', ')+'회' : '';
   }
   return (ex.sets||[]).filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
 }
@@ -2211,17 +2209,22 @@ function populateExerciseSelect(){
 // 특정 종목의 날짜별 최고무게 시계열
 function exerciseSeries(exId){
   const master = exById(exId);
-  const cardio = exType(master)==='cardio';
+  const t = exType(master);
   const points = [];
   entries.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     const ex = (e.exercises||[]).find(x=>x.id===exId);
     if(!ex || !Array.isArray(ex.sets)) return;
-    if(cardio){
+    if(t==='cardio'){
       const durs = ex.sets.map(s=>s&&s.duration).filter(v=>v!=null && !isNaN(v));
       if(!durs.length) return;
       const setsText = ex.sets.filter(s=>s&&(s.duration!=null||s.distance!=null))
         .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
       points.push({ date:e.date, top: Math.max(...durs), setsText, unit:'분' });
+    }else if(t==='bodyweight'){
+      const reps = ex.sets.map(s=>s&&s.reps).filter(v=>v!=null && !isNaN(v));
+      if(!reps.length) return;
+      const setsText = reps.join(', ')+'회';
+      points.push({ date:e.date, top: Math.max(...reps), setsText, unit:'회' });
     }else{
       const weights = ex.sets.map(s=>s&&s.weight).filter(w=>w!=null && !isNaN(w));
       if(!weights.length) return;
@@ -2321,9 +2324,9 @@ function renderGraph(){
     }
     const setsByDate = Object.fromEntries(points.map(p=>[p.date, p.setsText]));
     const unit = points[0].unit || 'kg';
-    const isCardio = unit==='분';
+    const label = unit==='분'?'최고 시간(분)':(unit==='회'?'최고 횟수(회)':'최고 세트 무게(kg)');
     const base = { labels: points.map(p=>p.date),
-      datasets:[{ label:isCardio?'최고 시간(분)':'최고 세트 무게(kg)', data: points.map(p=>p.top),
+      datasets:[{ label:label, data: points.map(p=>p.top),
         borderColor:'#E8A33D', backgroundColor:'rgba(232,163,61,0.15)',
         tension:0.3, fill:true, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#E8A33D' }] };
     const padded = padSingle(base.labels, base.datasets);
