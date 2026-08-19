@@ -115,7 +115,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v14</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v15</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -172,7 +172,7 @@ const DEFAULT_MASTER = [
   {id:'row',name:'인버티드로우',part:'등',type:'strength'},{id:'latpull',name:'암풀다운',part:'등',type:'strength'},{id:'squat',name:'가블릿스쿼트',part:'하체',type:'strength'}
 ];
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
-const CUP_ML = 165;
+let CUP_ML = 165;
 let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dailyItems = [];
 
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
@@ -578,6 +578,7 @@ function renderIbHistory(){
     const data = snap.exists ? snap.data() : {};
     entries = data.entries || [];
     water = data.water || {};
+    if(typeof data.cupMl === 'number' && data.cupMl > 0) CUP_ML = data.cupMl;
     inbody = data.inbody || [];
     dailyItems = Array.isArray(data.dailyItems) ? data.dailyItems : [];
     meals = data.meals || {};

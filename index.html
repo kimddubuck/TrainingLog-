@@ -384,6 +384,7 @@ window.__chartReady = false;
   .wbtn:active{background:var(--surface-3);}
   .wcount{font-family:'Bebas Neue',sans-serif;font-size:44px;color:#6FB8DE;min-width:70px;text-align:center;}
   .wcount-unit{font-size:12px;color:var(--ink-faint);text-align:center;margin-top:-4px;}
+  .cup-edit{background:none;border:none;color:var(--accent-a);font-size:12px;cursor:pointer;padding:2px 4px;font-family:'IBM Plex Sans KR',sans-serif;}
 
   .cardio-row{display:flex;align-items:center;gap:10px;}
   .cardio-row input[type=number]{
@@ -600,7 +601,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v14</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v15</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -629,7 +630,7 @@ window.__chartReady = false;
         <div class="wbtn" id="waterMinus">−</div>
         <div>
           <div class="wcount" id="waterCount">0</div>
-          <div class="wcount-unit">잔 (컵당 165ml)</div>
+          <div class="wcount-unit">잔 <button id="cupEditBtn" class="cup-edit">컵당 <span id="cupMlLabel">165</span>ml ✎</button></div>
         </div>
         <div class="wbtn" id="waterPlus">+</div>
       </div>
@@ -906,7 +907,7 @@ function exById(id){ return masterExercises.find(e=>e.id===id) || null; }
 function exType(ex){ return (ex && ex.type)==='cardio' ? 'cardio' : ((ex && ex.type)==='bodyweight'?'bodyweight':'strength'); }
 function allExercises(){ return masterExercises; }
 
-const CUP_ML = 165;
+let CUP_ML = 165; // 물 한 컵 용량(ml) — 사용자가 조절 가능
 let water = {}; // { 'YYYY-MM-DD': count }
 let inbody = []; // [{date, weight, smm, bfm, bmi, pbf}]
 let meals = {}; // { 'YYYY-MM-DD': { breakfast:[img], lunch:[img], dinner:[img], snack:[img,...] } }
@@ -988,6 +989,9 @@ async function loadAllData(){
     });
   });
 
+  // ----- 설정: 물 컵 용량 -----
+  if(typeof data.cupMl === 'number' && data.cupMl > 0) CUP_ML = data.cupMl;
+
   // ----- 매일 루틴 로드 + 마이그레이션 -----
   if(Array.isArray(data.dailyItems) && data.dailyItems.length){
     dailyItems = data.dailyItems;
@@ -1017,6 +1021,9 @@ async function persistEntries(){
 async function persistWater(){
   try{ await docRef.set({ water }, { merge:true }); }
   catch(e){ console.error('water save failed', e); }}
+async function persistCupMl(){
+  try{ await docRef.set({ cupMl: CUP_ML }, { merge:true }); }
+  catch(e){ console.error('cupMl save failed', e); }}
 async function persistInbody(){
   try{ await docRef.set({ inbody }, { merge:true }); }
   catch(e){ console.error('inbody save failed', e); }
@@ -1038,6 +1045,18 @@ function renderWaterCounter(){
   const count = water[dateStr] || 0;
   document.getElementById('waterCount').textContent = count;
   document.getElementById('waterMl').textContent = (count*CUP_ML) + 'ml';
+  const lbl = document.getElementById('cupMlLabel');
+  if(lbl) lbl.textContent = CUP_ML;
+}
+async function editCupMl(){
+  const input = prompt('물 한 컵은 몇 ml인가요?', CUP_ML);
+  if(input===null) return; // 취소
+  const v = parseInt(input);
+  if(isNaN(v) || v<=0){ showToast('올바른 숫자를 입력하세요'); return; }
+  CUP_ML = v;
+  await persistCupMl();
+  renderWaterCounter();
+  showToast(`한 컵 ${v}ml로 저장했어요`);
 }
 async function changeWater(delta){
   const dateStr = document.getElementById('dateInput').value;
@@ -1612,6 +1631,7 @@ document.getElementById('dateInput').addEventListener('change', ()=>{
 });
 document.getElementById('waterPlus').addEventListener('click', ()=>changeWater(1));
 document.getElementById('waterMinus').addEventListener('click', ()=>changeWater(-1));
+document.getElementById('cupEditBtn').addEventListener('click', editCupMl);
 // 식단 탭 날짜 컨트롤
 document.getElementById('mealDate').addEventListener('change', renderMeals);
 document.getElementById('mealPrev').addEventListener('click', ()=>shiftMealDate(-1));
