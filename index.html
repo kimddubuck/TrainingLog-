@@ -601,7 +601,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v15</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v16</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -1025,12 +1025,21 @@ async function persistCupMl(){
   try{ await docRef.set({ cupMl: CUP_ML }, { merge:true }); }
   catch(e){ console.error('cupMl save failed', e); }}
 async function persistInbody(){
-  try{ await docRef.set({ inbody }, { merge:true }); }
-  catch(e){ console.error('inbody save failed', e); }
+  try{ await docRef.set({ inbody }, { merge:true }); return {ok:true}; }
+  catch(e){ console.error('inbody save failed', e); return {ok:false, msg: friendlySaveError(e)}; }
 }
 async function persistMeals(){
-  try{ await docRef.set({ meals }, { merge:true }); }
-  catch(e){ console.error('meals save failed', e); }
+  try{ await docRef.set({ meals }, { merge:true }); return {ok:true}; }
+  catch(e){ console.error('meals save failed', e); return {ok:false, msg: friendlySaveError(e)}; }
+}
+function friendlySaveError(e){
+  const msg = (e && e.message) ? e.message : String(e);
+  if(/longer than|exceeds the maximum|1048576|too large/i.test(msg)){
+    return '사진이 너무 많아 저장 공간이 꽉 찼어요. 오래된 식단 사진을 지워보세요.';
+  }
+  if(/permission|PERMISSION/i.test(msg)) return '저장 권한 오류 (로그인 상태 확인)';
+  if(/network|unavailable|deadline/i.test(msg)) return '네트워크가 불안정해요. 다시 시도해주세요.';
+  return msg;
 }
 function cleanupOldMeals(){
   const cutoff = new Date();
@@ -1159,14 +1168,24 @@ function pickMealPhoto(slot){
     const dateStr = mealDateStr();
     const url = URL.createObjectURL(file);
     try{
-      const compressed = await compressImage(url, 600, 0.6); // 식단은 더 작게(저용량)
+      showToast('사진 압축 중…');
+      // 한 장당 약 110KB 이하로 압축 (Firestore 1MB 문서 한도 대비 여유)
+      const compressed = await compressImageToLimit(url, 110*1024, 480, 0.55);
       const m = mealsForDate(dateStr);
+      const backup = slot==='snack' ? [...m.snack] : (m[slot]?[...m[slot]]:[]);
       if(slot==='snack') m.snack.push(compressed);
       else m[slot] = [compressed]; // 아침/점심/저녁은 1장으로 교체
-      await persistMeals();
-      renderMeals();
-      showToast('식단 사진 저장했어요');
-    }catch(err){ console.error(err); showToast('사진 처리 실패'); }
+      const res = await persistMeals();
+      if(res && res.ok===false){
+        // 저장 실패 → 되돌리고 사유 안내
+        if(slot==='snack') m.snack = backup; else m[slot] = backup;
+        renderMeals();
+        showToast('저장 실패: ' + res.msg);
+      }else{
+        renderMeals();
+        showToast('식단 사진 저장했어요');
+      }
+    }catch(err){ console.error(err); showToast('사진 처리 실패: '+(err&&err.message?err.message:err)); }
     URL.revokeObjectURL(url);
   };
   mealFileInput.click();
@@ -1968,8 +1987,8 @@ document.getElementById('ibFile').addEventListener('change', async (e)=>{
 
   try{
     const url = URL.createObjectURL(file);
-    // 저장용 이미지 압축본 준비 (원본 그대로 보여주되 용량 절감)
-    pendingIbImage = await compressImage(url, 900, 0.7);
+    // 저장용 이미지 압축본 준비 (약 220KB 이하로)
+    pendingIbImage = await compressImageToLimit(url, 220*1024, 720, 0.65);
     // 왼쪽 값 컬럼만 잘라 인식률을 높인다
     const cropped = await cropLeftColumn(url);
     const { data } = await Tesseract.recognize(cropped, 'eng', {
@@ -2007,6 +2026,21 @@ function compressImage(url, maxW, quality){
     img.onerror = reject;
     img.src = url;
   });
+}
+
+// 목표 용량(byte) 이하가 될 때까지 화질/크기를 점점 낮추며 압축
+async function compressImageToLimit(url, maxBytes, startW, startQ){
+  let w = startW, q = startQ, out = await compressImage(url, w, q);
+  // dataURL의 대략적 byte 수 (base64는 3/4이 실제 데이터)
+  const bytes = s => Math.floor(s.length * 0.75);
+  let guard = 0;
+  while(bytes(out) > maxBytes && guard < 8){
+    guard++;
+    if(q > 0.4){ q -= 0.1; }       // 먼저 화질을 낮추고
+    else { w = Math.round(w*0.85); q = 0.6; } // 그래도 크면 크기를 줄임
+    out = await compressImage(url, w, q);
+  }
+  return out;
 }
 
 // 이미지 왼쪽 42% 컬럼만 크롭 (큰 숫자들이 있는 영역)
@@ -2082,9 +2116,10 @@ document.getElementById('ibSaveBtn').addEventListener('click', async ()=>{
   const latestDate = sortedDesc[0].date;
   inbody.forEach(r=>{ if(r.date !== latestDate) delete r.image; });
 
-  await persistInbody();
+  const res = await persistInbody();
   pendingIbImage = null;
   document.getElementById('ibOcrStatus').textContent = '';
+  if(res && res.ok===false){ showToast('저장 실패: '+res.msg); return; }
   showToast('인바디 기록 저장했어요');
   renderIbLatest();
   renderIbChart();
