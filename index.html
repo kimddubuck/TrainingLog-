@@ -44,6 +44,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -601,7 +602,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v16</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v17</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -794,6 +795,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();   // 사진 전용 저장소
 let docRef = null; // set after login, users/{uid}/log/data
 
 document.getElementById('loginBtn').addEventListener('click', async ()=>{
@@ -1032,11 +1034,29 @@ async function persistMeals(){
   try{ await docRef.set({ meals }, { merge:true }); return {ok:true}; }
   catch(e){ console.error('meals save failed', e); return {ok:false, msg: friendlySaveError(e)}; }
 }
+// ---------- 사진 저장소 (Firebase Storage) ----------
+// 사진은 Firestore 문서(1MB 한도)가 아니라 Storage에 올리고,
+// 문서에는 다운로드 주소(짧은 문자열)만 저장한다.
+function storagePath(kind, dateStr){
+  const uid = auth.currentUser.uid;
+  const rand = Math.random().toString(36).slice(2,8);
+  return `users/${uid}/${kind}/${dateStr}_${Date.now()}_${rand}.jpg`;
+}
+// dataURL 사진 → Storage 업로드 → 다운로드 주소(문자열) 반환
+async function uploadImage(dataUrl, path){
+  const ref = storage.ref().child(path);
+  await ref.putString(dataUrl, 'data_url');   // 'data_url' = firebase.storage.StringFormat.DATA_URL
+  return await ref.getDownloadURL();
+}
+
 function friendlySaveError(e){
   const msg = (e && e.message) ? e.message : String(e);
   if(/longer than|exceeds the maximum|1048576|too large/i.test(msg)){
     return '사진이 너무 많아 저장 공간이 꽉 찼어요. 오래된 식단 사진을 지워보세요.';
   }
+  if(/storage[/](unauthorized|unauthenticated)/i.test(msg)) return '사진 저장소 권한이 없어요. (Storage 보안 규칙 확인)';
+  if(/storage[/](unknown|object-not-found|bucket-not-found|project-not-found)/i.test(msg)) return '사진 저장소가 아직 준비되지 않았어요. (Firebase 콘솔에서 Storage 활성화 필요)';
+  if(/storage[/](retry-limit|canceled|server-file-wrong-size)/i.test(msg)) return '사진 업로드가 끊겼어요. 네트워크 확인 후 다시 시도해주세요.';
   if(/permission|PERMISSION/i.test(msg)) return '저장 권한 오류 (로그인 상태 확인)';
   if(/network|unavailable|deadline/i.test(msg)) return '네트워크가 불안정해요. 다시 시도해주세요.';
   return msg;
@@ -1169,12 +1189,15 @@ function pickMealPhoto(slot){
     const url = URL.createObjectURL(file);
     try{
       showToast('사진 압축 중…');
-      // 한 장당 약 110KB 이하로 압축 (Firestore 1MB 문서 한도 대비 여유)
+      // 한 장당 약 110KB 이하로 압축
       const compressed = await compressImageToLimit(url, 110*1024, 480, 0.55);
+      // 사진은 Storage에 올리고, 문서에는 주소(문자열)만 넣는다
+      showToast('사진 올리는 중…');
+      const photoUrl = await uploadImage(compressed, storagePath('meals', dateStr));
       const m = mealsForDate(dateStr);
       const backup = slot==='snack' ? [...m.snack] : (m[slot]?[...m[slot]]:[]);
-      if(slot==='snack') m.snack.push(compressed);
-      else m[slot] = [compressed]; // 아침/점심/저녁은 1장으로 교체
+      if(slot==='snack') m.snack.push(photoUrl);
+      else m[slot] = [photoUrl]; // 아침/점심/저녁은 1장으로 교체
       const res = await persistMeals();
       if(res && res.ok===false){
         // 저장 실패 → 되돌리고 사유 안내
@@ -1185,7 +1208,7 @@ function pickMealPhoto(slot){
         renderMeals();
         showToast('식단 사진 저장했어요');
       }
-    }catch(err){ console.error(err); showToast('사진 처리 실패: '+(err&&err.message?err.message:err)); }
+    }catch(err){ console.error(err); showToast('사진 처리 실패: '+friendlySaveError(err)); }
     URL.revokeObjectURL(url);
   };
   mealFileInput.click();
@@ -2103,9 +2126,20 @@ document.getElementById('ibSaveBtn').addEventListener('click', async ()=>{
   });
   if(!hasVal){ showToast('값을 하나 이상 입력하세요'); return; }
 
-  // 이번에 업로드한 이미지가 있으면 붙이고, 없으면 같은 날짜 기존 이미지 유지
+  // 이번에 업로드한 이미지가 있으면 Storage에 올린 뒤 주소를 붙이고,
+  // 없으면 같은 날짜 기존 이미지(주소) 유지
   const existing = inbody.find(r=>r.date===dateStr);
-  if(pendingIbImage) rec.image = pendingIbImage;
+  if(pendingIbImage){
+    try{
+      showToast('사진 올리는 중…');
+      rec.image = await uploadImage(pendingIbImage, storagePath('inbody', dateStr));
+    }catch(err){
+      // 업로드 실패 시 아무것도 저장하지 않고 중단 → 입력값과 사진이 그대로 남아 재시도 가능
+      console.error('inbody image upload failed', err);
+      showToast('사진 업로드 실패: '+friendlySaveError(err));
+      return;
+    }
+  }
   else if(existing && existing.image) rec.image = existing.image;
 
   inbody = inbody.filter(r=>r.date!==dateStr);
