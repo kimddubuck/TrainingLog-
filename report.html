@@ -87,6 +87,10 @@ window.__chartReady = false;
   .ib-latest-head .t{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.02em;}
   .ib-latest-head .d{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-faint);}
   .ib-latest-img{width:100%;border-radius:10px;display:block;margin-bottom:14px;border:1px solid var(--border);cursor:zoom-in;}
+  /* 기록 보기: 종목 줄 + 중량 미니 그래프 */
+  .hx-row{display:flex;align-items:center;gap:8px;}
+  .hx-txt{flex:1;min-width:0;}
+  .hx-spark{flex-shrink:0;line-height:0;opacity:0.85;}
   .lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:20px;}
   .lightbox.on{display:flex;}
   .lightbox img{max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain;}
@@ -115,7 +119,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v16</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v21</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -178,18 +182,57 @@ let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dai
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
 function allExercises(){ return masterExercises; }
 function exById(id){ return masterExercises.find(e=>e.id===id)||null; }
-function exType(ex){ return (ex && ex.type)==='cardio'?'cardio':'strength'; }
+function exType(ex){ return (ex && ex.type)==='cardio' ? 'cardio' : ((ex && ex.type)==='bodyweight'?'bodyweight':'strength'); }
+// 종목의 종류는 "지금의 라이브러리"를 기준으로 판단한다.
+// 기록에 저장된 type은 그 당시 값이라 낡았을 수 있다(예: 인버티드로우가 웨이트→맨몸으로 바뀜).
+function exTypeOf(ex){
+  const master = exById(ex && ex.id);
+  return exType(master || ex);
+}
 function setsToText(ex){
-  if(ex.type==='cardio'){
+  const t = exTypeOf(ex);
+  if(t==='cardio'){
     return (ex.sets||[]).filter(s=>s.duration||s.distance)
       .map(s=>[s.duration!=null?s.duration+'분':'', s.distance!=null?s.distance+'km':''].filter(Boolean).join(' ')).filter(Boolean).join(', ');
   }
-  if(ex.type==='bodyweight'){
-    const reps = (ex.sets||[]).filter(s=>s.reps!=null).map(s=>s.reps);
-    return reps.length ? reps.join(', ')+'회' : '';
+  if(t==='bodyweight'){
+    // 예전에 무게를 넣어둔 기록이면 그 무게도 함께 보여준다
+    return (ex.sets||[]).filter(s=>s.reps!=null)
+      .map(s=> (s.weight!=null && s.weight>0 ? s.weight+'kg×' : '') + s.reps + '회').join(', ');
   }
   return (ex.sets||[]).filter(s=>s.weight||s.reps).map(s=>`${s.weight??'-'}kg×${s.reps??'-'}`).join(', ');
 }
+// 작은 추이 그래프 — 외부 라이브러리 없이 SVG로 직접 그린다
+function sparklineSvg(points, w, h, markIdx){
+  const vals = points.map(p => p.top);
+  const pad = 3;
+  const mi = (markIdx == null) ? vals.length - 1 : markIdx;
+  if(vals.length === 1){
+    return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">'
+         + '<circle cx="' + (w/2) + '" cy="' + (h/2) + '" r="2.6" fill="var(--accent-a)"/></svg>';
+  }
+  const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), flat = (max === min);
+  const X = i => pad + i * (w - 2*pad) / (vals.length - 1);
+  const Y = v => flat ? (h/2) : (h - pad) - ((v - min) / (max - min)) * (h - 2*pad);
+  const line = vals.map((v,i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
+  return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">'
+       + '<polyline points="' + line + '" fill="none" stroke="var(--accent-a)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>'
+       + '<circle cx="' + X(mi).toFixed(1) + '" cy="' + Y(vals[mi]).toFixed(1) + '" r="2.4" fill="var(--accent-a)"/></svg>';
+}
+// 기록 보기: 웨이트 종목 옆에 붙는 중량 추이 미니 그래프.
+// 그 종목의 전체 추이를 그리고, 그날 기록의 위치를 점으로 표시한다.
+function histSparkHtml(ex, dateStr){
+  const master = exById(ex && ex.id);
+  if(!master || exType(master) !== 'strength') return '';
+  const pts = exerciseSeries(ex.id);
+  if(pts.length < 2) return '';
+  const idx = pts.findIndex(p => p.date === dateStr);
+  if(idx < 0) return '';
+  const best = Math.max.apply(null, pts.map(p => p.top));
+  const title = '중량 추이 ' + pts.length + '회 · 이날 ' + pts[idx].top + 'kg / 최고 ' + best + 'kg';
+  return '<span class="hx-spark" title="' + title + '">' + sparklineSvg(pts, 54, 16, idx) + '</span>';
+}
+
 function dailySetsToText(item, sets){
   if(!sets || !sets.length) return '';
   if(item.type==='bodyweight'){
@@ -238,7 +281,7 @@ function entryCardHTML(e){
     const rows = e.exercises.map(ex=>{
       const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
-      return `<div><b>${ex.name}</b> ${setsTxt}</div>`;
+      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>`;
     }).filter(Boolean);
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
@@ -359,7 +402,7 @@ function exerciseSeries(exId){
   entries.filter(e=>e.exercises).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     const ex = e.exercises.find(x=>x.id===exId);
     if(!ex || !Array.isArray(ex.sets)) return;
-    const t = ex.type || (exById(exId)?exById(exId).type:'strength') || 'strength';
+    const t = exTypeOf({ id:exId, type:ex.type });
     if(t==='cardio'){
       const durs = ex.sets.map(s=>s&&s.duration).filter(v=>v!=null && !isNaN(v));
       if(!durs.length) return;
@@ -369,7 +412,9 @@ function exerciseSeries(exId){
     }else if(t==='bodyweight'){
       const reps = ex.sets.map(s=>s&&s.reps).filter(v=>v!=null && !isNaN(v));
       if(!reps.length) return;
-      points.push({ date:e.date, top: Math.max(...reps), setsText: reps.join(', ')+'회', unit:'회' });
+      const bwText = ex.sets.filter(s=>s&&s.reps!=null)
+        .map(s=> (s.weight!=null && s.weight>0 ? s.weight+'kg×' : '') + s.reps + '회').join(', ');
+      points.push({ date:e.date, top: Math.max(...reps), setsText: bwText, unit:'회' });
     }else{
       const weights = ex.sets.map(s=>s&&s.weight).filter(w=>w!=null && !isNaN(w));
       if(!weights.length) return;
