@@ -329,7 +329,9 @@ window.__chartReady = false;
   /* 기록 보기: 종목 줄 + 중량 미니 그래프 */
   .hx-row{display:flex;align-items:center;gap:8px;}
   .hx-txt{flex:1;min-width:0;}
-  .hx-spark{flex-shrink:0;line-height:0;opacity:0.85;}
+  .hx-spark{flex-shrink:0;display:flex;align-items:center;gap:4px;line-height:0;}
+  .hx-val{font-size:11px;font-weight:600;color:var(--ink-dim);white-space:nowrap;line-height:1;font-family:'IBM Plex Mono',Consolas,monospace;}
+  .hx-val.best{color:var(--accent-a);}
   /* 검색 결과 한 줄 요약 (지난 기록) */
   .esi-meta{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .esi-meta .m-best{color:var(--accent-a);}
@@ -621,7 +623,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v21</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v22</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -1888,6 +1890,16 @@ function setsToText(ex){
 }
 // 기록 보기: 웨이트 종목 옆에 붙는 중량 추이 미니 그래프.
 // 그 종목의 전체 추이를 그리고, 그날 기록의 위치를 점으로 표시한다.
+// 그날의 대표 세트 = 가장 무거운 세트 (같은 무게면 횟수가 많은 쪽)
+function topSetText(ex){
+  const sets = (ex.sets||[]).filter(s => s && s.weight != null && !isNaN(s.weight));
+  if(!sets.length) return '';
+  let best = sets[0];
+  sets.forEach(s => {
+    if(s.weight > best.weight || (s.weight === best.weight && (s.reps||0) > (best.reps||0))) best = s;
+  });
+  return best.weight + 'kg×' + (best.reps != null ? best.reps : '-') + '회';
+}
 function histSparkHtml(ex, dateStr){
   const master = exById(ex && ex.id);
   if(!master || exType(master) !== 'strength') return '';
@@ -1896,8 +1908,13 @@ function histSparkHtml(ex, dateStr){
   const idx = pts.findIndex(p => p.date === dateStr);
   if(idx < 0) return '';
   const best = Math.max.apply(null, pts.map(p => p.top));
+  const isBest = pts[idx].top >= best;   // 이날이 역대 최고면 표시
   const title = '중량 추이 ' + pts.length + '회 · 이날 ' + pts[idx].top + 'kg / 최고 ' + best + 'kg';
-  return '<span class="hx-spark" title="' + title + '">' + sparklineSvg(pts, 54, 16, idx) + '</span>';
+  const val = topSetText(ex);
+  // 휴대폰에선 마우스를 올릴 수 없으므로 점 옆에 숫자를 직접 적는다
+  return '<span class="hx-spark" title="' + title + '">' + sparklineSvg(pts, 44, 16, idx)
+       + (val ? '<b class="hx-val' + (isBest ? ' best' : '') + '">' + val + (isBest ? ' 🔥' : '') + '</b>' : '')
+       + '</span>';
 }
 
 
