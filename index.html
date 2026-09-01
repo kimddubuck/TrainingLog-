@@ -315,7 +315,8 @@ window.__chartReady = false;
   .ex-search-wrap{position:relative;margin-bottom:6px;}
   #exSearch{width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px;font-family:'IBM Plex Sans KR',sans-serif;}
   .ex-search-results{margin-top:6px;display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;}
-  .ex-search-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;}
+  .ex-search-item{display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;}
+  .ex-search-item .esi-row{display:flex;align-items:center;gap:8px;}
   .ex-search-item:active{background:var(--surface-3);}
   .ex-search-item.added{opacity:0.5;}
   .ex-search-item .esi-name{flex:1;font-size:14px;}
@@ -325,6 +326,20 @@ window.__chartReady = false;
   .ex-search-item .esi-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
   .ex-search-item .esi-add{color:var(--accent-a);font-weight:700;font-size:16px;}
   .ex-search-empty{padding:12px;text-align:center;color:var(--ink-faint);font-size:13px;}
+  /* 검색 결과 한 줄 요약 (지난 기록) */
+  .esi-meta{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .esi-meta .m-best{color:var(--accent-a);}
+  /* 오늘 운동 카드 안 "지난 기록" 패널 */
+  .past-box{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 11px 9px;margin-bottom:10px;}
+  .past-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px;}
+  .past-title{font-size:10.5px;color:var(--ink-faint);letter-spacing:.05em;flex-shrink:0;}
+  .past-right{display:flex;align-items:center;gap:8px;}
+  .past-best{font-size:11.5px;color:var(--accent-a);font-weight:600;white-space:nowrap;}
+  .past-rows{display:flex;flex-direction:column;gap:3px;}
+  .past-row{display:flex;gap:8px;font-size:12px;min-width:0;}
+  .pr-date{color:var(--ink-faint);flex-shrink:0;width:36px;}
+  .pr-sets{color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .spark{display:block;flex-shrink:0;}
   .today-ex{padding:14px 0;border-top:1px solid var(--border);}
   .today-ex:first-child{border-top:none;}
   .today-ex-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
@@ -602,7 +617,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v17</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v19</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -969,10 +984,22 @@ async function loadAllData(){
   // ----- 종목 라이브러리 로드 -----
   // 기본 라이브러리를 항상 기반으로 깔고, 사용자가 추가한 종목/과거 기록 종목을 흡수
   masterExercises = DEFAULT_MASTER.map(e=>({...e}));
+  const savedMaster = Array.isArray(data.masterExercises) ? data.masterExercises : [];
+  // (1) 기본 종목을 사용자가 편집했다면(이름/부위/타입) 그 내용을 먼저 반영한다.
+  //     이걸 안 하면 편집이 매번 기본값으로 되돌아간다.
+  const baseById = new Map(masterExercises.map(e=>[e.id, e]));
+  savedMaster.forEach(e=>{
+    const base = baseById.get(e.id);
+    if(!base) return;
+    if(e.name) base.name = e.name;
+    if(e.part != null) base.part = e.part;
+    if(e.type) base.type = e.type;
+  });
+  // (2) 중복 판정은 (1) 반영이 끝난 뒤의 이름으로 계산한다.
   const seen = new Set(masterExercises.map(e=>e.id));
   const seenNames = new Set(masterExercises.map(e=>e.name.replace(/\s+/g,'').toLowerCase()));
-  // 이전 버전에서 사용자가 저장한 커스텀 종목 흡수 (중복 이름은 스킵)
-  (Array.isArray(data.masterExercises)?data.masterExercises:[]).forEach(e=>{
+  // (3) 기본에 없는 사용자 추가 종목 흡수 (중복 이름은 스킵)
+  savedMaster.forEach(e=>{
     const nm = (e.name||'').replace(/\s+/g,'').toLowerCase();
     if(!seen.has(e.id) && !seenNames.has(nm)){
       masterExercises.push({ id:e.id, name:e.name, part:e.part||'', type:e.type||'strength' });
@@ -1316,6 +1343,63 @@ function renderDayTypeAndForm(){
   renderTodayExercises(existing);
 }
 
+// ---------- 지난 기록 (검색 결과 / 오늘 운동 카드 공용) ----------
+// 그래프 탭이 쓰는 exerciseSeries()를 그대로 재사용한다.
+// 반환: [{date, top(그날 최고기록), setsText(세트 문구), unit}] 날짜 오름차순
+function shortDate(d){ const p = String(d).split('-'); return (+p[1]) + '/' + (+p[2]); }
+function currentEntryDate(){
+  const el = document.getElementById('dateInput');
+  return el ? el.value : '';
+}
+// 특정 종목의 과거 기록 요약. 지금 입력 중인 날짜는 "지난 기록"이 아니므로 제외한다.
+function exercisePast(exId, excludeDate){
+  const pts = exerciseSeries(exId).filter(p => p.date !== excludeDate);
+  if(!pts.length) return null;
+  const last = pts[pts.length - 1];
+  let best = pts[0];
+  pts.forEach(p => { if(p.top > best.top) best = p; });
+  return { points: pts, last, best, unit: last.unit };
+}
+// 작은 추이 그래프 — 외부 라이브러리 없이 SVG로 직접 그린다 (Chart.js 로드 실패와 무관하게 항상 보임)
+function sparklineSvg(points, w, h){
+  const vals = points.map(p => p.top);
+  const pad = 3;
+  if(vals.length === 1){
+    return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">'
+         + '<circle cx="' + (w/2) + '" cy="' + (h/2) + '" r="2.6" fill="var(--accent-a)"/></svg>';
+  }
+  const min = Math.min(...vals), max = Math.max(...vals), flat = (max === min);
+  const X = i => pad + i * (w - 2*pad) / (vals.length - 1);
+  const Y = v => flat ? (h/2) : (h - pad) - ((v - min) / (max - min)) * (h - 2*pad);
+  const line = vals.map((v,i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
+  const lx = X(vals.length-1).toFixed(1), ly = Y(vals[vals.length-1]).toFixed(1);
+  return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">'
+       + '<polyline points="' + line + '" fill="none" stroke="var(--accent-a)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>'
+       + '<circle cx="' + lx + '" cy="' + ly + '" r="2.4" fill="var(--accent-a)"/></svg>';
+}
+// 검색 결과 아래 한 줄 요약
+function pastMetaHtml(exId){
+  const past = exercisePast(exId, currentEntryDate());
+  if(!past) return '<div class="esi-meta">기록 없음</div>';
+  return '<div class="esi-meta">최근 ' + shortDate(past.last.date) + ' · ' + past.last.setsText
+       + ' · <span class="m-best">최고 ' + past.best.top + past.unit + '</span></div>';
+}
+// 오늘 운동 카드 안 "지난 기록" 패널 (최근 3회 + 미니 그래프)
+function pastPanelHtml(exId){
+  const past = exercisePast(exId, currentEntryDate());
+  if(!past) return '';
+  const recent = past.points.slice(-3).reverse();   // 최근 3회를 최신순으로
+  const rows = recent.map(p =>
+    '<div class="past-row"><span class="pr-date">' + shortDate(p.date) + '</span>'
+    + '<span class="pr-sets">' + p.setsText + '</span></div>').join('');
+  const spark = past.points.length > 1 ? sparklineSvg(past.points, 88, 22) : '';
+  return '<div class="past-box">'
+       + '<div class="past-head"><span class="past-title">지난 기록</span>'
+       + '<span class="past-right">' + spark
+       + '<span class="past-best">최고 ' + past.best.top + past.unit + '</span></span></div>'
+       + '<div class="past-rows">' + rows + '</div></div>';
+}
+
 // 검색 결과 렌더
 function renderSearchResults(query){
   const box = document.getElementById('exSearchResults');
@@ -1334,10 +1418,13 @@ function renderSearchResults(query){
     const tl = t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
     const added = todayExerciseIds.includes(ex.id);
     return `<div class="ex-search-item ${added?'added':''}" data-exid="${ex.id}">
-      <span class="esi-name">${ex.name}</span>
-      ${ex.part?`<span class="esi-part">${ex.part}</span>`:''}
-      <span class="esi-type ${t}">${tl}</span>
-      <span class="esi-add">${added?'✓':'＋'}</span>
+      <div class="esi-row">
+        <span class="esi-name">${ex.name}</span>
+        ${ex.part?`<span class="esi-part">${ex.part}</span>`:''}
+        <span class="esi-type ${t}">${tl}</span>
+        <span class="esi-add">${added?'✓':'＋'}</span>
+      </div>
+      ${pastMetaHtml(ex.id)}
     </div>`;
   }).join('');
   box.querySelectorAll('.ex-search-item').forEach(item=>{
@@ -1392,6 +1479,7 @@ function renderTodayExercises(existing){
         <span class="tex-name">${ex.name}<span class="tex-type ${t}">${tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
         <button class="tex-remove" data-rmex="${ex.id}">×</button>
       </div>
+      ${pastPanelHtml(ex.id)}
       <div class="sets" style="${cols}">${setsHtml}</div>
       <div class="set-ctrl">
         <button class="set-btn" data-act="remove" data-ex="${ex.id}" ${n<=1?'disabled':''}>➖ 세트</button>
