@@ -121,7 +121,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v22</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v23</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -311,7 +311,8 @@ function entryCardHTML(e){
   const mm = meals[e.date];
   let mealHtml = '';
   if(mm){
-    const slots = [['breakfast','아침'],['lunch','점심'],['dinner','저녁'],['snack','간식']];
+    const slots = [['breakfast','아침'],['snackAM','간식 · 오전'],['lunch','점심'],['snackPM','간식 · 오후'],
+                   ['dinner','저녁'],['snackNight','간식 · 저녁 이후'],['snack','간식']];
     const rows = slots.map(([k,lbl])=>{
       const imgs = mm[k]||[];
       if(!imgs.length) return '';

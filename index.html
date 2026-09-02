@@ -623,7 +623,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v22</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v23</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -1155,15 +1155,24 @@ document.addEventListener('click', (e)=>{
 // ---------- 이미지 확대 끝 ----------
 
 // ---------- 식단 사진 ----------
+// 하루 식단 칸: 끼니 사이사이에 간식 칸을 둔다.
+// multi:true 인 칸은 사진을 여러 장 넣을 수 있고, false 인 칸은 1장으로 교체된다.
 const MEAL_SLOTS = [
-  {key:'breakfast', label:'아침'},
-  {key:'lunch', label:'점심'},
-  {key:'dinner', label:'저녁'},
+  {key:'breakfast',   label:'아침',              multi:false},
+  {key:'snackAM',     label:'간식 · 오전',        multi:true},
+  {key:'lunch',       label:'점심',              multi:false},
+  {key:'snackPM',     label:'간식 · 오후',        multi:true},
+  {key:'dinner',      label:'저녁',              multi:false},
+  {key:'snackNight',  label:'간식 · 저녁 이후',    multi:true},
 ];
+// 예전 버전의 통합 '간식' 칸. 사진이 남아 있을 때만 화면에 보여준다(기록 유실 방지).
+const LEGACY_SNACK = {key:'snack', label:'간식 (예전 기록)', multi:true};
+const MEAL_KEYS = MEAL_SLOTS.map(s=>s.key).concat([LEGACY_SNACK.key]);
+
 function mealsForDate(dateStr){
-  if(!meals[dateStr]) meals[dateStr] = { breakfast:[], lunch:[], dinner:[], snack:[] };
+  if(!meals[dateStr]) meals[dateStr] = {};
   const m = meals[dateStr];
-  m.breakfast = m.breakfast||[]; m.lunch = m.lunch||[]; m.dinner = m.dinner||[]; m.snack = m.snack||[];
+  MEAL_KEYS.forEach(k => { if(!Array.isArray(m[k])) m[k] = []; });
   return m;
 }
 function mealDateStr(){
@@ -1174,24 +1183,20 @@ function renderMeals(){
   const dateStr = mealDateStr();
   const m = mealsForDate(dateStr);
   const grid = document.getElementById('mealGrid');
-  // 아침/점심/저녁 각 1장, 간식 여러 장
-  let html = MEAL_SLOTS.map(s=>{
+  // 아침 → 오전 간식 → 점심 → 오후 간식 → 저녁 → 저녁 이후 간식 순서
+  // 예전 '간식' 칸은 사진이 남아 있을 때만 맨 아래에 덧붙인다
+  const slots = MEAL_SLOTS.concat((m.snack||[]).length ? [LEGACY_SNACK] : []);
+  grid.innerHTML = slots.map(s=>{
     const imgs = m[s.key]||[];
     const thumbs = imgs.map((src,i)=>`<div class="meal-thumb"><img src="${src}"><button class="mdel" data-slot="${s.key}" data-idx="${i}">×</button></div>`).join('');
-    const addBtn = imgs.length===0 ? `<div class="meal-add" data-slot="${s.key}">＋</div>` : '';
-    return `<div class="meal-slot">
-      <div class="meal-slot-label">${s.label}</div>
+    // 여러 장 칸은 항상 ＋ 를 두고, 1장 칸은 비었을 때만 둔다
+    const addBtn = (s.multi || imgs.length===0) ? `<div class="meal-add" data-slot="${s.key}">＋</div>` : '';
+    const count = (s.multi && imgs.length) ? ` <span style="color:var(--ink-faint);">${imgs.length}개</span>` : '';
+    return `<div class="meal-slot${s.multi?' snack':''}">
+      <div class="meal-slot-label">${s.label}${count}</div>
       <div class="meal-thumbs">${thumbs}${addBtn}</div>
     </div>`;
   }).join('');
-  // 간식 (여러 장)
-  const snacks = m.snack||[];
-  const snackThumbs = snacks.map((src,i)=>`<div class="meal-thumb"><img src="${src}"><button class="mdel" data-slot="snack" data-idx="${i}">×</button></div>`).join('');
-  html += `<div class="meal-slot">
-    <div class="meal-slot-label">간식 <span style="color:var(--ink-faint);">${snacks.length?snacks.length+'개':''}</span></div>
-    <div class="meal-thumbs">${snackThumbs}<div class="meal-add" data-slot="snack">＋</div></div>
-  </div>`;
-  grid.innerHTML = html;
 
   grid.querySelectorAll('.meal-add').forEach(btn=>{
     btn.onclick = ()=> pickMealPhoto(btn.dataset.slot);
@@ -1228,13 +1233,15 @@ function pickMealPhoto(slot){
       showToast('사진 올리는 중…');
       const photoUrl = await uploadImage(compressed, storagePath('meals', dateStr));
       const m = mealsForDate(dateStr);
-      const backup = slot==='snack' ? [...m.snack] : (m[slot]?[...m[slot]]:[]);
-      if(slot==='snack') m.snack.push(photoUrl);
+      const conf = MEAL_SLOTS.concat([LEGACY_SNACK]).find(s=>s.key===slot);
+      const multi = !!(conf && conf.multi);
+      const backup = m[slot] ? [...m[slot]] : [];
+      if(multi) m[slot].push(photoUrl);
       else m[slot] = [photoUrl]; // 아침/점심/저녁은 1장으로 교체
       const res = await persistMeals();
       if(res && res.ok===false){
         // 저장 실패 → 되돌리고 사유 안내
-        if(slot==='snack') m.snack = backup; else m[slot] = backup;
+        m[slot] = backup;
         renderMeals();
         showToast('저장 실패: ' + res.msg);
       }else{
