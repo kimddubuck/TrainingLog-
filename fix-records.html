@@ -28,7 +28,7 @@
 <body>
 <div class="wrap">
   <h1>🔧 종목 기록 바로잡기</h1>
-  <p class="sub">옛날 종목 목록이 바뀌면서 엉뚱한 이름에 붙어버린 운동 기록을, 기록에 남아있는 원래 이름대로 되돌립니다. · v1</p>
+  <p class="sub">옛날 종목 목록이 바뀌면서 엉뚱한 이름에 붙어버린 운동 기록을, 기록에 남아있는 원래 이름대로 되돌립니다. · v2</p>
 
   <div class="card" id="loginCard">
     <h2>1. 로그인</h2>
@@ -148,11 +148,15 @@ function buildPlan(data){
         skipped.push({ date:e.date, name:x.name, why:'같은 날 이미 "' + c.name + '" 기록이 있어 자동 병합하지 않음' });
         return;
       }
-      if(typeNow !== c.type){
-        skipped.push({ date:e.date, name:x.name, why:'종류가 달라 안전상 건너뜀 (' + typeNow + ' → ' + c.type + ')' });
+      // 웨이트 ↔ 맨몸은 둘 다 '횟수' 기반이라 옮겨도 세트 내용이 그대로 살아난다.
+      // 유산소만 시간·거리로 칸이 완전히 달라서 건드리지 않는다.
+      const isCardio = t => t === 'cardio';
+      if(isCardio(typeNow) !== isCardio(c.type)){
+        skipped.push({ date:e.date, name:x.name, why:'유산소 ↔ 다른 종류라 안전상 건너뜀 (' + typeNow + ' → ' + c.type + ')' });
         return;
       }
-      moves.push({ date:e.date, idx:i, fromId:x.id, toId:c.id, recordedName:x.name, newName:c.name, sets:setsText(x.sets) });
+      moves.push({ date:e.date, idx:i, fromId:x.id, toId:c.id, recordedName:x.name, newName:c.name,
+                   oldType:typeNow, newType:c.type, sets:setsText(x.sets) });
     });
   });
   return { moves: moves, skipped: skipped, ambiguous: canon.ambiguous };
@@ -174,7 +178,8 @@ document.getElementById('scanBtn').addEventListener('click', async ()=>{
       plan.moves.forEach((m, i) => {
         log('\n' + (i+1) + '. ' + m.date + '  기록에 적힌 이름: <b>' + m.recordedName + '</b>');
         log('     지금은 다른 종목(id=' + m.fromId + ')에 붙어 있음');
-        log('     → <span class="y">"' + m.newName + '"</span> 으로 옮김');
+        log('     → <span class="y">"' + m.newName + '"</span> 으로 옮김'
+          + (m.oldType !== m.newType ? '  (종류: ' + m.oldType + ' → ' + m.newType + ')' : ''));
         log('     세트(그대로 유지): ' + m.sets);
       });
     }
@@ -229,6 +234,7 @@ document.getElementById('fixBtn').addEventListener('click', async ()=>{
       if(!x || x.id !== m.fromId){ log('건너뜀(문서가 바뀜): ' + m.date + ' ' + m.recordedName, 'r'); return; }
       x.id = m.toId;
       x.name = m.newName;
+      if(m.newType) x.type = m.newType;   // 기록에 적힌 옛 종류도 지금 기준으로 맞춘다
       log('✓ ' + m.date + '  "' + m.recordedName + '" → "' + m.newName + '"  (' + m.sets + ')', 'g');
     });
 
