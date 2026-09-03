@@ -28,7 +28,7 @@
 <body>
 <div class="wrap">
   <h1>🔧 종목 기록 바로잡기</h1>
-  <p class="sub">옛날 종목 목록이 바뀌면서 엉뚱한 이름에 붙어버린 운동 기록을, 기록에 남아있는 원래 이름대로 되돌립니다. · v2</p>
+  <p class="sub">옛날 종목 목록이 바뀌면서 엉뚱한 이름에 붙어버린 운동 기록을, 기록에 남아있는 원래 이름대로 되돌립니다. · v3</p>
 
   <div class="card" id="loginCard">
     <h2>1. 로그인</h2>
@@ -43,7 +43,8 @@
     <button id="scanBtn">🔍 조사만 하기 (아무것도 안 바꿈)</button>
     <button id="backupBtn">💾 백업 JSON 내려받기</button>
     <button class="primary" id="fixBtn" disabled>🔧 바로잡기 실행</button>
-    <p class="note">순서: 조사 → 백업 → 바로잡기. 운동 기록의 <b>종목 이름표만</b> 고치고, 무게·횟수·날짜는 손대지 않습니다.</p>
+    <p class="note">순서: 조사 → 백업 → 바로잡기. 운동 기록의 <b>종목 이름표만</b> 고치고, 무게·횟수·날짜는 손대지 않습니다.<br>
+      바로잡기는 실수 방지를 위해 <b>버튼을 두 번</b> 눌러야 실행됩니다.</p>
   </div>
 
   <div class="card hide" id="restoreCard">
@@ -214,11 +215,36 @@ document.getElementById('backupBtn').addEventListener('click', async ()=>{
 });
 
 // ---- 실행 ----
+let fixArmed = false, fixTimer = null;
+function disarmFix(msg){
+  const btn = document.getElementById('fixBtn');
+  fixArmed = false;
+  clearTimeout(fixTimer);
+  btn.textContent = '🔧 바로잡기 실행';
+  btn.classList.remove('danger');
+  btn.classList.add('primary');
+  if(msg) log(msg);
+}
 document.getElementById('fixBtn').addEventListener('click', async ()=>{
-  if(!confirm('운동 기록의 종목 이름표를 바로잡습니다.\n무게·횟수·날짜는 바뀌지 않습니다.\n백업 JSON은 내려받아 두셨나요?')) return;
+  const btn = document.getElementById('fixBtn');
+  // 1번째 클릭: 확인 단계 (브라우저 확인창을 쓰지 않는다)
+  if(!fixArmed){
+    fixArmed = true;
+    btn.textContent = '❗ 한 번 더 누르면 실행됩니다';
+    btn.classList.remove('primary');
+    btn.classList.add('danger');
+    log('\n<b>확인이 필요합니다.</b> 빨간 버튼을 <b>한 번 더</b> 눌러주세요. (10초 안에)', 'y');
+    log('무게·횟수·날짜는 바뀌지 않습니다. 종목 이름표만 고칩니다.');
+    clearTimeout(fixTimer);
+    fixTimer = setTimeout(()=>{ disarmFix('시간이 지나 취소했습니다. 다시 누르시면 됩니다.'); }, 10000);
+    return;
+  }
+  // 2번째 클릭: 실제 실행
+  disarmFix();
   clearLog();
-  document.getElementById('fixBtn').disabled = true;
+  btn.disabled = true;
   try{
+    log('바로잡기를 시작합니다…');
     log('문서를 다시 읽는 중…');
     const data = await fetchDoc();
     const plan = buildPlan(data);
@@ -249,6 +275,7 @@ document.getElementById('fixBtn').addEventListener('click', async ()=>{
     log('바로잡기 실패: ' + e.message, 'r'); console.error(e);
   }finally{
     document.getElementById('fixBtn').disabled = false;
+    disarmFix();
   }
 });
 
