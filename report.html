@@ -199,6 +199,11 @@ function exTypeOf(ex){
   const master = exById(ex && ex.id);
   return exType(master || ex);
 }
+// 이름도 "지금의 라이브러리"를 먼저 본다.
+function exNameOf(ex){
+  const master = exById(ex && ex.id);
+  return (master && master.name) || (ex && ex.name) || '';
+}
 // ---------- 시간 기록 공통 ----------
 // 세트 시각·식사 시각은 'HH:MM'(24시간) 문자열로 저장한다.
 function hhmmToMin(t){
@@ -347,7 +352,7 @@ function entryCardHTML(e){
     const rows = e.exercises.map(ex=>{
       const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
-      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
+      return `<div class="hx-row"><span class="hx-txt"><b>${exNameOf(ex)}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
     }).filter(Boolean);
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;

@@ -236,6 +236,15 @@ window.__chartReady = false;
   .master-item .mpart{font-size:11px;color:var(--ink-faint);}
   .master-item .mtype{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);margin-left:6px;}
   .master-item .mtype.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
+  .master-item .medit{margin-left:auto;background:none;border:none;color:var(--ink-faint);font-size:14px;cursor:pointer;padding:0 4px;}
+  .master-item .mdel.armed{color:var(--accent-pt);font-size:11.5px;font-weight:700;}
+  .master-item.editing{display:block;}
+  .mx-edit input{display:block;width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13.5px;font-family:'IBM Plex Sans KR',sans-serif;margin-bottom:6px;}
+  .mx-btns{display:flex;gap:8px;margin-top:2px;}
+  .mx-btns button{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif;}
+  .mx-btns .mx-save{background:var(--accent-a);color:#1B1F23;}
+  .mx-btns .mx-cancel{background:var(--surface-3);color:var(--ink);}
+  .mx-note{font-size:11.5px;color:var(--accent-pt);margin:0 0 6px;}
   .type-pick{display:flex;gap:8px;margin-bottom:8px;}
   .type-btn{flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--ink-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif;}
   .type-btn.on{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
@@ -366,7 +375,9 @@ window.__chartReady = false;
   .di-manage-row:first-child{border-top:none;}
   .di-manage-row .din{flex:1;font-size:14px;}
   .di-manage-row .dit{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);}
+  .di-manage-row .diedit{background:none;border:none;color:var(--ink-faint);font-size:14px;cursor:pointer;padding:0 4px;}
   .di-manage-row .didel{background:none;border:none;color:var(--ink-faint);font-size:18px;cursor:pointer;}
+  .di-manage-row .didel.armed{color:var(--accent-pt);font-size:11.5px;font-weight:700;}
 
   .wgs-row{display:flex;gap:8px;margin-top:6px;}
 
@@ -631,7 +642,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v24</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v25</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -948,9 +959,38 @@ const DAY_NAMES = ['일','월','화','수','목','금','토'];
 let entries = [];
 
 async function persistConfig(){
-  try{ await docRef.set({ masterExercises, dailyItems }, { merge:true }); }
+  try{ await docRef.set({ masterExercises, dailyItems, exOverrides }, { merge:true }); }
   catch(e){ console.error('config save failed', e); }
 }
+// 기본 종목에 대한 사용자 수정분 { id: {name?, part?, type?, deleted?} }
+let exOverrides = {};
+function isDefaultEx(id){ return DEFAULT_MASTER.some(d => d.id === id); }
+const normName = s => (s||'').replace(/\s+/g,'').toLowerCase();
+
+// 종목 이름/부위/종류 고치기
+async function editMasterExercise(id, name, part, type){
+  name = (name||'').trim();
+  if(!name) return { empty:true };
+  const dup = masterExercises.find(e => e.id !== id && normName(e.name) === normName(name));
+  if(dup) return { duplicate:true, existing:dup };
+  const ex = masterExercises.find(e => e.id === id);
+  if(!ex) return { notfound:true };
+  ex.name = name;
+  ex.part = part || '';
+  ex.type = (type==='cardio'||type==='bodyweight') ? type : 'strength';
+  if(isDefaultEx(id)){
+    // 기본값과 달라진 항목만 남긴다 → 나중에 기본 목록이 바뀌어도 나머지는 그대로 따라간다
+    const base = DEFAULT_MASTER.find(d => d.id === id);
+    const o = {};
+    if(ex.name !== base.name) o.name = ex.name;
+    if(ex.part !== (base.part||'')) o.part = ex.part;
+    if(ex.type !== base.type) o.type = ex.type;
+    if(Object.keys(o).length) exOverrides[id] = o; else delete exOverrides[id];
+  }
+  await persistConfig();
+  return { ok:true };
+}
+
 async function addMasterExercise(name, part, type){
   // 같은 이름(공백·대소문자 무시) 중복 방지
   const norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
@@ -962,8 +1002,24 @@ async function addMasterExercise(name, part, type){
   await persistConfig();
   return { duplicate:false, id };
 }
+// 매일 루틴 항목 이름/종류 고치기 (매일 루틴은 저장본이 그대로 쓰이므로 바로 고치면 된다)
+async function editDailyItem(id, name, type){
+  name = (name||'').trim();
+  if(!name) return { empty:true };
+  const dup = dailyItems.find(d => d.id !== id && normName(d.name) === normName(name));
+  if(dup) return { duplicate:true, existing:dup };
+  const it = dailyItems.find(d => d.id === id);
+  if(!it) return { notfound:true };
+  it.name = name;
+  it.type = (type==='cardio'||type==='bodyweight') ? type : 'strength';
+  await persistConfig();
+  return { ok:true };
+}
+
 async function removeMasterExercise(id){
   masterExercises = masterExercises.filter(e=>e.id!==id);
+  // 기본 종목은 다음에 앱을 열 때 되살아나므로, 지웠다는 사실을 따로 남긴다
+  if(isDefaultEx(id)) exOverrides[id] = { deleted:true };
   await persistConfig();
 }
 
@@ -998,6 +1054,17 @@ async function loadAllData(){
   // ----- 종목 라이브러리 로드 -----
   // 기본 라이브러리를 항상 기반으로 깔고, 사용자가 추가한 종목/과거 기록 종목을 흡수
   masterExercises = DEFAULT_MASTER.map(e=>({...e}));
+  // 기본 종목을 사용자가 고쳤거나 지웠으면 그 "차이"만 따로 저장해 두고 여기서 덧입힌다.
+  // (저장본 전체로 덮어쓰면 라이브러리가 그 시점에 얼어붙어, 앞으로 기본 목록을 고쳐도 반영되지 않는다)
+  exOverrides = (data.exOverrides && typeof data.exOverrides === 'object') ? data.exOverrides : {};
+  masterExercises = masterExercises.filter(e => !(exOverrides[e.id] && exOverrides[e.id].deleted));
+  masterExercises.forEach(e => {
+    const o = exOverrides[e.id];
+    if(!o) return;
+    if(o.name) e.name = o.name;
+    if(o.part != null) e.part = o.part;
+    if(o.type) e.type = o.type;
+  });
   const seen = new Set(masterExercises.map(e=>e.id));
   const seenNames = new Set(masterExercises.map(e=>e.name.replace(/\s+/g,'').toLowerCase()));
   // 이전 버전에서 사용자가 저장한 커스텀 종목 흡수 (중복 이름은 스킵)
@@ -1580,22 +1647,78 @@ document.getElementById('dailyClose').addEventListener('click', closeDailyModal)
 document.getElementById('dailyModal').addEventListener('click', (e)=>{
   if(e.target.id==='dailyModal') closeDailyModal();
 });
-function renderDailyManage(){
+let editingDailyId = null, delArmDailyId = null, delArmDailyTimer = null;
+function renderDailyManage(msg){
   const wrap = document.getElementById('dailyManageList');
-  wrap.innerHTML = dailyItems.map(item=>{
-    const typeLabel = item.type==='cardio'?'유산소':(item.type==='bodyweight'?'맨몸':'근력');
+  const label = t => t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'근력');
+  let html = msg ? `<p class="mx-note">${msg}</p>` : '';
+  html += dailyItems.map(item=>{
+    if(editingDailyId === item.id){
+      const t = item.type || 'bodyweight';
+      return `<div class="di-manage-row editing" style="display:block;">
+        <div class="mx-edit">
+          <input type="text" class="dx-name" value="${escAttr(item.name)}" placeholder="루틴 이름">
+          <div class="type-pick dx-type">
+            <button class="type-btn ${t==='strength'?'on':''}" data-type="strength">근력</button>
+            <button class="type-btn ${t==='cardio'?'on':''}" data-type="cardio">유산소</button>
+            <button class="type-btn ${t==='bodyweight'?'on':''}" data-type="bodyweight">맨몸</button>
+          </div>
+          <div class="mx-btns">
+            <button class="mx-save" data-dsave="${item.id}">저장</button>
+            <button class="mx-cancel">취소</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    const armed = (delArmDailyId === item.id);
     return `<div class="di-manage-row">
       <span class="din">${item.name}</span>
-      <span class="dit">${typeLabel}</span>
-      <button class="didel" data-didel="${item.id}">×</button>
+      <span class="dit">${label(item.type)}</span>
+      <button class="diedit" data-diedit="${item.id}">✏️</button>
+      <button class="didel${armed?' armed':''}" data-didel="${item.id}">${armed?'정말 삭제?':'×'}</button>
     </div>`;
-  }).join('') || '<p class="section-label">아직 매일 루틴이 없어요.</p>';
+  }).join('');
+  wrap.innerHTML = html || '<p class="section-label">아직 매일 루틴이 없어요.</p>';
+
+  wrap.querySelectorAll('.diedit').forEach(btn=>{
+    btn.onclick = ()=>{ editingDailyId = btn.dataset.diedit; delArmDailyId = null; clearTimeout(delArmDailyTimer); renderDailyManage(); };
+  });
+  const drow = wrap.querySelector('.di-manage-row.editing');
+  if(drow){
+    const cur = dailyItems.find(d=>d.id===editingDailyId) || {};
+    let dType = cur.type || 'bodyweight';
+    const dpick = drow.querySelector('.dx-type');
+    dpick.querySelectorAll('.type-btn').forEach(b=>{
+      b.onclick = ()=>{ dType = b.dataset.type; dpick.querySelectorAll('.type-btn').forEach(x=>x.classList.toggle('on', x===b)); };
+    });
+    drow.querySelector('.mx-cancel').onclick = ()=>{ editingDailyId = null; renderDailyManage(); };
+    drow.querySelector('.mx-save').onclick = async ()=>{
+      const id = drow.querySelector('.mx-save').dataset.dsave;
+      const res = await editDailyItem(id, drow.querySelector('.dx-name').value, dType);
+      if(res && res.empty){ renderDailyManage('이름을 비워둘 수 없어요.'); return; }
+      if(res && res.duplicate){ renderDailyManage(`"${res.existing.name}"은(는) 이미 있어요.`); return; }
+      editingDailyId = null;
+      renderDailyManage();
+      renderDaily(buildEntryFromForm());
+    };
+  }
+
   wrap.querySelectorAll('.didel').forEach(btn=>{
     btn.onclick = async ()=>{
-      if(!confirm('이 매일 루틴을 삭제할까요? 과거 기록은 남아있어요.')) return;
-      dailyItems = dailyItems.filter(d=>d.id!==btn.dataset.didel);
+      const id = btn.dataset.didel;
+      if(delArmDailyId !== id){
+        delArmDailyId = id;
+        clearTimeout(delArmDailyTimer);
+        delArmDailyTimer = setTimeout(()=>{ delArmDailyId = null; renderDailyManage(); }, 5000);
+        renderDailyManage('한 번 더 누르면 지웁니다. 과거 기록은 그대로 남아요.');
+        return;
+      }
+      clearTimeout(delArmDailyTimer);
+      delArmDailyId = null;
+      dailyItems = dailyItems.filter(d=>d.id!==id);
       await persistConfig();
       renderDailyManage();
+      renderDaily(buildEntryFromForm());
     };
   });
   // 타입 선택
@@ -1620,6 +1743,7 @@ function renderDailyManage(){
 // ---------- 루틴 · 종목 관리 모달 ----------
 function openManageModal(){
   document.getElementById('manageModal').style.display = 'flex';
+  editingExId = null; delArmExId = null; clearTimeout(delArmTimer);
   renderManageMaster();
 }
 function closeManageModal(){
@@ -1636,28 +1760,53 @@ document.getElementById('manageModal').addEventListener('click', (e)=>{
 
 
 
-function renderManageMaster(){
+// 지금 고치는 중인 종목 / 삭제 확인을 기다리는 종목
+let editingExId = null, delArmExId = null, delArmTimer = null;
+const escAttr = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
+function renderManageMaster(msg){
   const wrap = document.getElementById('mpanel-master');
   const typeLabel = t => t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
-  let html = '<p class="section-label">전체 운동 종목 목록이에요. 검색해서 오늘 운동에 추가할 수 있어요. 없는 운동은 아래에서 새로 추가하세요.</p>';
+  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 없는 운동은 맨 아래에서 새로 추가하세요.</p>';
+  if(msg) html += `<p class="mx-note">${msg}</p>`;
   // 타입별로 그룹핑해서 보여주기
   ['strength','cardio','bodyweight'].forEach(t=>{
     const items = masterExercises.filter(ex=>exType(ex)===t);
     if(!items.length) return;
     html += `<div class="section-label" style="margin-top:12px;color:var(--ink-dim);font-weight:600;">${typeLabel(t)} (${items.length})</div>`;
     items.forEach(ex=>{
+      if(editingExId === ex.id){
+        html += `<div class="master-item editing">
+          <div class="mx-edit">
+            <input type="text" class="mx-name" value="${escAttr(ex.name)}" placeholder="운동 이름">
+            <input type="text" class="mx-part" value="${escAttr(ex.part||'')}" placeholder="부위 (예: 등)">
+            <div class="type-pick mx-type">
+              <button class="type-btn ${t==='strength'?'on':''}" data-type="strength">웨이트</button>
+              <button class="type-btn ${t==='cardio'?'on':''}" data-type="cardio">유산소</button>
+              <button class="type-btn ${t==='bodyweight'?'on':''}" data-type="bodyweight">맨몸</button>
+            </div>
+            <div class="mx-btns">
+              <button class="mx-save" data-exsave="${ex.id}">저장</button>
+              <button class="mx-cancel">취소</button>
+            </div>
+          </div>
+        </div>`;
+        return;
+      }
+      const armed = (delArmExId === ex.id);
       html += `<div class="master-item">
         <span class="mname">${ex.name}</span>
         ${ex.part?`<span class="mpart">· ${ex.part}</span>`:''}
         <span class="mtype ${t}">${typeLabel(t)}</span>
-        <button class="mdel" data-exdel="${ex.id}">×</button>
+        <button class="medit" data-exedit="${ex.id}">✏️</button>
+        <button class="mdel${armed?' armed':''}" data-exdel="${ex.id}">${armed?'정말 삭제?':'×'}</button>
       </div>`;
     });
   });
   html += `<div class="add-inline" style="margin-top:16px;">
     <input type="text" id="newMasterName" placeholder="운동 이름 (예: 랫풀다운)">
     <input type="text" id="newMasterPart" placeholder="부위 (예: 등)">
-    <div class="type-pick">
+    <div class="type-pick" id="masterTypePick">
       <button class="type-btn on" data-type="strength">웨이트</button>
       <button class="type-btn" data-type="cardio">유산소</button>
       <button class="type-btn" data-type="bodyweight">맨몸</button>
@@ -1666,20 +1815,63 @@ function renderManageMaster(){
   </div>`;
   wrap.innerHTML = html;
 
+  // 새로 추가할 때 쓰는 종류 선택 (편집칸의 종류 버튼과 섞이지 않게 범위를 좁힌다)
   let newType = 'strength';
-  wrap.querySelectorAll('.type-btn').forEach(btn=>{
+  const addPick = wrap.querySelector('#masterTypePick');
+  addPick.querySelectorAll('.type-btn').forEach(btn=>{
     btn.onclick = ()=>{
       newType = btn.dataset.type;
-      wrap.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('on', b===btn));
+      addPick.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('on', b===btn));
     };
   });
 
+  // ---- 고치기 ----
+  wrap.querySelectorAll('.medit').forEach(btn=>{
+    btn.onclick = ()=>{ editingExId = btn.dataset.exedit; delArmExId = null; clearTimeout(delArmTimer); renderManageMaster(); };
+  });
+  const row = wrap.querySelector('.master-item.editing');
+  if(row){
+    let editType = exType(masterExercises.find(e=>e.id===editingExId) || {});
+    const pick = row.querySelector('.mx-type');
+    pick.querySelectorAll('.type-btn').forEach(btn=>{
+      btn.onclick = ()=>{ editType = btn.dataset.type; pick.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('on', b===btn)); };
+    });
+    row.querySelector('.mx-cancel').onclick = ()=>{ editingExId = null; renderManageMaster(); };
+    row.querySelector('.mx-save').onclick = async ()=>{
+      const id = row.querySelector('.mx-save').dataset.exsave;
+      const nm = row.querySelector('.mx-name').value;
+      const pt = row.querySelector('.mx-part').value.trim();
+      const res = await editMasterExercise(id, nm, pt, editType);
+      if(res && res.empty){ renderManageMaster('이름을 비워둘 수 없어요.'); return; }
+      if(res && res.duplicate){ renderManageMaster(`"${res.existing.name}"은(는) 이미 있는 종목이에요.`); return; }
+      editingExId = null;
+      renderManageMaster();
+      // 검색 결과·오늘 목록·그래프 선택창에도 새 이름이 바로 보이게
+      renderSearchResults(document.getElementById('exSearch').value);
+      renderTodayExercises(buildEntryFromForm());
+      populateExerciseSelect();
+    };
+  }
+
+  // ---- 지우기 (한 번 누르면 "정말 삭제?", 한 번 더 누르면 삭제) ----
   wrap.querySelectorAll('.mdel').forEach(btn=>{
     btn.onclick = async ()=>{
-      if(!confirm('이 종목을 목록에서 삭제할까요? 과거 기록은 그대로 남아있어요.')) return;
-      await removeMasterExercise(btn.dataset.exdel);
-      todayExerciseIds = todayExerciseIds.filter(id=>id!==btn.dataset.exdel);
+      const id = btn.dataset.exdel;
+      if(delArmExId !== id){
+        delArmExId = id;
+        clearTimeout(delArmTimer);
+        delArmTimer = setTimeout(()=>{ delArmExId = null; renderManageMaster(); }, 5000);
+        renderManageMaster('한 번 더 누르면 지웁니다. 과거 기록은 그대로 남아요.');
+        return;
+      }
+      clearTimeout(delArmTimer);
+      delArmExId = null;
+      await removeMasterExercise(id);
+      todayExerciseIds = todayExerciseIds.filter(x=>x!==id);
       renderManageMaster();
+      renderSearchResults(document.getElementById('exSearch').value);
+      renderTodayExercises(buildEntryFromForm());
+      populateExerciseSelect();
     };
   });
   document.getElementById('addMasterBtn').onclick = async ()=>{
@@ -1719,7 +1911,7 @@ function prefillExerciseInputs(existing){
 let dailySetCounts = {}; // { dailyItemId: n }
 function getDailySetCount(item, existing){
   if(dailySetCounts[item.id]!=null) return dailySetCounts[item.id];
-  let n = item.type==='cardio' ? 1 : 3;
+  let n = 1;   // 매일 루틴은 1세트가 기본 (이전엔 맨몸/근력이 3세트라 빈 칸이 3개 떴다)
   if(existing && existing.daily && Array.isArray(existing.daily[item.id]) && existing.daily[item.id].length){
     n = existing.daily[item.id].length;
   }
@@ -1909,6 +2101,11 @@ function exTypeOf(ex){
   const master = exById(ex && ex.id);
   return exType(master || ex);
 }
+// 이름도 "지금의 라이브러리"를 먼저 본다. 오타를 고치면 과거 기록에도 새 이름이 보인다.
+function exNameOf(ex){
+  const master = exById(ex && ex.id);
+  return (master && master.name) || (ex && ex.name) || '';
+}
 // ---------- 시간 기록 공통 ----------
 // 세트 시각·식사 시각은 'HH:MM'(24시간) 문자열로 저장한다.
 function hhmmToMin(t){
@@ -2055,7 +2252,7 @@ function entryCardHTML(e){
     const rows = e.exercises.map(ex=>{
       const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
-      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
+      return `<div class="hx-row"><span class="hx-txt"><b>${exNameOf(ex)}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
     }).filter(Boolean);
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
