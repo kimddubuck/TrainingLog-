@@ -332,6 +332,14 @@ window.__chartReady = false;
   .hx-spark{flex-shrink:0;display:flex;align-items:center;gap:4px;line-height:0;}
   .hx-val{font-size:11px;font-weight:600;color:var(--ink-dim);white-space:nowrap;line-height:1;font-family:'IBM Plex Mono',Consolas,monospace;}
   .hx-val.best{color:var(--accent-a);}
+  /* 시간 표시 */
+  .hx-time{font-size:10.5px;color:var(--ink-faint);font-family:'IBM Plex Mono',Consolas,monospace;margin:1px 0 5px 0;}
+  .hx-time .rest{color:var(--accent-b);}
+  .hist-time{font-size:11.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;margin-left:8px;}
+  .mtime{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,0.62);color:#fff;font-size:9.5px;text-align:center;padding:1px 0;font-family:'IBM Plex Mono',Consolas,monospace;line-height:1.35;}
+  .mslot-time{color:var(--ink);font-weight:600;font-family:'IBM Plex Mono',Consolas,monospace;}
+  .mgap{color:var(--accent-b);font-size:11px;}
+
   /* 검색 결과 한 줄 요약 (지난 기록) */
   .esi-meta{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .esi-meta .m-best{color:var(--accent-a);}
@@ -623,7 +631,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v23</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v24</span></p>
   </div>
 
   <div class="board" id="weekBoard"></div>
@@ -1186,14 +1194,27 @@ function renderMeals(){
   // 아침 → 오전 간식 → 점심 → 오후 간식 → 저녁 → 저녁 이후 간식 순서
   // 예전 '간식' 칸은 사진이 남아 있을 때만 맨 아래에 덧붙인다
   const slots = MEAL_SLOTS.concat((m.snack||[]).length ? [LEGACY_SNACK] : []);
+  let prevMin = null;   // 바로 앞 끼니 시각 (먹는 텀 계산용)
   grid.innerHTML = slots.map(s=>{
     const imgs = m[s.key]||[];
-    const thumbs = imgs.map((src,i)=>`<div class="meal-thumb"><img src="${src}"><button class="mdel" data-slot="${s.key}" data-idx="${i}">×</button></div>`).join('');
+    const thumbs = imgs.map((p,i)=>{
+      const pt = photoTime(p);
+      return `<div class="meal-thumb"><img src="${photoUrl(p)}"><button class="mdel" data-slot="${s.key}" data-idx="${i}">×</button>${pt?`<span class="mtime">${pt}</span>`:''}</div>`;
+    }).join('');
     // 여러 장 칸은 항상 ＋ 를 두고, 1장 칸은 비었을 때만 둔다
     const addBtn = (s.multi || imgs.length===0) ? `<div class="meal-add" data-slot="${s.key}">＋</div>` : '';
     const count = (s.multi && imgs.length) ? ` <span style="color:var(--ink-faint);">${imgs.length}개</span>` : '';
+    // 이 칸의 대표 시각과, 앞 끼니로부터 얼마 만에 먹었는지
+    const st = slotTime(imgs);
+    let timeHtml = '';
+    if(st){
+      const cur = hhmmToMin(st);
+      const gap = (prevMin != null && cur != null) ? ` <span class="mgap">+${minToText(cur - prevMin)}</span>` : '';
+      timeHtml = ` <span class="mslot-time">${st}</span>${gap}`;
+      if(cur != null) prevMin = cur;
+    }
     return `<div class="meal-slot${s.multi?' snack':''}">
-      <div class="meal-slot-label">${s.label}${count}</div>
+      <div class="meal-slot-label">${s.label}${count}${timeHtml}</div>
       <div class="meal-thumbs">${thumbs}${addBtn}</div>
     </div>`;
   }).join('');
@@ -1231,13 +1252,15 @@ function pickMealPhoto(slot){
       const compressed = await compressImageToLimit(url, 110*1024, 480, 0.55);
       // 사진은 Storage에 올리고, 문서에는 주소(문자열)만 넣는다
       showToast('사진 올리는 중…');
-      const photoUrl = await uploadImage(compressed, storagePath('meals', dateStr));
+      const addr = await uploadImage(compressed, storagePath('meals', dateStr));
+      // 사진 파일에 찍힌 시각(보통 촬영 시각)을 함께 저장한다 → 나중에 올려도 먹은 시각이 남는다
+      const photo = { u: addr, t: fileTimeHHMM(file) };
       const m = mealsForDate(dateStr);
       const conf = MEAL_SLOTS.concat([LEGACY_SNACK]).find(s=>s.key===slot);
       const multi = !!(conf && conf.multi);
       const backup = m[slot] ? [...m[slot]] : [];
-      if(multi) m[slot].push(photoUrl);
-      else m[slot] = [photoUrl]; // 아침/점심/저녁은 1장으로 교체
+      if(multi) m[slot].push(photo);
+      else m[slot] = [photo]; // 아침/점심/저녁은 1장으로 교체
       const res = await persistMeals();
       if(res && res.ok===false){
         // 저장 실패 → 되돌리고 사유 안내
@@ -1350,6 +1373,7 @@ function renderDayTypeAndForm(){
   }
 
   // 기존 기록의 종목을 오늘 목록으로 불러오기
+  setTimes = {};   // 날짜가 바뀌면 세트 시각도 새로 (기존 기록의 시각은 아래 prefill에서 다시 채운다)
   todayExerciseIds = existing && existing.exercises ? existing.exercises.map(x=>x.id).filter(id=>exById(id)) : [];
   document.getElementById('exSearch').value = '';
   document.getElementById('exSearchResults').innerHTML = '';
@@ -1505,6 +1529,7 @@ function renderTodayExercises(existing){
   prefillExerciseInputs(existing);
   // 이벤트 연결
   list.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ stampSetTime(inp); });
     inp.addEventListener('input', debouncedAutoSave);
     inp.addEventListener('blur', autoSave);
   });
@@ -1685,6 +1710,7 @@ function prefillExerciseInputs(existing){
       };
       if(s.weight!=null || s.reps!=null){ setField('weight', s.weight); setField('reps', s.reps); }
       if(s.duration!=null || s.distance!=null){ setField('duration', s.duration); setField('distance', s.distance); }
+      if(s.t) setTimes[setKey(ex.id, n)] = s.t;   // 저장돼 있던 시각 되살리기
     });
   });
 }
@@ -1797,18 +1823,19 @@ function buildEntryFromForm(){
     const n = setCounts[ex.id] || def;
     const sets = [];
     for(let i=1;i<=n;i++){
+      const st = setTimes[setKey(ex.id, i)] || null;
       if(bodyweight){
         const el = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${i}"]`);
         const v = el?el.value:'';
-        sets.push({ reps: v?parseInt(v):null });
+        sets.push(withTime({ reps: v?parseInt(v):null }, st));
       }else if(cardio){
         const e1 = document.querySelector(`input[data-ex="${ex.id}"][data-field="duration"][data-set="${i}"]`);
         const e2 = document.querySelector(`input[data-ex="${ex.id}"][data-field="distance"][data-set="${i}"]`);
-        sets.push({ duration: e1&&e1.value?parseFloat(e1.value):null, distance: e2&&e2.value?parseFloat(e2.value):null });
+        sets.push(withTime({ duration: e1&&e1.value?parseFloat(e1.value):null, distance: e2&&e2.value?parseFloat(e2.value):null }, st));
       }else{
         const e1 = document.querySelector(`input[data-ex="${ex.id}"][data-field="weight"][data-set="${i}"]`);
         const e2 = document.querySelector(`input[data-ex="${ex.id}"][data-field="reps"][data-set="${i}"]`);
-        sets.push({ weight: e1&&e1.value?parseFloat(e1.value):null, reps: e2&&e2.value?parseInt(e2.value):null });
+        sets.push(withTime({ weight: e1&&e1.value?parseFloat(e1.value):null, reps: e2&&e2.value?parseInt(e2.value):null }, st));
       }
     }
     return { id: ex.id, name: ex.name, type: t, part: ex.part||'', sets };
@@ -1882,6 +1909,71 @@ function exTypeOf(ex){
   const master = exById(ex && ex.id);
   return exType(master || ex);
 }
+// ---------- 시간 기록 공통 ----------
+// 세트 시각·식사 시각은 'HH:MM'(24시간) 문자열로 저장한다.
+function hhmmToMin(t){
+  if(!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+  const p = t.split(':');
+  return parseInt(p[0],10)*60 + parseInt(p[1],10);
+}
+function minToText(mins){
+  if(mins == null) return '';
+  if(mins < 0) mins += 24*60;              // 자정을 넘긴 경우
+  const h = Math.floor(mins/60), m = mins%60;
+  return h ? (h + '시간' + (m ? ' ' + m + '분' : '')) : (m + '분');
+}
+// 식단 사진: 예전 기록은 주소 문자열, v24부터는 {u:주소, t:'HH:MM'}
+function photoUrl(p){ return typeof p === 'string' ? p : ((p && p.u) || ''); }
+function photoTime(p){ return (p && typeof p === 'object' && p.t) ? p.t : ''; }
+// 한 칸(끼니)의 대표 시각 = 그 칸에서 가장 이른 사진 시각
+function slotTime(imgs){
+  const ts = (imgs||[]).map(photoTime).filter(Boolean).sort();
+  return ts.length ? ts[0] : '';
+}
+// 종목 한 줄에 붙는 세트 시각 + 세트 사이 쉰 시간
+function setTimesHtml(ex){
+  const ts = (ex.sets||[]).map(s => s && s.t).filter(Boolean);
+  if(!ts.length) return '';
+  const gaps = [];
+  for(let i=1;i<ts.length;i++){
+    const d = hhmmToMin(ts[i]) - hhmmToMin(ts[i-1]);
+    if(d != null) gaps.push(minToText(d));
+  }
+  return '<div class="hx-time">⏱ ' + ts.join(' → ')
+       + (gaps.length ? ' <span class="rest">쉼 ' + gaps.join(', ') + '</span>' : '') + '</div>';
+}
+// 그날 운동 시간대 (첫 세트 ~ 마지막 세트)
+function dayTimeRange(e){
+  const ts = [];
+  (e.exercises||[]).forEach(x => (x.sets||[]).forEach(s => { if(s && s.t) ts.push(s.t); }));
+  if(!ts.length) return '';
+  ts.sort();
+  if(ts.length === 1) return ts[0];
+  const span = hhmmToMin(ts[ts.length-1]) - hhmmToMin(ts[0]);
+  return ts[0] + '–' + ts[ts.length-1] + (span > 0 ? ' (' + minToText(span) + ')' : '');
+}
+function nowHHMM(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+// 사진 파일에 찍힌 시각(보통 촬영 시각). 없거나 말이 안 되면 지금 시각을 쓴다.
+function fileTimeHHMM(file){
+  const ms = file && file.lastModified;
+  if(!ms || ms < 946684800000 || ms > Date.now() + 86400000) return nowHHMM();
+  const d = new Date(ms);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+// 오늘 기록 중인 세트들의 시각 { 'exId|세트번호': 'HH:MM' }
+let setTimes = {};
+function setKey(exId, n){ return exId + '|' + n; }
+// 세트 칸에 값을 처음 적는 순간의 시각을 찍는다 (이미 찍혀 있으면 그대로 둔다)
+function stampSetTime(inp){
+  if(!inp || !inp.dataset || !inp.dataset.ex) return;
+  const key = setKey(inp.dataset.ex, inp.dataset.set);
+  if(inp.value !== '' && !setTimes[key]) setTimes[key] = nowHHMM();
+}
+function withTime(o, t){ if(t) o.t = t; return o; }
+
 function setsToText(ex){
   const t = exTypeOf(ex);
   if(t==='cardio'){
@@ -1957,12 +2049,13 @@ function dailyToText(e){
 function entryCardHTML(e){
   const dow = DAY_NAMES[dayOfWeek(e.date)];
   const tag = e.pt ? 'PT' : e.group;
+  const timeRange = dayTimeRange(e);   // 그날 첫 세트 ~ 마지막 세트
   let body = '';
   if(e.exercises){
     const rows = e.exercises.map(ex=>{
       const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
-      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>`;
+      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
     }).filter(Boolean);
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
@@ -1977,6 +2070,7 @@ function entryCardHTML(e){
         <div>
           <span class="hist-date">${e.date} (${dow})</span>
           <span class="hist-tag ${tag}" style="margin-left:8px;">${tag}</span>
+          ${timeRange?`<span class="hist-time">${timeRange}</span>`:''}
         </div>
         <button class="del-btn" data-id="${e.id}">삭제</button>
       </div>

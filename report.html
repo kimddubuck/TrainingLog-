@@ -93,6 +93,14 @@ window.__chartReady = false;
   .hx-spark{flex-shrink:0;display:flex;align-items:center;gap:4px;line-height:0;}
   .hx-val{font-size:11px;font-weight:600;color:var(--ink-dim);white-space:nowrap;line-height:1;font-family:'IBM Plex Mono',Consolas,monospace;}
   .hx-val.best{color:var(--accent-a);}
+  /* 시간 표시 */
+  .hx-time{font-size:10.5px;color:var(--ink-faint);font-family:'IBM Plex Mono',Consolas,monospace;margin:1px 0 5px 0;}
+  .hx-time .rest{color:var(--accent-b);}
+  .hist-time{font-size:11.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;margin-left:8px;}
+  .mtime{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,0.62);color:#fff;font-size:9.5px;text-align:center;padding:1px 0;font-family:'IBM Plex Mono',Consolas,monospace;line-height:1.35;}
+  .mslot-time{color:var(--ink);font-weight:600;font-family:'IBM Plex Mono',Consolas,monospace;}
+  .mgap{color:var(--accent-b);font-size:11px;}
+
   .lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:20px;}
   .lightbox.on{display:flex;}
   .lightbox img{max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain;}
@@ -121,7 +129,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v23</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v24</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -190,6 +198,46 @@ function exType(ex){ return (ex && ex.type)==='cardio' ? 'cardio' : ((ex && ex.t
 function exTypeOf(ex){
   const master = exById(ex && ex.id);
   return exType(master || ex);
+}
+// ---------- 시간 기록 공통 ----------
+// 세트 시각·식사 시각은 'HH:MM'(24시간) 문자열로 저장한다.
+function hhmmToMin(t){
+  if(!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+  const p = t.split(':');
+  return parseInt(p[0],10)*60 + parseInt(p[1],10);
+}
+function minToText(mins){
+  if(mins == null) return '';
+  if(mins < 0) mins += 24*60;              // 자정을 넘긴 경우
+  const h = Math.floor(mins/60), m = mins%60;
+  return h ? (h + '시간' + (m ? ' ' + m + '분' : '')) : (m + '분');
+}
+// 식단 사진: 예전 기록은 주소 문자열, v24부터는 {u:주소, t:'HH:MM'}
+function photoUrl(p){ return typeof p === 'string' ? p : ((p && p.u) || ''); }
+function photoTime(p){ return (p && typeof p === 'object' && p.t) ? p.t : ''; }
+function slotTime(imgs){
+  const ts = (imgs||[]).map(photoTime).filter(Boolean).sort();
+  return ts.length ? ts[0] : '';
+}
+function setTimesHtml(ex){
+  const ts = (ex.sets||[]).map(s => s && s.t).filter(Boolean);
+  if(!ts.length) return '';
+  const gaps = [];
+  for(let i=1;i<ts.length;i++){
+    const d = hhmmToMin(ts[i]) - hhmmToMin(ts[i-1]);
+    if(d != null) gaps.push(minToText(d));
+  }
+  return '<div class="hx-time">⏱ ' + ts.join(' → ')
+       + (gaps.length ? ' <span class="rest">쉼 ' + gaps.join(', ') + '</span>' : '') + '</div>';
+}
+function dayTimeRange(e){
+  const ts = [];
+  (e.exercises||[]).forEach(x => (x.sets||[]).forEach(s => { if(s && s.t) ts.push(s.t); }));
+  if(!ts.length) return '';
+  ts.sort();
+  if(ts.length === 1) return ts[0];
+  const span = hhmmToMin(ts[ts.length-1]) - hhmmToMin(ts[0]);
+  return ts[0] + '–' + ts[ts.length-1] + (span > 0 ? ' (' + minToText(span) + ')' : '');
 }
 function setsToText(ex){
   const t = exTypeOf(ex);
@@ -293,12 +341,13 @@ let openMonths = {};
 function entryCardHTML(e){
   const dow = DAY_NAMES[dayOfWeek(e.date)];
   const tag = e.pt ? 'PT' : e.group;
+  const timeRange = dayTimeRange(e);   // 그날 첫 세트 ~ 마지막 세트
   let body = '';
   if(e.exercises){
     const rows = e.exercises.map(ex=>{
       const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
-      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>`;
+      return `<div class="hx-row"><span class="hx-txt"><b>${ex.name}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
     }).filter(Boolean);
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
@@ -313,11 +362,23 @@ function entryCardHTML(e){
   if(mm){
     const slots = [['breakfast','아침'],['snackAM','간식 · 오전'],['lunch','점심'],['snackPM','간식 · 오후'],
                    ['dinner','저녁'],['snackNight','간식 · 저녁 이후'],['snack','간식']];
+    let prevMin = null;   // 앞 끼니 시각 (먹는 텀 계산용)
     const rows = slots.map(([k,lbl])=>{
       const imgs = mm[k]||[];
       if(!imgs.length) return '';
-      const thumbs = imgs.map(src=>`<img class="meal-photo" src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:zoom-in;">`).join('');
-      return `<div style="margin-top:6px;"><span style="font-size:12px;color:var(--ink-dim);">${lbl}</span><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;">${thumbs}</div></div>`;
+      const thumbs = imgs.map(p=>{
+        const pt = photoTime(p);
+        return `<span style="display:inline-block;position:relative;line-height:0;"><img class="meal-photo" src="${photoUrl(p)}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:zoom-in;display:block;">${pt?`<span class="mtime">${pt}</span>`:''}</span>`;
+      }).join('');
+      const st = slotTime(imgs);
+      let timeHtml = '';
+      if(st){
+        const cur = hhmmToMin(st);
+        const gap = (prevMin != null && cur != null) ? ` <span class="mgap">+${minToText(cur - prevMin)}</span>` : '';
+        timeHtml = ` <span class="mslot-time">${st}</span>${gap}`;
+        if(cur != null) prevMin = cur;
+      }
+      return `<div style="margin-top:6px;"><span style="font-size:12px;color:var(--ink-dim);">${lbl}${timeHtml}</span><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;">${thumbs}</div></div>`;
     }).filter(Boolean).join('');
     if(rows) mealHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);"><b style="font-size:12.5px;">🍽️ 식단</b>${rows}</div>`;
   }
@@ -326,6 +387,7 @@ function entryCardHTML(e){
       <div class="hist-top">
         <span class="hist-date">${e.date} (${dow})</span>
         <span class="hist-tag ${tag}">${tag}</span>
+        ${timeRange?`<span class="hist-time">${timeRange}</span>`:''}
       </div>
       <div class="hist-body">${body}</div>
       ${mealHtml}
