@@ -28,7 +28,7 @@
 <body>
 <div class="wrap">
   <h1>♻️ 기록 복구</h1>
-  <p class="sub">백업 파일의 운동 기록·종목 목록·매일 루틴을 되살립니다. 식단·물·인바디는 지금 것을 그대로 둡니다. · v1</p>
+  <p class="sub">백업 파일의 운동 기록·종목 목록·매일 루틴을 되살립니다. 식단·물·인바디는 지금 것을 그대로 둡니다. · v2</p>
 
   <div class="card" id="loginCard">
     <h2>1. 로그인</h2>
@@ -200,9 +200,9 @@ document.getElementById('doBtn').addEventListener('click', async ()=>{
     armed = true;
     btn.textContent = '❗ 한 번 더 누르면 복구합니다';
     btn.classList.remove('primary'); btn.classList.add('danger');
-    log('\n<b>확인이 필요합니다.</b> 빨간 버튼을 <b>한 번 더</b> 눌러주세요. (10초 안에)', 'y');
+    log('\n<b>확인이 필요합니다.</b> 빨간 버튼을 <b>한 번 더</b> 눌러주세요. (1분 안에)', 'y');
     clearTimeout(armTimer);
-    armTimer = setTimeout(()=>{ disarm('시간이 지나 취소했습니다.'); }, 10000);
+    armTimer = setTimeout(()=>{ disarm('시간이 지나 취소했습니다. 다시 누르시면 됩니다.'); }, 60000);
     return;
   }
   disarm();
