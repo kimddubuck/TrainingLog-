@@ -1,8 +1,14 @@
 {
-  "name": "김상필 트레이닝 로그",
-  "short_name": "트레이닝로그",
-  "start_url": ".",
+  "name": "김상필 개인운동 기록",
+  "short_name": "개인운동",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#1B1F23",
-  "theme_color": "#1B1F23"
+  "background_color": "#ffffff",
+  "theme_color": "#70747C",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
