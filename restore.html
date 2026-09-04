@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기록 복구 · 트레이닝 로그</title>
+<style>
+  :root{ --bg:#14181B; --card:#1C2226; --ink:#F2F0EA; --ink-dim:#93A0A8; --line:rgba(242,240,234,0.10);
+         --accent:#E8A33D; --ok:#8FBF66; --warn:#C1666B; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding:20px;line-height:1.6;}
+  .wrap{max-width:640px;margin:0 auto;}
+  h1{font-size:20px;margin:0 0 4px;}
+  .sub{color:var(--ink-dim);font-size:13px;margin:0 0 20px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--accent);letter-spacing:0.02em;}
+  input{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#111518;color:var(--ink);font-size:15px;margin-bottom:8px;}
+  button{width:100%;padding:13px;border-radius:9px;border:none;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;background:#2A3238;color:var(--ink);}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+  button.primary{background:var(--accent);color:#14181B;}
+  button.danger{background:var(--warn);color:#fff;}
+  .log{background:#0E1215;border:1px solid var(--line);border-radius:9px;padding:12px;font-family:'IBM Plex Mono',Consolas,monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;max-height:460px;overflow:auto;color:var(--ink-dim);}
+  .log b{color:var(--ink);} .log .g{color:var(--ok);} .log .r{color:var(--warn);} .log .y{color:var(--accent);}
+  .hide{display:none;}
+  .note{font-size:12.5px;color:var(--ink-dim);margin:6px 0 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>♻️ 기록 복구</h1>
+  <p class="sub">백업 파일의 운동 기록·종목 목록·매일 루틴을 되살립니다. 식단·물·인바디는 지금 것을 그대로 둡니다. · v1</p>
+
+  <div class="card" id="loginCard">
+    <h2>1. 로그인</h2>
+    <input type="email" id="email" placeholder="이메일" autocomplete="username">
+    <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password">
+    <button class="primary" id="loginBtn">로그인</button>
+    <p class="note" id="loginErr"></p>
+  </div>
+
+  <div class="card hide" id="workCard">
+    <h2>2. 백업 파일 고르기</h2>
+    <input type="file" id="bakFile" accept="application/json,.json">
+    <p class="note">파일 이름 예: <b>training-log-backup-20260903-1628.json</b></p>
+    <h2 style="margin-top:16px;">3. 작업</h2>
+    <button id="scanBtn">🔍 무엇이 어떻게 합쳐지는지 보기 (안 바꿈)</button>
+    <button id="saveNowBtn">💾 지금 상태부터 백업해두기</button>
+    <button class="primary" id="doBtn" disabled>♻️ 복구 실행</button>
+    <p class="note">복구는 실수 방지를 위해 <b>버튼을 두 번</b> 눌러야 실행됩니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>기록</h2>
+    <div class="log" id="log">로그인을 먼저 해주세요.</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDB-qmTWEIPhdKc9xdcvBk6sjaXLSwIgOY",
+  authDomain: "training-log-377f4.firebaseapp.com",
+  projectId: "training-log-377f4",
+  storageBucket: "training-log-377f4.firebasestorage.app",
+  messagingSenderId: "286910060476",
+  appId: "1:286910060476:web:4f93133b6348aaba557db9"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let docRef = null, uid = null, backup = null;
+
+const logEl = document.getElementById('log');
+function log(msg, cls){
+  logEl.innerHTML += (cls ? '<span class="' + cls + '">' : '') + msg + (cls ? '</span>' : '') + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearLog(){ logEl.innerHTML = ''; }
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const err = document.getElementById('loginErr'); err.textContent = '';
+  try{ await auth.signInWithEmailAndPassword(document.getElementById('email').value.trim(), document.getElementById('pw').value); }
+  catch(e){ err.textContent = '로그인 실패: ' + e.message; }
+});
+auth.onAuthStateChanged(function(u){
+  if(!u) return;
+  uid = u.uid;
+  docRef = db.collection('users').doc(uid).collection('log').doc('data');
+  document.getElementById('loginCard').classList.add('hide');
+  document.getElementById('workCard').classList.remove('hide');
+  clearLog();
+  log('로그인 완료. UID: ' + uid);
+  log('백업 파일을 고른 뒤 [무엇이 어떻게 합쳐지는지 보기]를 눌러주세요.');
+});
+
+async function fetchDoc(){
+  const snap = await docRef.get();
+  if(!snap.exists) throw new Error('문서가 없습니다.');
+  return snap.data();
+}
+const setCount = d => (d.entries||[]).reduce((s,e)=> s + (e.exercises||[]).reduce((t,x)=> t + ((x.sets||[]).length), 0), 0);
+
+document.getElementById('bakFile').addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  try{
+    backup = JSON.parse(await f.text());
+    if(!Array.isArray(backup.entries)) throw new Error('운동 기록이 들어있지 않은 파일입니다.');
+    log('\n백업 파일 읽음: ' + f.name);
+    log('  운동 기록 ' + backup.entries.length + '일 · 세트 ' + setCount(backup) + '개 · 종목 ' + (backup.masterExercises||[]).length + '개');
+  }catch(err){ backup = null; log('백업 파일을 읽지 못했습니다: ' + err.message, 'r'); }
+});
+
+// 합치기 규칙: 운동기록·종목목록·매일루틴만 백업에서 되살리고, 나머지는 서버 것을 그대로 둔다
+function buildPlan(server){
+  const byDate = {};
+  (backup.entries||[]).forEach(e => { byDate[e.date] = e; });
+  const kept = [];
+  (server.entries||[]).forEach(e => {
+    const b = byDate[e.date];
+    if(!b){ byDate[e.date] = e; kept.push(e.date); return; }
+    // 양쪽에 있으면 내용이 더 많은 쪽을 남긴다
+    const sb = (b.exercises||[]).reduce((t,x)=>t+((x.sets||[]).length),0);
+    const ss = (e.exercises||[]).reduce((t,x)=>t+((x.sets||[]).length),0);
+    if(ss > sb){ byDate[e.date] = e; kept.push(e.date + '(서버쪽이 더 많음)'); }
+  });
+  const entries = Object.keys(byDate).sort().map(d => byDate[d]);
+
+  const exById = {};
+  (server.masterExercises||[]).forEach(x => { exById[x.id] = x; });
+  (backup.masterExercises||[]).forEach(x => { exById[x.id] = x; });   // 백업 우선
+  const masterExercises = Object.keys(exById).map(k => exById[k]);
+
+  const dailyItems = (backup.dailyItems && backup.dailyItems.length) ? backup.dailyItems : (server.dailyItems || []);
+  return { entries, masterExercises, dailyItems, kept };
+}
+
+document.getElementById('scanBtn').addEventListener('click', async ()=>{
+  clearLog();
+  if(!backup){ log('먼저 백업 파일을 골라주세요.', 'r'); return; }
+  try{
+    log('서버 상태를 읽는 중…');
+    const server = await fetchDoc();
+    const plan = buildPlan(server);
+    log('\n<b>지금 서버</b>');
+    log('  운동 기록 ' + (server.entries||[]).length + '일 · 세트 ' + setCount(server) + '개');
+    log('  종목 ' + (server.masterExercises||[]).length + '개 · 매일루틴 ' + ((server.dailyItems||[]).map(d=>d.name).join(', ') || '없음'));
+    log('\n<b>백업 파일</b>');
+    log('  운동 기록 ' + backup.entries.length + '일 · 세트 ' + setCount(backup) + '개');
+    log('  종목 ' + (backup.masterExercises||[]).length + '개 · 매일루틴 ' + ((backup.dailyItems||[]).map(d=>d.name).join(', ') || '없음'));
+    log('\n<b class="y">복구하면 이렇게 됩니다</b>');
+    log('  운동 기록 <b>' + plan.entries.length + '일</b> · 세트 <b>' + setCount({entries:plan.entries}) + '개</b>');
+    log('  종목 <b>' + plan.masterExercises.length + '개</b>');
+    log('  매일루틴 <b>' + plan.dailyItems.map(d=>d.name).join(', ') + '</b>');
+    if(plan.kept.length) log('  서버에만 있던 날짜도 그대로 지킴: ' + plan.kept.join(', '), 'g');
+    log('\n<b>손대지 않는 것</b> (지금 서버 것 그대로)');
+    log('  식단 ' + Object.keys(server.meals||{}).length + '일 · 물 ' + Object.keys(server.water||{}).length + '일 · 인바디 ' + (server.inbody||[]).length + '회 · 물컵 ' + server.cupMl + 'ml');
+    log('\n<b>아무것도 바꾸지 않았습니다.</b>', 'g');
+
+    if(plan.entries.length < (server.entries||[]).length || setCount({entries:plan.entries}) < setCount(server)){
+      log('\n⚠ 복구하면 오히려 줄어듭니다. 실행하지 마세요.', 'r');
+      document.getElementById('doBtn').disabled = true;
+      return;
+    }
+    document.getElementById('doBtn').disabled = false;
+    log('다음: [지금 상태부터 백업해두기] → [복구 실행]');
+  }catch(e){ log('실패: ' + e.message, 'r'); console.error(e); }
+});
+
+document.getElementById('saveNowBtn').addEventListener('click', async ()=>{
+  try{
+    const data = await fetchDoc();
+    const blob = new Blob([JSON.stringify(data)], { type:'application/json' });
+    const d = new Date();
+    const stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0')
+                + '-' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
+    const a = document.createElement('a');
+    const href = URL.createObjectURL(blob);
+    a.href = href; a.download = 'training-log-before-restore-' + stamp + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(href); }, 5000);
+    log('\n지금 상태 백업 완료: ' + a.download, 'g');
+  }catch(e){ log('백업 실패: ' + e.message, 'r'); }
+});
+
+// 확인창(confirm)은 쓰지 않는다 — 휴대폰에서 차단되면 눌러도 아무 일이 없어 보인다
+let armed = false, armTimer = null;
+function disarm(msg){
+  const btn = document.getElementById('doBtn');
+  armed = false; clearTimeout(armTimer);
+  btn.textContent = '♻️ 복구 실행';
+  btn.classList.remove('danger'); btn.classList.add('primary');
+  if(msg) log(msg);
+}
+document.getElementById('doBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('doBtn');
+  if(!armed){
+    armed = true;
+    btn.textContent = '❗ 한 번 더 누르면 복구합니다';
+    btn.classList.remove('primary'); btn.classList.add('danger');
+    log('\n<b>확인이 필요합니다.</b> 빨간 버튼을 <b>한 번 더</b> 눌러주세요. (10초 안에)', 'y');
+    clearTimeout(armTimer);
+    armTimer = setTimeout(()=>{ disarm('시간이 지나 취소했습니다.'); }, 10000);
+    return;
+  }
+  disarm();
+  clearLog();
+  btn.disabled = true;
+  try{
+    log('복구를 시작합니다…');
+    const server = await fetchDoc();
+    const plan = buildPlan(server);
+    if(plan.entries.length < (server.entries||[]).length){ log('안전 확인 실패: 기록이 줄어듭니다. 중단합니다.', 'r'); return; }
+    log('운동 기록 ' + plan.entries.length + '일 · 세트 ' + setCount({entries:plan.entries}) + '개 로 되돌립니다.');
+    await docRef.set({ entries: plan.entries, masterExercises: plan.masterExercises, dailyItems: plan.dailyItems }, { merge:true });
+    const after = await fetchDoc();
+    log('\n<b>복구 완료</b>', 'g');
+    log('  운동 기록 ' + (after.entries||[]).length + '일 · 세트 ' + setCount(after) + '개', 'g');
+    log('  종목 ' + (after.masterExercises||[]).length + '개 · 매일루틴 ' + (after.dailyItems||[]).map(d=>d.name).join(', '), 'g');
+    log('  식단 ' + Object.keys(after.meals||{}).length + '일 · 물 ' + Object.keys(after.water||{}).length + '일 (그대로)', 'g');
+    log('\n앱을 새로고침하면 기록이 돌아와 있습니다.', 'g');
+  }catch(e){
+    log('복구 실패: ' + e.message, 'r'); console.error(e);
+  }finally{
+    btn.disabled = false; disarm();
+  }
+});
+</script>
+</body>
+</html>
