@@ -546,6 +546,9 @@ window.__chartReady = false;
     font-family:'IBM Plex Sans KR',sans-serif;
   }
   .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  /* 화면 아래 남는 공간까지 써서 그래프를 크게 (범례가 여러 줄이라 넉넉히 잡는다) */
+  .chart-box{position:relative;height:62vh;min-height:360px;max-height:620px;}
+  .chart-box canvas{width:100% !important;height:100% !important;}
   .stat-row{display:flex;gap:10px;margin-top:14px;}
   .stat{flex:1;background:var(--surface-2);border-radius:10px;padding:10px;text-align:center;}
   .stat .v{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent-a);}
@@ -683,7 +686,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v31</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v32</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -813,7 +816,7 @@ window.__chartReady = false;
       <select id="exerciseSelect"></select>
     </div>
     <div class="chart-card">
-      <canvas id="progressChart" height="220"></canvas>
+      <div class="chart-box"><canvas id="progressChart"></canvas></div>
       <div class="stat-row" id="statRow"></div>
     </div>
   </div>
@@ -3015,7 +3018,7 @@ function renderGraph(){
       const exIds = Object.keys(perEx);
       if(!exIds.length){
         statRow.innerHTML = '<div class="empty" style="width:100%;">아직 무게를 입력한 기록이 없어요.</div>';
-        chartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+        chartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
         return;
       }
       const nameToId = {};
@@ -3034,9 +3037,26 @@ function renderGraph(){
         type:'line',
         data:{ labels: padded.labels, datasets: padded.datasets },
         options:{
+          maintainAspectRatio:false,   // 상자 높이를 그대로 쓴다
           interaction:{ mode:'nearest', intersect:false },
           plugins:{
-            legend:{ display:true, labels:{ color:'#93A0A8', font:{size:11}, boxWidth:12 } },
+            legend:{
+              display:true, labels:{ color:'#93A0A8', font:{size:11}, boxWidth:12 },
+              // 종목 이름을 누르면 그 종목만 남기고, 같은 것을 다시 누르면 전체로 돌아온다
+              onClick:(evt, item, legend)=>{
+                const ch = legend.chart;
+                const idx = item.datasetIndex;
+                const total = ch.data.datasets.length;
+                let shown = 0, onlyThis = true;
+                for(let k=0;k<total;k++){
+                  if(ch.isDatasetVisible(k)){ shown++; if(k !== idx) onlyThis = false; }
+                }
+                const backToAll = (onlyThis && shown === 1);
+                for(let k=0;k<total;k++) ch.setDatasetVisibility(k, backToAll ? true : (k === idx));
+                ch.update();
+                showToast(backToAll ? '전체 종목을 다시 표시했어요' : item.text + '만 표시');
+              }
+            },
             tooltip:{ ...TOOLTIP_STYLE, callbacks:{
               title:(items)=> items.length ? items[0].label : '',
               label:(item)=> `${item.dataset.label} · 최고 ${item.parsed.y}kg`,
@@ -3054,7 +3074,7 @@ function renderGraph(){
           }
         }
       });
-      statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${exIds.length}</div><div class="l">기록된 종목 수 · 점을 누르면 상세정보</div></div>`;
+      statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${exIds.length}</div><div class="l">기록된 종목 수 · <b style="color:var(--accent-b);">종목 이름을 누르면 그 종목만</b> 보여요 (다시 누르면 전체)</div></div>`;
       return;
     }
 
@@ -3063,7 +3083,7 @@ function renderGraph(){
     if(!points.length){
       statRow.innerHTML = '<div class="empty" style="width:100%;">이 운동에 대한 기록이 아직 없어요.</div>';
       chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]},
-        options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
+        options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
       return;
     }
     const setsByDate = Object.fromEntries(points.map(p=>[p.date, p.setsText]));
@@ -3078,6 +3098,7 @@ function renderGraph(){
       type: 'line',
       data: padded,
       options: {
+        maintainAspectRatio:false,
         interaction:{ mode:'nearest', intersect:false },
         plugins: {
           legend: { display:false },
