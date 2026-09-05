@@ -219,6 +219,21 @@ window.__chartReady = false;
     width:100%;max-width:640px;max-height:85vh;display:flex;flex-direction:column;
   }
   .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid var(--border);}
+  /* 사진 넣는 방법 고르기 */
+  .photo-sheet{padding:16px 18px 20px;gap:10px;}
+  .ps-title{font-size:13px;color:var(--ink-dim);text-align:center;margin-bottom:4px;}
+  .ps-btn{
+    width:100%;box-sizing:border-box;padding:16px;border-radius:12px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--ink);font-size:15.5px;font-weight:600;cursor:pointer;
+    font-family:'IBM Plex Sans KR',sans-serif;
+  }
+  .ps-btn:active{background:var(--surface-3);}
+  #psCamera{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
+  .ps-cancel{
+    width:100%;box-sizing:border-box;padding:13px;border-radius:12px;border:none;
+    background:transparent;color:var(--ink-faint);font-size:14px;cursor:pointer;
+    font-family:'IBM Plex Sans KR',sans-serif;
+  }
   .modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.02em;}
   .modal-close{background:none;border:none;color:var(--ink-dim);font-size:13px;cursor:pointer;text-decoration:underline;}
   .modal-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--border);}
@@ -658,7 +673,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v28</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v29</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -714,6 +729,16 @@ window.__chartReady = false;
     </div>
 
     <!-- 종목 라이브러리 관리 모달 -->
+    <!-- 사진 넣는 방법 고르기 (카메라 / 앨범) -->
+    <div class="modal-backdrop" id="photoSheet" style="display:none;">
+      <div class="modal photo-sheet">
+        <div class="ps-title" id="psTitle">사진 추가</div>
+        <button class="ps-btn" id="psCamera">📷 카메라로 바로 찍기</button>
+        <button class="ps-btn" id="psAlbum">🖼️ 앨범에서 고르기</button>
+        <button class="ps-cancel" id="psCancel">취소</button>
+      </div>
+    </div>
+
     <div class="modal-backdrop" id="manageModal" style="display:none;">
       <div class="modal">
         <div class="modal-head">
@@ -1407,15 +1432,38 @@ function renderMeals(){
   });
 }
 let mealFileInput = null;
+
+// ＋를 누르면 "카메라 / 앨범"을 먼저 고르게 한다.
+// accept="image/*" 만으로는 기기에 따라 앨범으로 바로 가버려서 카메라를 못 쓴다.
+// 카메라는 capture 속성이 붙은 입력칸이 있어야 바로 열린다.
+let photoSheetSlot = null;
 function pickMealPhoto(slot){
-  if(!mealFileInput){
-    mealFileInput = document.createElement('input');
-    mealFileInput.type = 'file';
-    mealFileInput.accept = 'image/*';
-    mealFileInput.style.display = 'none';
-    document.body.appendChild(mealFileInput);
-  }
-  mealFileInput.value = '';
+  photoSheetSlot = slot;
+  const conf = MEAL_SLOTS.concat([LEGACY_SNACK]).find(s=>s.key===slot);
+  document.getElementById('psTitle').textContent = (conf ? conf.label : '식단') + ' 사진 추가';
+  document.getElementById('photoSheet').style.display = 'flex';
+}
+function closePhotoSheet(){
+  document.getElementById('photoSheet').style.display = 'none';
+}
+document.getElementById('psCancel').addEventListener('click', closePhotoSheet);
+document.getElementById('photoSheet').addEventListener('click', (e)=>{
+  if(e.target.id === 'photoSheet') closePhotoSheet();
+});
+document.getElementById('psCamera').addEventListener('click', ()=>{ closePhotoSheet(); startMealPick(photoSheetSlot, true); });
+document.getElementById('psAlbum').addEventListener('click', ()=>{ closePhotoSheet(); startMealPick(photoSheetSlot, false); });
+
+function startMealPick(slot, useCamera){
+  if(!slot) return;
+  // 입력칸을 매번 새로 만든다. 하나를 재사용하며 capture 를 켰다 껐다 하면
+  // 브라우저가 이전 설정을 기억해 카메라/앨범이 뒤바뀌는 경우가 있다.
+  if(mealFileInput){ mealFileInput.remove(); mealFileInput = null; }
+  mealFileInput = document.createElement('input');
+  mealFileInput.type = 'file';
+  mealFileInput.accept = 'image/*';
+  if(useCamera) mealFileInput.setAttribute('capture', 'environment');   // 후면 카메라 바로 열기
+  mealFileInput.style.display = 'none';
+  document.body.appendChild(mealFileInput);
   mealFileInput.onchange = async (e)=>{
     const file = e.target.files[0];
     if(!file) return;
