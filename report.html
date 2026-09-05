@@ -120,6 +120,9 @@ window.__chartReady = false;
   .section-label{font-size:12px;color:var(--ink-dim);margin:0 0 8px;}
   select{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px;font-family:'IBM Plex Sans KR',sans-serif;margin-bottom:14px;}
   .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  /* 화면 아래 남는 공간까지 써서 그래프를 크게 (범례가 여러 줄이라 넉넉히) */
+  .chart-box{position:relative;height:62vh;min-height:360px;max-height:620px;}
+  .chart-box canvas{width:100% !important;height:100% !important;}
   .stat-row{display:flex;gap:10px;margin-top:14px;}
   .stat{flex:1;background:var(--surface-2);border-radius:10px;padding:10px;text-align:center;}
   .stat .v{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent-a);}
@@ -131,7 +134,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v31</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v33</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -148,7 +151,7 @@ window.__chartReady = false;
   <div class="panel" id="panel-graph">
     <select id="exerciseSelect"></select>
     <div class="chart-card">
-      <canvas id="progressChart" height="220"></canvas>
+      <div class="chart-box"><canvas id="progressChart"></canvas></div>
       <div class="stat-row" id="statRow"></div>
     </div>
   </div>
@@ -542,7 +545,7 @@ function renderGraph(){
       const dates=[...dateSet].sort(); const exIds=Object.keys(perEx);
       if(!exIds.length){
         statRow.innerHTML = '<div class="empty" style="width:100%;">아직 무게 기록이 없어요.</div>';
-        chartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+        chartInstance = new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
         return;
       }
       const nameToId = {};
@@ -550,8 +553,23 @@ function renderGraph(){
         return {label:perEx[id].name, data:dates.map(d=>perEx[id].map[d]??null), borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:c, spanGaps:true}; });
       const padded = padSingle(dates, datasets);
       chartInstance = new Chart(ctx,{ type:'line', data:{labels:padded.labels, datasets:padded.datasets},
-        options:{ interaction:{mode:'nearest',intersect:false},
-          plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12}},
+        options:{ maintainAspectRatio:false,   // 상자 높이를 그대로 쓴다
+          interaction:{mode:'nearest',intersect:false},
+          plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12},
+              // 종목 이름을 누르면 그 종목만 남기고, 같은 것을 다시 누르면 전체로
+              onClick:(evt, item, legend)=>{
+                const ch = legend.chart;
+                const idx = item.datasetIndex;
+                const total = ch.data.datasets.length;
+                let shown = 0, onlyThis = true;
+                for(let k=0;k<total;k++){
+                  if(ch.isDatasetVisible(k)){ shown++; if(k !== idx) onlyThis = false; }
+                }
+                const backToAll = (onlyThis && shown === 1);
+                for(let k=0;k<total;k++) ch.setDatasetVisibility(k, backToAll ? true : (k === idx));
+                ch.update();
+              }
+            },
             tooltip:{ ...TOOLTIP_STYLE, callbacks:{
               title:(items)=> items.length?items[0].label:'',
               label:(item)=> `${item.dataset.label} · 최고 ${item.parsed.y}kg`,
@@ -559,29 +577,33 @@ function renderGraph(){
             }}},
           scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono', size:10}},grid:{color:'rgba(242,240,234,0.06)'}},
                    y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } } });
-      statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${exIds.length}</div><div class="l">기록된 종목 수 · 점을 누르면 상세정보</div></div>`;
+      statRow.innerHTML = `<div class="stat" style="flex:1;"><div class="v">${exIds.length}</div><div class="l">기록된 종목 수 · <b style="color:var(--accent-b);">종목 이름을 누르면 그 종목만</b> 보여요 (다시 누르면 전체)</div></div>`;
       return;
     }
 
     const points = exerciseSeries(val);
     if(!points.length){
-      chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]}, options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
+      chartInstance = new Chart(ctx, { type:'line', data:{labels:[],datasets:[]}, options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}} });
       statRow.innerHTML = '<div class="empty" style="width:100%;">이 운동에 대한 기록이 아직 없어요.</div>';
       return;
     }
     const setsByDate = Object.fromEntries(points.map(p=>[p.date, p.setsText]));
+    // 종목 종류에 따라 단위가 다르다 (웨이트 kg / 유산소 분 / 맨몸 회)
+    const unit = points[0].unit || 'kg';
+    const label = unit==='분'?'최고 시간(분)':(unit==='회'?'최고 횟수(회)':'최고 세트 무게(kg)');
     const base={ labels: points.map(p=>p.date),
-      datasets:[{ label:'최고 세트 무게(kg)', data: points.map(p=>p.top),
+      datasets:[{ label:label, data: points.map(p=>p.top),
         borderColor:'#E8A33D', backgroundColor:'rgba(232,163,61,0.15)',
         tension:0.3, fill:true, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#E8A33D' }] };
     const padded = padSingle(base.labels, base.datasets);
     chartInstance = new Chart(ctx, {
       type:'line', data: padded,
-      options:{ interaction:{mode:'nearest',intersect:false},
+      options:{ maintainAspectRatio:false,
+        interaction:{mode:'nearest',intersect:false},
         plugins:{legend:{display:false},
           tooltip:{ ...TOOLTIP_STYLE, callbacks:{
             title:(items)=> items.length?items[0].label:'',
-            label:(item)=> `최고 ${item.parsed.y}kg`,
+            label:(item)=> `최고 ${item.parsed.y}${unit}`,
             afterLabel:(item)=>{ const st=setsByDate[item.label]; return st?'세트: '+st:''; }
           }}},
         scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono', size:10}},grid:{color:'rgba(242,240,234,0.06)'}},
@@ -589,9 +611,9 @@ function renderGraph(){
     });
     const first=points[0].top, last=points[points.length-1].top, max=Math.max(...points.map(p=>p.top));
     statRow.innerHTML = `
-      <div class="stat"><div class="v">${last}kg</div><div class="l">최근 기록</div></div>
-      <div class="stat"><div class="v">${max}kg</div><div class="l">최고 기록</div></div>
-      <div class="stat"><div class="v">${last-first>=0?'+':''}${(last-first).toFixed(1)}kg</div><div class="l">전체 변화</div></div>
+      <div class="stat"><div class="v">${last}${unit}</div><div class="l">최근 기록</div></div>
+      <div class="stat"><div class="v">${max}${unit}</div><div class="l">최고 기록</div></div>
+      <div class="stat"><div class="v">${last-first>=0?'+':''}${(last-first).toFixed(1)}${unit}</div><div class="l">전체 변화</div></div>
     `;
   }catch(err){
     statRow.innerHTML = '<div class="empty" style="width:100%;color:var(--accent-pt);">차트 오류: '+(err&&err.message?err.message:err)+'</div>';
