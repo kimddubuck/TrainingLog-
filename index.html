@@ -686,7 +686,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v33</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v34</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -742,15 +742,6 @@ window.__chartReady = false;
     </div>
 
     <!-- 종목 라이브러리 관리 모달 -->
-    <!-- 사진 넣는 방법 고르기 (카메라 / 앨범) -->
-    <div class="modal-backdrop" id="photoSheet" style="display:none;">
-      <div class="modal photo-sheet">
-        <div class="ps-title" id="psTitle">사진 추가</div>
-        <button class="ps-btn" id="psCamera">📷 카메라로 바로 찍기</button>
-        <button class="ps-btn" id="psAlbum">🖼️ 앨범에서 고르기</button>
-        <button class="ps-cancel" id="psCancel">취소</button>
-      </div>
-    </div>
 
     <div class="modal-backdrop" id="manageModal" style="display:none;">
       <div class="modal">
@@ -876,6 +867,16 @@ window.__chartReady = false;
 
 </div>
 
+<!-- 사진 넣는 방법 고르기 (카메라 / 앨범) -->
+<!-- 탭 바깥에 둔다: 탭 안에 있으면 그 탭이 숨겨질 때 같이 숨겨져 열리지 않는다 -->
+<div class="modal-backdrop" id="photoSheet" style="display:none;">
+  <div class="modal photo-sheet">
+    <div class="ps-title" id="psTitle">사진 추가</div>
+    <button class="ps-btn" id="psCamera">📷 카메라로 바로 찍기</button>
+    <button class="ps-btn" id="psAlbum">🖼️ 앨범에서 고르기</button>
+    <button class="ps-cancel" id="psCancel">취소</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <div class="lightbox" id="lightbox"><img id="lightboxImg" src=""><button class="lightbox-close" id="lightboxClose">×</button></div>
 </div>
