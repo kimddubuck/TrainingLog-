@@ -387,6 +387,16 @@ window.__chartReady = false;
   .hx-time .rest{color:var(--accent-b);}
   .hist-time{font-size:11.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;margin-left:8px;}
   .mtime{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,0.62);color:#fff;font-size:9.5px;text-align:center;padding:1px 0;font-family:'IBM Plex Mono',Consolas,monospace;line-height:1.35;}
+  /* 사진의 시각표를 누르면 고칠 수 있다 */
+  .mtime.edit{cursor:pointer;}
+  .mtime.edit:active{background:var(--accent-a);color:#fff;}
+  .mtime.empty{background:rgba(0,0,0,0.45);color:#C9D1D9;}
+  /* 시각 고치기 창 */
+  .ts-input{
+    width:100%;box-sizing:border-box;padding:14px;border-radius:12px;
+    border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);
+    font-size:22px;text-align:center;font-family:'IBM Plex Mono',Consolas,monospace;
+  }
   .mslot-time{color:var(--ink);font-weight:600;font-family:'IBM Plex Mono',Consolas,monospace;}
   .mgap{color:var(--accent-b);font-size:11px;}
 
@@ -686,7 +696,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v34</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v35</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -875,6 +885,16 @@ window.__chartReady = false;
     <button class="ps-btn" id="psCamera">📷 카메라로 바로 찍기</button>
     <button class="ps-btn" id="psAlbum">🖼️ 앨범에서 고르기</button>
     <button class="ps-cancel" id="psCancel">취소</button>
+  </div>
+</div>
+<!-- 사진의 먹은 시각 고치기 (탭 바깥에 둔다) -->
+<div class="modal-backdrop" id="timeSheet" style="display:none;">
+  <div class="modal photo-sheet">
+    <div class="ps-title" id="tsTitle">먹은 시각</div>
+    <input type="time" id="tsInput" class="ts-input">
+    <button class="ps-btn" id="tsSave">이 시각으로 저장</button>
+    <button class="ps-cancel" id="tsClear">시각 지우기</button>
+    <button class="ps-cancel" id="tsCancel">취소</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1413,7 +1433,8 @@ function renderMeals(){
     const imgs = m[s.key]||[];
     const thumbs = imgs.map((p,i)=>{
       const pt = photoTime(p);
-      return `<div class="meal-thumb"><img src="${photoUrl(p)}"><button class="mdel" data-slot="${s.key}" data-idx="${i}">×</button>${pt?`<span class="mtime">${pt}</span>`:''}</div>`;
+      // 시각이 없어도 칸을 만들어 둔다 → 눌러서 직접 넣을 수 있다
+      return `<div class="meal-thumb"><img src="${photoUrl(p)}"><button class="mdel" data-slot="${s.key}" data-idx="${i}">×</button><span class="mtime edit${pt?'':' empty'}" data-slot="${s.key}" data-idx="${i}">${pt||'시각 넣기'}</span></div>`;
     }).join('');
     // 여러 장 칸은 항상 ＋ 를 두고, 1장 칸은 비었을 때만 둔다
     const addBtn = (s.multi || imgs.length===0) ? `<div class="meal-add" data-slot="${s.key}">＋</div>` : '';
@@ -1436,6 +1457,9 @@ function renderMeals(){
   grid.querySelectorAll('.meal-add').forEach(btn=>{
     btn.onclick = ()=> pickMealPhoto(btn.dataset.slot);
   });
+  grid.querySelectorAll('.mtime.edit').forEach(el=>{
+    el.onclick = ()=> openTimeSheet(el.dataset.slot, +el.dataset.idx);
+  });
   grid.querySelectorAll('.mdel').forEach(btn=>{
     btn.onclick = async ()=>{
       const mm = mealsForDate(mealDateStr());
@@ -1445,6 +1469,52 @@ function renderMeals(){
     };
   });
 }
+// ---------- 사진에 찍힌 "먹은 시각" 고치기 ----------
+// 사진을 늦게 올리면 올린 시각이 들어간다. 실제로 먹은 시각으로 바꿀 수 있게 한다.
+let timeSheetTarget = null;   // {slot, idx}
+function openTimeSheet(slot, idx){
+  const m = mealsForDate(mealDateStr());
+  const p = (m[slot]||[])[idx];
+  if(!p) return;
+  timeSheetTarget = { slot, idx };
+  const conf = MEAL_SLOTS.concat([LEGACY_SNACK]).find(s=>s.key===slot);
+  document.getElementById('tsTitle').textContent = (conf ? conf.label : '식단') + ' · 먹은 시각';
+  document.getElementById('tsInput').value = photoTime(p) || nowHHMM();
+  document.getElementById('timeSheet').style.display = 'flex';
+}
+function closeTimeSheet(){
+  document.getElementById('timeSheet').style.display = 'none';
+  timeSheetTarget = null;
+}
+async function saveMealTime(val){
+  if(!timeSheetTarget) return;
+  const { slot, idx } = timeSheetTarget;
+  closeTimeSheet();
+  const m = mealsForDate(mealDateStr());
+  const p = (m[slot]||[])[idx];
+  if(!p) return;
+  const backup = m[slot].slice();
+  // 예전 기록은 주소 문자열만 있을 수 있다 → 시각을 담을 수 있게 바꿔 준다
+  const obj = (typeof p === 'string') ? { u: p } : { ...p };
+  if(val) obj.t = val; else delete obj.t;
+  m[slot][idx] = obj;
+  const res = await persistMeals();
+  if(res && res.ok===false){
+    m[slot] = backup;
+    renderMeals();
+    showToast('저장 실패: ' + res.msg);
+  }else{
+    renderMeals();
+    showToast(val ? ('먹은 시각을 ' + val + ' 로 고쳤어요') : '먹은 시각을 지웠어요');
+  }
+}
+document.getElementById('tsSave').addEventListener('click', ()=> saveMealTime(document.getElementById('tsInput').value));
+document.getElementById('tsClear').addEventListener('click', ()=> saveMealTime(''));
+document.getElementById('tsCancel').addEventListener('click', closeTimeSheet);
+document.getElementById('timeSheet').addEventListener('click', (e)=>{
+  if(e.target.id === 'timeSheet') closeTimeSheet();
+});
+
 let mealFileInput = null;
 
 // ＋를 누르면 "카메라 / 앨범"을 먼저 고르게 한다.
