@@ -716,7 +716,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v36</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v37</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1623,15 +1623,15 @@ function showToast(msg){
 // ---------- 오늘 할 운동 추천 ----------
 // 개인운동은 2분할: 가슴·등(A) / 하체·어깨·팔(B)
 // 앞에서부터 먼저 걸리는 규칙을 따른다.
-//  1) 일요일 → 휴식
-//  2) 월요일 → 걷기 (아파트 헬스장 휴무)
+//  1) 일요일 → 회복 (산책·스트레칭)
+//  2) 월요일 → 회복 (걷기 — 아파트 헬스장 휴무)
 //  3) 화·금 → PT
 //  4) 어제·그제 이틀 연속 근력(PT 포함) → 회복
 //  5) 가슴·등 / 하체·어깨·팔 중 더 오래 안 한 쪽 (PT에서 한 부위도 센다)
 const PLAN = {
-  rest:    { tag:'휴식', kind:'free', title:'푹 쉬기',
-             how:'매일루틴만 하고 쉬어요.', tip:'잠을 충분히 — 7시간 이상' },
-  walk:    { tag:'걷기', kind:'free', title:'걷기 30~40분',
+  rest:    { tag:'회복', kind:'free', title:'회복 — 산책·스트레칭',
+             how:'가벼운 산책 20~30분 + 매일루틴. 근력운동은 쉬어요.', tip:'잠을 충분히 — 7시간 이상' },
+  walk:    { tag:'회복', kind:'free', title:'회복 — 걷기 30~40분',
              how:'코로 숨 쉬며 옆 사람과 대화할 수 있는 속도로.', tip:'매일루틴도 같이' },
   recover: { tag:'회복', kind:'free', title:'회복 — 수영이나 걷기',
              how:'가볍게 30분만. 근력운동은 쉬어요.', tip:'매일루틴 + 물 충분히' },
@@ -1676,7 +1676,7 @@ function actualPlanDay(ds){
 }
 function recommendPlan(ds, known){
   const dow = dayOfWeek(ds);
-  if(dow === 0) return { key:'rest', why:'일요일은 쉬는 날' };
+  if(dow === 0) return { key:'rest', why:'일요일은 회복하는 날' };
   if(dow === 1) return { key:'walk', why:'월요일은 아파트 헬스장이 쉬어요' };
   if(PT_DAYS.includes(dow)) return { key:'pt', why:'화·금은 PT' };
   const k1 = known[planAdd(ds,-1)], k2 = known[planAdd(ds,-2)];
@@ -1733,7 +1733,7 @@ function renderWeekBoard(){
     const hasEntry = entries.some(e=>e.date===dstr);
     let tag, kind, future = false;
     if(act.strength){ ({ tag, kind } = actualTag(act)); }          // 실제로 한 운동
-    else if(dstr < W.today){ tag = '쉼'; kind = 'free'; }          // 지난날 근력 없음
+    else if(dstr < W.today){ tag = '회복'; kind = 'free'; }        // 지난날 근력 없음
     else { tag = PLAN[rec.key].tag; kind = PLAN[rec.key].kind; future = dstr > W.today; }  // 추천
     const chip = document.createElement('div');
     chip.className = 'day-chip ' + kind + (dstr===W.today?' today':'') + (future?' future':'');
