@@ -185,6 +185,16 @@ window.__chartReady = false;
   .cal-day.today .cd-n{color:var(--ink);font-weight:700;}
   .cal-day .cd-t{font-size:10px;font-weight:600;margin-top:2px;line-height:1.25;}
   .cal-day .cd-s{font-size:9px;color:var(--ink-faint);line-height:1.2;}
+  /* 운동한 날 = 날짜에 색 동그라미 + 칸을 살짝 밝게 */
+  .cal-day.did{background:var(--surface-3);}
+  .cal-day.did .cd-n{
+    display:inline-block;min-width:20px;height:20px;line-height:20px;
+    border-radius:50%;font-weight:700;font-size:11px;
+  }
+  .cal-day.A.did .cd-n{background:var(--accent-a-dim);color:var(--accent-a);}
+  .cal-day.B.did .cd-n{background:var(--accent-b-dim);color:var(--accent-b);}
+  .cal-day.pt.did .cd-n{background:var(--accent-pt-dim);color:var(--accent-pt);}
+  .cal-day.free.did .cd-n{background:var(--surface-2);color:var(--ink);}
   .cal-day.A .cd-t{color:var(--accent-a);}
   .cal-day.B .cd-t{color:var(--accent-b);}
   .cal-day.pt .cd-t{color:var(--accent-pt);}
@@ -744,7 +754,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v38</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v39</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1750,10 +1760,10 @@ function recommendPlan(ds, known){
 function buildWeekPlan(){
   const today = todayStr();
   const now = new Date(today+'T00:00:00');
-  const monday = planAdd(today, -((now.getDay()+6)%7));
-  const sunday = planAdd(monday, 6);
+  const weekStart = planAdd(today, -now.getDay());   // 그 주 일요일
+  const weekEnd = planAdd(weekStart, 6);
   const known = {}, days = {};
-  for(let ds = planAdd(today, -28); ds <= planAdd(sunday, 1); ds = planAdd(ds, 1)){   // 일요일의 "내일"(월)까지
+  for(let ds = planAdd(today, -28); ds <= planAdd(weekEnd, 1); ds = planAdd(ds, 1)){   // 주 마지막 날의 "내일"까지
     const rec = recommendPlan(ds, known);
     const act = actualPlanDay(ds);
     if(ds < today || (ds === today && act.strength)){
@@ -1764,7 +1774,7 @@ function buildWeekPlan(){
     }
     days[ds] = { rec, act };
   }
-  return { today, monday, days };
+  return { today, weekStart, days };
 }
 function actualTag(act){
   const p = topPart(act);                                    // 실제로 제일 많이 한 부위
@@ -1780,7 +1790,7 @@ function renderWeekBoard(){
   board.innerHTML = '';
   const W = buildWeekPlan();
   for(let i=0;i<7;i++){
-    const dstr = planAdd(W.monday, i);
+    const dstr = planAdd(W.weekStart, i);
     const dow = dayOfWeek(dstr);
     const { rec, act } = W.days[dstr];
     const hasEntry = entries.some(e=>e.date===dstr);
@@ -2799,8 +2809,8 @@ function renderCalendar(){
   const [Y,M] = calMonth.split('-').map(Number);
   const first = new Date(Y, M-1, 1);
   const daysInMonth = new Date(Y, M, 0).getDate();
-  const offset = (first.getDay()+6)%7;              // 월요일 시작
-  const start = planAdd(planYmd(first), -offset);   // 첫 줄의 월요일
+  const offset = first.getDay();                    // 일요일 시작
+  const start = planAdd(planYmd(first), -offset);   // 첫 줄의 일요일
   const weeks = Math.ceil((offset + daysInMonth)/7);
 
   // 한 달 합계
@@ -2813,7 +2823,7 @@ function renderCalendar(){
     mSets += calSetCount(e);
   });
 
-  let grid = ['월','화','수','목','금','토','일'].map(d=>'<div class="cal-dow">'+d+'</div>').join('');
+  let grid = ['일','월','화','수','목','금','토'].map(d=>'<div class="cal-dow">'+d+'</div>').join('');
   const weekRows = [];
   for(let w=0; w<weeks; w++){
     let wDays = 0, wSets = 0, wPT = 0;
@@ -2827,7 +2837,8 @@ function renderCalendar(){
         wSets += info.sets;
       }
       const kind = info ? info.kind : 'free';
-      const cls = 'cal-day ' + kind + (inMonth ? '' : ' out') + (ds===today ? ' today' : '');
+      const did = !!(info && info.tag !== '회복');   // 근력운동을 한 날
+      const cls = 'cal-day ' + kind + (did ? ' did' : '') + (inMonth ? '' : ' out') + (ds===today ? ' today' : '');
       const sub = (info && info.sub) ? `<div class="cd-s">${info.sub}</div>` : '';
       grid += `<div class="${cls}" data-d="${ds}"><div class="cd-n">${Number(ds.slice(8))}</div><div class="cd-t">${info ? info.tag : ''}</div>${sub}</div>`;
     }
