@@ -167,6 +167,34 @@ window.__chartReady = false;
   .plan-card .pc-tip{font-size:12px;color:var(--ink-dim);margin-top:4px;line-height:1.5;}
   .plan-card .pc-why{font-size:11.5px;color:var(--ink-faint);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);line-height:1.5;}
 
+  /* 운동 달력 */
+  .cal-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .cal-title{font-family:'IBM Plex Mono',Consolas,monospace;font-size:15px;font-weight:600;color:var(--ink);}
+  .cal-nav{background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;width:34px;height:30px;font-size:14px;cursor:pointer;}
+  .cal-nav:active{background:var(--surface-3);}
+  .cal-sum{font-size:12px;color:var(--ink-dim);margin:8px 0 10px;}
+  .cal-sum b{color:var(--ink);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-dow{text-align:center;font-size:10.5px;color:var(--ink-faint);padding-bottom:2px;}
+  .cal-day{min-height:44px;border-radius:8px;background:var(--surface-2);border:1px solid transparent;padding:3px 1px;text-align:center;cursor:pointer;}
+  .cal-day:active{background:var(--surface-3);}
+  .cal-day.out{opacity:.22;}
+  .cal-day.today{border-color:var(--border-strong);}
+  .cal-day .cd-n{font-size:10.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;}
+  .cal-day.today .cd-n{color:var(--ink);font-weight:700;}
+  .cal-day .cd-t{font-size:10px;font-weight:600;margin-top:2px;line-height:1.25;}
+  .cal-day .cd-s{font-size:9px;color:var(--ink-faint);line-height:1.2;}
+  .cal-day.A .cd-t{color:var(--accent-a);}
+  .cal-day.B .cd-t{color:var(--accent-b);}
+  .cal-day.pt .cd-t{color:var(--accent-pt);}
+  .cal-day.free .cd-t{color:var(--ink-faint);}
+  .cal-weeks{margin-top:12px;border-top:1px dashed var(--border);padding-top:6px;}
+  .cal-week{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--ink-dim);padding:4px 2px;}
+  .cal-week b{color:var(--ink);font-weight:600;}
+  .cal-week.now{color:var(--accent-b);}
+  .cal-week.now b{color:var(--accent-b);}
+
   /* Tabs */
   .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
   .tab{
@@ -716,7 +744,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v37</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v38</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -827,6 +855,7 @@ window.__chartReady = false;
 
   <!-- HISTORY PANEL -->
   <div class="panel" id="panel-history">
+    <div class="cal-card" id="calendarCard"></div>
     <div id="historySummary"></div>
     <div class="filter-bar" id="historyFilter"></div>
     <div id="historyList"></div>
@@ -1660,19 +1689,44 @@ function exPlanGroups(ex){
   if(/하체|허벅지|엉덩이|종아리|어깨|이두|삼두|팔/.test(part)) g.push('B');
   return g;
 }
-// 그날 실제로 한 것: 근력을 했나 + 어느 쪽을 했나
+// 부위 이름을 다섯 갈래로 묶는다 (앞에 있는 것부터 먼저 맞춰 본다)
+const PART_BUCKETS = [
+  ['가슴', /가슴/], ['등', /등|광배|승모/], ['하체', /하체|허벅지|엉덩이|종아리/],
+  ['어깨', /어깨/], ['팔', /이두|삼두|팔/],
+];
+function exBucket(ex){
+  let part = ex.part;
+  if(!part){ const m = masterExercises.find(x=>x.id===ex.id); part = m && m.part; }
+  part = String(part || '');
+  const hit = PART_BUCKETS.find(([, re]) => re.test(part));
+  return hit ? hit[0] : null;
+}
+// 그날 실제로 한 것: 근력을 했나 + 어느 쪽을 했나 + 부위별 세트 수
 function actualPlanDay(ds){
   const e = entries.find(x=>x.date===ds);
-  if(!e) return { strength:false, pt:false, groups:[] };
+  if(!e) return { strength:false, pt:false, groups:[], parts:{} };
   const groups = new Set();
+  const parts = {};
   let strength = !!e.pt;
   (e.exercises||[]).forEach(ex=>{
     if(ex.type === 'cardio') return;
-    if(!(ex.sets||[]).some(st => st && (st.weight || st.reps))) return;
+    const n = (ex.sets||[]).filter(st => st && (st.weight || st.reps)).length;
+    if(!n) return;
     strength = true;
     exPlanGroups(ex).forEach(g=>groups.add(g));
+    const b = exBucket(ex);
+    if(b) parts[b] = (parts[b] || 0) + n;
   });
-  return { strength, pt:!!e.pt, groups:[...groups] };
+  return { strength, pt:!!e.pt, groups:[...groups], parts };
+}
+// 그날 제일 많이 한 부위 (같으면 가슴 > 등 > 하체 > 어깨 > 팔 순서)
+function topPart(act){
+  let best = null;
+  PART_BUCKETS.forEach(([name])=>{
+    const n = act.parts[name] || 0;
+    if(n > 0 && (!best || n > best.n)) best = { name, n };
+  });
+  return best && best.name;
 }
 function recommendPlan(ds, known){
   const dow = dayOfWeek(ds);
@@ -1713,12 +1767,11 @@ function buildWeekPlan(){
   return { today, monday, days };
 }
 function actualTag(act){
-  if(act.pt) return { tag:'PT', kind:'pt' };
-  const g = act.groups;
-  if(g.includes('A') && g.includes('B')) return { tag:'전신', kind:'A' };
-  if(g.includes('A')) return { tag:'가슴등', kind:'A' };
-  if(g.includes('B')) return { tag:'하체팔', kind:'B' };
-  return { tag:'운동', kind:'free' };
+  const p = topPart(act);                                    // 실제로 제일 많이 한 부위
+  if(act.pt) return { tag:'PT', kind:'pt', part:p || '' };
+  if(p) return { tag:p, kind:(p==='가슴'||p==='등') ? 'A' : 'B', part:p };
+  if(act.strength) return { tag:'운동', kind:'free', part:'' };
+  return { tag:'운동', kind:'free', part:'' };
 }
 
 // ---------- Week board ----------
@@ -2718,6 +2771,96 @@ function entryCardHTML(e){
     </div>`;
 }
 
+// ---------- 운동 달력 (월간 + 주간 요약) ----------
+let calMonth = null;   // 'YYYY-MM'
+function calSetCount(e){
+  return (e.exercises||[]).reduce((n,x)=>n + (x.sets||[]).filter(st=>st && (st.weight || st.reps || st.min || st.km)).length, 0);
+}
+// 그날 칸에 뭐라고 쓸지 (요일판과 같은 이름)
+function calDayTag(ds){
+  const e = entries.find(x=>x.date===ds);
+  if(!e) return null;
+  const act = actualPlanDay(ds);
+  if(!act.strength) return { tag:'회복', kind:'free', sub:'', sets:0 };
+  const t = actualTag(act);
+  return { tag:t.tag, kind:t.kind, sub:(act.pt ? (t.part || '') : ''), sets:calSetCount(e) };
+}
+function shiftCalMonth(n){
+  const [Y,M] = calMonth.split('-').map(Number);
+  const d = new Date(Y, M-1+n, 1);
+  calMonth = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  renderCalendar();
+}
+function renderCalendar(){
+  const wrap = document.getElementById('calendarCard');
+  if(!wrap) return;
+  const today = todayStr();
+  if(!calMonth) calMonth = today.slice(0,7);
+  const [Y,M] = calMonth.split('-').map(Number);
+  const first = new Date(Y, M-1, 1);
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  const offset = (first.getDay()+6)%7;              // 월요일 시작
+  const start = planAdd(planYmd(first), -offset);   // 첫 줄의 월요일
+  const weeks = Math.ceil((offset + daysInMonth)/7);
+
+  // 한 달 합계
+  let mDays = 0, mSets = 0, mPT = 0;
+  entries.forEach(e=>{
+    if(!e.date.startsWith(calMonth)) return;
+    const act = actualPlanDay(e.date);
+    if(act.strength) mDays++;
+    if(act.pt) mPT++;
+    mSets += calSetCount(e);
+  });
+
+  let grid = ['월','화','수','목','금','토','일'].map(d=>'<div class="cal-dow">'+d+'</div>').join('');
+  const weekRows = [];
+  for(let w=0; w<weeks; w++){
+    let wDays = 0, wSets = 0, wPT = 0;
+    for(let i=0; i<7; i++){
+      const ds = planAdd(start, w*7+i);
+      const inMonth = ds.startsWith(calMonth);
+      const info = calDayTag(ds);
+      if(inMonth && info){
+        if(info.tag !== '회복') wDays++;
+        if(info.kind === 'pt') wPT++;
+        wSets += info.sets;
+      }
+      const kind = info ? info.kind : 'free';
+      const cls = 'cal-day ' + kind + (inMonth ? '' : ' out') + (ds===today ? ' today' : '');
+      const sub = (info && info.sub) ? `<div class="cd-s">${info.sub}</div>` : '';
+      grid += `<div class="${cls}" data-d="${ds}"><div class="cd-n">${Number(ds.slice(8))}</div><div class="cd-t">${info ? info.tag : ''}</div>${sub}</div>`;
+    }
+    const s0 = planAdd(start, w*7), s6 = planAdd(start, w*7+6);
+    const label = Number(s0.slice(5,7))+'/'+Number(s0.slice(8)) + '~' + Number(s6.slice(5,7))+'/'+Number(s6.slice(8));
+    const isNow = (today >= s0 && today <= s6);
+    weekRows.push(`<div class="cal-week${isNow?' now':''}"><span>${label}${isNow?' · 이번 주':''}</span><span><b>${wDays}</b>일 · <b>${wSets}</b>세트${wPT?' · PT '+wPT:''}</span></div>`);
+  }
+
+  wrap.innerHTML = `
+    <div class="cal-head">
+      <button class="cal-nav" id="calPrev">‹</button>
+      <div class="cal-title">${Y}. ${String(M).padStart(2,'0')}</div>
+      <button class="cal-nav" id="calNext">›</button>
+    </div>
+    <div class="cal-sum">운동한 날 <b>${mDays}</b>일 · PT <b>${mPT}</b>회 · 총 <b>${mSets}</b>세트</div>
+    <div class="cal-grid">${grid}</div>
+    <div class="cal-weeks">${weekRows.join('')}</div>`;
+
+  document.getElementById('calPrev').onclick = ()=> shiftCalMonth(-1);
+  document.getElementById('calNext').onclick = ()=> shiftCalMonth(1);
+  wrap.querySelectorAll('.cal-day').forEach(c=>{
+    c.onclick = ()=>{
+      // 날짜를 눌러 그날 기록으로 이동
+      const inp = document.getElementById('dateInput');
+      inp.value = c.dataset.d;
+      inp.dispatchEvent(new Event('change'));
+      document.querySelector('.tab[data-tab="log"]').click();
+      window.scrollTo(0,0);
+    };
+  });
+}
+
 function renderHistorySummary(){
   const wrap = document.getElementById('historySummary');
   const now = new Date();
@@ -2745,6 +2888,7 @@ function renderHistoryFilter(){
 }
 
 function renderHistory(){
+  renderCalendar();
   renderHistorySummary();
   renderHistoryFilter();
   const wrap = document.getElementById('historyList');
