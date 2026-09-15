@@ -146,6 +146,26 @@ window.__chartReady = false;
     visibility:hidden;
   }
   .day-chip .dot.on{visibility:visible;}
+  /* 요일 칩: 추천/실제 운동 부위 표시 */
+  .day-chip .dtag.kr{font-family:'IBM Plex Sans KR',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:0;margin-top:4px;}
+  .day-chip.A .dtag{color:var(--accent-a);}
+  .day-chip.B .dtag{color:var(--accent-b);}
+  .day-chip.future{opacity:.62;}
+
+  /* 오늘 할 운동 카드 */
+  .plan-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--ink-faint);border-radius:12px;padding:12px 14px;margin:-10px 0 20px;}
+  .plan-card.A{border-left-color:var(--accent-a);}
+  .plan-card.B{border-left-color:var(--accent-b);}
+  .plan-card.pt{border-left-color:var(--accent-pt);}
+  .plan-card .pc-head{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--ink-dim);}
+  .plan-card .pc-done{color:var(--accent-b);font-weight:600;}
+  .plan-card .pc-title{font-size:19px;font-weight:700;margin:3px 0 4px;color:var(--ink);}
+  .plan-card.A .pc-title{color:var(--accent-a);}
+  .plan-card.B .pc-title{color:var(--accent-b);}
+  .plan-card.pt .pc-title{color:var(--accent-pt);}
+  .plan-card .pc-how{font-size:13px;color:var(--ink);line-height:1.5;}
+  .plan-card .pc-tip{font-size:12px;color:var(--ink-dim);margin-top:4px;line-height:1.5;}
+  .plan-card .pc-why{font-size:11.5px;color:var(--ink-faint);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);line-height:1.5;}
 
   /* Tabs */
   .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
@@ -696,7 +716,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v35</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v36</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -705,6 +725,7 @@ window.__chartReady = false;
   </div>
 
   <div class="board" id="weekBoard"></div>
+  <div class="plan-card" id="todayPlan"></div>
 
   <div class="tabs">
     <div class="tab active" data-tab="log">오늘 기록</div>
@@ -1599,26 +1620,150 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
+// ---------- 오늘 할 운동 추천 ----------
+// 개인운동은 2분할: 가슴·등(A) / 하체·어깨·팔(B)
+// 앞에서부터 먼저 걸리는 규칙을 따른다.
+//  1) 일요일 → 휴식
+//  2) 월요일 → 걷기 (아파트 헬스장 휴무)
+//  3) 화·금 → PT
+//  4) 어제·그제 이틀 연속 근력(PT 포함) → 회복
+//  5) 가슴·등 / 하체·어깨·팔 중 더 오래 안 한 쪽 (PT에서 한 부위도 센다)
+const PLAN = {
+  rest:    { tag:'휴식', kind:'free', title:'푹 쉬기',
+             how:'매일루틴만 하고 쉬어요.', tip:'잠을 충분히 — 7시간 이상' },
+  walk:    { tag:'걷기', kind:'free', title:'걷기 30~40분',
+             how:'코로 숨 쉬며 옆 사람과 대화할 수 있는 속도로.', tip:'매일루틴도 같이' },
+  recover: { tag:'회복', kind:'free', title:'회복 — 수영이나 걷기',
+             how:'가볍게 30분만. 근력운동은 쉬어요.', tip:'매일루틴 + 물 충분히' },
+  pt:      { tag:'PT', kind:'pt', title:'PT 수업',
+             how:'선생님께 맡기기.', tip:'끝나면 한 종목이라도 기록해 두세요 → 다음 추천이 PT 내용에 맞춰져요' },
+  A:       { tag:'가슴등', kind:'A', title:'가슴·등',
+             how:'벤치프레스(↔덤벨프레스) · 랫풀다운 · 롱풀로우 · 데드리프트(가볍게)',
+             tip:'3세트씩 · 2~3개 여유 남기고 멈추기 · 끝나면 바로 우유·바나나' },
+  B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
+             how:'스쿼트(↔레그프레스) · 스플릿스쿼트(↔런지) · 오버헤드프레스 · 페이스풀 · 팔 1종목',
+             tip:'하체 먼저 · 3세트씩 · 힘들면 팔운동부터 빼기 · 끝나면 바로 우유·바나나' },
+};
+function planYmd(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function planAdd(ds, n){
+  const d = new Date(ds+'T00:00:00'); d.setDate(d.getDate()+n); return planYmd(d);
+}
+// 종목의 부위 → 가슴·등(A) / 하체·어깨·팔(B)
+function exPlanGroups(ex){
+  let part = ex.part;
+  if(!part){ const m = masterExercises.find(x=>x.id===ex.id); part = m && m.part; }
+  part = String(part || '');
+  const g = [];
+  if(/가슴|등/.test(part)) g.push('A');
+  if(/하체|허벅지|엉덩이|종아리|어깨|이두|삼두|팔/.test(part)) g.push('B');
+  return g;
+}
+// 그날 실제로 한 것: 근력을 했나 + 어느 쪽을 했나
+function actualPlanDay(ds){
+  const e = entries.find(x=>x.date===ds);
+  if(!e) return { strength:false, pt:false, groups:[] };
+  const groups = new Set();
+  let strength = !!e.pt;
+  (e.exercises||[]).forEach(ex=>{
+    if(ex.type === 'cardio') return;
+    if(!(ex.sets||[]).some(st => st && (st.weight || st.reps))) return;
+    strength = true;
+    exPlanGroups(ex).forEach(g=>groups.add(g));
+  });
+  return { strength, pt:!!e.pt, groups:[...groups] };
+}
+function recommendPlan(ds, known){
+  const dow = dayOfWeek(ds);
+  if(dow === 0) return { key:'rest', why:'일요일은 쉬는 날' };
+  if(dow === 1) return { key:'walk', why:'월요일은 아파트 헬스장이 쉬어요' };
+  if(PT_DAYS.includes(dow)) return { key:'pt', why:'화·금은 PT' };
+  const k1 = known[planAdd(ds,-1)], k2 = known[planAdd(ds,-2)];
+  if(k1 && k1.strength && k2 && k2.strength) return { key:'recover', why:'어제·그제 이틀 연속으로 근력운동을 했어요' };
+  let lastA = null, lastB = null;
+  for(let n=1; n<=28; n++){
+    const k = known[planAdd(ds,-n)];
+    if(!k) continue;
+    if(lastA == null && k.groups.includes('A')) lastA = n;
+    if(lastB == null && k.groups.includes('B')) lastB = n;
+  }
+  const ago = n => n == null ? '4주 넘게 안 함' : (n + '일 전');
+  const key = (lastA == null ? 99 : lastA) >= (lastB == null ? 99 : lastB) ? 'A' : 'B';
+  return { key, why:'더 오래 안 한 쪽 — 가슴·등 ' + ago(lastA) + ' / 하체·어깨·팔 ' + ago(lastB) };
+}
+// 4주 전부터 이번 주 일요일까지: 지난날은 실제 기록, 오늘 이후는 추천대로 한다고 가정하고 이어서 계산
+function buildWeekPlan(){
+  const today = todayStr();
+  const now = new Date(today+'T00:00:00');
+  const monday = planAdd(today, -((now.getDay()+6)%7));
+  const sunday = planAdd(monday, 6);
+  const known = {}, days = {};
+  for(let ds = planAdd(today, -28); ds <= planAdd(sunday, 1); ds = planAdd(ds, 1)){   // 일요일의 "내일"(월)까지
+    const rec = recommendPlan(ds, known);
+    const act = actualPlanDay(ds);
+    if(ds < today || (ds === today && act.strength)){
+      known[ds] = act;
+    }else{
+      const k = rec.key;
+      known[ds] = { strength: (k==='A'||k==='B'||k==='pt'), pt: k==='pt', groups: (k==='A'||k==='B') ? [k] : [] };
+    }
+    days[ds] = { rec, act };
+  }
+  return { today, monday, days };
+}
+function actualTag(act){
+  if(act.pt) return { tag:'PT', kind:'pt' };
+  const g = act.groups;
+  if(g.includes('A') && g.includes('B')) return { tag:'전신', kind:'A' };
+  if(g.includes('A')) return { tag:'가슴등', kind:'A' };
+  if(g.includes('B')) return { tag:'하체팔', kind:'B' };
+  return { tag:'운동', kind:'free' };
+}
+
 // ---------- Week board ----------
 function renderWeekBoard(){
   const board = document.getElementById('weekBoard');
   board.innerHTML = '';
-  const todayDow = new Date().getDay();
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay()+6)%7));
+  const W = buildWeekPlan();
   for(let i=0;i<7;i++){
-    const d = new Date(monday);
-    d.setDate(monday.getDate()+i);
-    const dow = d.getDay();
-    const dstr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const pt = PT_DAYS.includes(dow);
+    const dstr = planAdd(W.monday, i);
+    const dow = dayOfWeek(dstr);
+    const { rec, act } = W.days[dstr];
     const hasEntry = entries.some(e=>e.date===dstr);
+    let tag, kind, future = false;
+    if(act.strength){ ({ tag, kind } = actualTag(act)); }          // 실제로 한 운동
+    else if(dstr < W.today){ tag = '쉼'; kind = 'free'; }          // 지난날 근력 없음
+    else { tag = PLAN[rec.key].tag; kind = PLAN[rec.key].kind; future = dstr > W.today; }  // 추천
     const chip = document.createElement('div');
-    chip.className = 'day-chip ' + (pt?'pt':'free') + (dow===todayDow?' today':'');
-    chip.innerHTML = `<div class="dname">${DAY_NAMES[dow]}</div><div class="dtag">${pt?'PT':'개인'}</div><div class="dot ${hasEntry?'on':''}"></div>`;
+    chip.className = 'day-chip ' + kind + (dstr===W.today?' today':'') + (future?' future':'');
+    const kr = /[가-힣]/.test(tag) ? ' kr' : '';
+    chip.innerHTML = `<div class="dname">${DAY_NAMES[dow]}</div><div class="dtag${kr}">${tag}</div><div class="dot ${hasEntry?'on':''}"></div>`;
     board.appendChild(chip);
   }
+  renderTodayPlan(W);
+}
+function renderTodayPlan(W){
+  const card = document.getElementById('todayPlan');
+  if(!card) return;
+  const t = W.days[W.today];
+  const p = PLAN[t.rec.key];
+  const d = new Date(W.today+'T00:00:00');
+  const dateTxt = (d.getMonth()+1) + '/' + d.getDate() + ' (' + DAY_NAMES[d.getDay()] + ')';
+  const tomorrow = W.days[planAdd(W.today, 1)];
+  let done = '';
+  if(t.act.strength){
+    const a = actualTag(t.act);
+    done = '<span class="pc-done">✓ 오늘 기록됨' + (a.tag !== '운동' ? ' · ' + a.tag : '') + '</span>';
+  }
+  const tmrTxt = tomorrow ? ' · 내일은 <b>' + PLAN[tomorrow.rec.key].title + '</b>' : '';
+  card.className = 'plan-card ' + p.kind;
+  card.innerHTML = `
+    <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
+    <div class="pc-title">${p.title}</div>
+    <div class="pc-how">${p.how}</div>
+    <div class="pc-tip">${p.tip}</div>
+    <div class="pc-why">왜? ${t.rec.why}${tmrTxt}<br>몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.</div>`;
 }
 
 // ---------- Tabs ----------
