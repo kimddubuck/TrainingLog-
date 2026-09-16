@@ -146,7 +146,13 @@ window.__chartReady = false;
   .lightbox img{max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain;}
   .lightbox-close{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);color:#fff;border:none;font-size:26px;line-height:1;cursor:pointer;}
   .ib-metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .ib-metric{background:var(--surface-2);border-radius:10px;padding:11px 12px;}
+  .ib-metric{background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:11px 12px;cursor:pointer;}
+  /* 누른 항목만 그래프로 보여준다 (인바디 앱처럼) */
+  .ib-metric.sel{border-color:var(--accent-b);background:var(--accent-b-dim);}
+  .ib-metric.sel .mlabel{color:var(--accent-b);}
+  .ib-metric.sel .mval{color:var(--accent-b);}
+  .ib-box{position:relative;height:42vh;min-height:280px;max-height:420px;}
+  .ib-box canvas{width:100% !important;height:100% !important;}
   .ib-metric .mlabel{font-size:11.5px;color:var(--ink-dim);}
   .ib-metric .mval{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1.1;margin-top:2px;}
   .ib-metric .mval .u{font-family:'IBM Plex Sans KR';font-size:12px;color:var(--ink-faint);font-weight:400;margin-left:2px;}
@@ -172,7 +178,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v40</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v41</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -199,14 +205,14 @@ window.__chartReady = false;
     <div id="ibLatest"></div>
     <select id="ibMetricSelect">
       <option value="__all__">전체 (체성분 종합)</option>
-      <option value="weight">체중 (kg)</option>
+      <option value="weight" selected>체중 (kg)</option>
       <option value="smm">골격근량 (kg)</option>
       <option value="bfm">체지방량 (kg)</option>
       <option value="bmi">BMI</option>
       <option value="pbf">체지방률 (%)</option>
     </select>
     <div class="chart-card">
-      <canvas id="ibChart" height="220"></canvas>
+      <div class="ib-box"><canvas id="ibChart"></canvas></div>
       <div class="stat-row" id="ibStatRow"></div>
     </div>
     <div id="ibHistory" style="margin-top:16px;"></div>
@@ -817,7 +823,7 @@ function renderIbChart(){
         return {label:m.label, data:sorted.map(r=>r[m.key]??null), borderColor:c, backgroundColor:c, tension:0.3, fill:false, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:c, spanGaps:true}; });
       const padded = padSingle(labels, datasets);
       ibChartInstance = new Chart(ctx,{ type:'line', data:{labels:padded.labels, datasets:padded.datasets},
-        options:{ interaction:{mode:'nearest',intersect:false},
+        options:{ maintainAspectRatio:false, interaction:{mode:'nearest',intersect:false},
           plugins:{legend:{display:true, labels:{color:'#93A0A8', font:{size:11}, boxWidth:12}},
             tooltip:{ ...TOOLTIP_STYLE, callbacks:{
               title:(items)=> items.length?items[0].label:'',
@@ -843,16 +849,21 @@ function renderIbChart(){
         borderColor:'#4FA8A0', backgroundColor:'rgba(79,168,160,0.15)',
         tension:0.3, fill:true, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#4FA8A0' }] };
     const padded = padSingle(base.labels, base.datasets);
+    // 세로축을 값 언저리로 좁혀야 작은 변화도 보인다
+    const vals = points.map(p=>p[metric]);
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = Math.max((hi-lo)*0.4, Math.abs(hi)*0.02, 0.5);
     ibChartInstance = new Chart(ctx,{
       type:'line', data: padded,
-      options:{ interaction:{mode:'nearest',intersect:false},
+      options:{ maintainAspectRatio:false, interaction:{mode:'nearest',intersect:false},
         plugins:{legend:{display:false},
           tooltip:{ ...TOOLTIP_STYLE, callbacks:{
             title:(items)=> items.length?items[0].label:'',
             label:(item)=> `${meta.label}: ${item.parsed.y}${meta.unit}`
           }}},
         scales:{ x:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono', size:10}},grid:{color:'rgba(242,240,234,0.06)'}},
-                 y:{ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } }
+                 y:{ suggestedMin: lo-pad, suggestedMax: hi+pad,
+                     ticks:{color:'#93A0A8',font:{family:'IBM Plex Mono'}},grid:{color:'rgba(242,240,234,0.06)'}} } }
     });
     const first=points[0][metric], last=points[points.length-1][metric], diff=last-first;
     statRow.innerHTML = `
@@ -872,16 +883,24 @@ function renderIbLatestReport(){
   const sorted = [...inbody].sort((a,b)=>b.date.localeCompare(a.date));
   const latest = sorted[0], prev = sorted[1];
   const imgHtml = latest.image ? `<img class="ib-latest-img" src="${latest.image}" alt="인바디 결과">` : '';
+  const cur = document.getElementById('ibMetricSelect').value;   // 지금 보고 있는 항목
   const cards = IB_METRICS.map(m=>{
     const v = latest[m.key]; if(v==null) return '';
     let diffHtml='';
     if(prev && prev[m.key]!=null){ const d=+(v-prev[m.key]).toFixed(1); const cls=d>0?'up':(d<0?'down':'same');
       diffHtml=`<div class="mdiff ${cls}">${d>0?'▲ +':d<0?'▼ ':''}${d===0?'변화 없음':Math.abs(d)+m.unit}</div>`; }
-    return `<div class="ib-metric"><div class="mlabel">${m.label}</div><div class="mval">${v}<span class="u">${m.unit}</span></div>${diffHtml}</div>`;
+    return `<div class="ib-metric${m.key===cur?' sel':''}" data-ibm="${m.key}"><div class="mlabel">${m.label}</div><div class="mval">${v}<span class="u">${m.unit}</span></div>${diffHtml}</div>`;
   }).filter(Boolean).join('');
   wrap.innerHTML = `<div class="ib-latest-card">
     <div class="ib-latest-head"><span class="t">최근 인바디</span><span class="d">${latest.date}</span></div>
     ${imgHtml}<div class="ib-metric-grid">${cards}</div></div>`;
+  // 카드를 누르면 그 항목 그래프로 바뀐다
+  wrap.querySelectorAll('.ib-metric').forEach(card=>{
+    card.onclick = ()=>{
+      document.getElementById('ibMetricSelect').value = card.dataset.ibm;
+      renderIbChart();
+    };
+  });
 }
 function renderIbHistory(){
   const wrap = document.getElementById('ibHistory');
