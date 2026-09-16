@@ -195,6 +195,8 @@ window.__chartReady = false;
   .cal-day.B.did .cd-n{background:var(--accent-b-dim);color:var(--accent-b);}
   .cal-day.pt.did .cd-n{background:var(--accent-pt-dim);color:var(--accent-pt);}
   .cal-day.free.did .cd-n{background:var(--surface-2);color:var(--ink);}
+  /* 아직 안 한 날(추천) — 흐리게 */
+  .cal-day.plan .cd-t{opacity:.5;font-weight:500;}
   .cal-day.A .cd-t{color:var(--accent-a);}
   .cal-day.B .cd-t{color:var(--accent-b);}
   .cal-day.pt .cd-t{color:var(--accent-pt);}
@@ -754,7 +756,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v39</span></p>
+    <p class="sub">화·금 PT / 회복 고려해 개인운동 주 1~2일 · 매일 WGS스트레칭 · 수분 기록 <span style="color:var(--ink-faint);">· v40</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1757,13 +1759,15 @@ function recommendPlan(ds, known){
   return { key, why:'더 오래 안 한 쪽 — 가슴·등 ' + ago(lastA) + ' / 하체·어깨·팔 ' + ago(lastB) };
 }
 // 4주 전부터 이번 주 일요일까지: 지난날은 실제 기록, 오늘 이후는 추천대로 한다고 가정하고 이어서 계산
-function buildWeekPlan(){
+function buildWeekPlan(untilDs){
   const today = todayStr();
   const now = new Date(today+'T00:00:00');
   const weekStart = planAdd(today, -now.getDay());   // 그 주 일요일
   const weekEnd = planAdd(weekStart, 6);
+  let last = planAdd(weekEnd, 1);
+  if(untilDs && untilDs > last) last = untilDs;      // 달력은 이번 달 끝까지 필요하다
   const known = {}, days = {};
-  for(let ds = planAdd(today, -28); ds <= planAdd(weekEnd, 1); ds = planAdd(ds, 1)){   // 주 마지막 날의 "내일"까지
+  for(let ds = planAdd(today, -28); ds <= last; ds = planAdd(ds, 1)){
     const rec = recommendPlan(ds, known);
     const act = actualPlanDay(ds);
     if(ds < today || (ds === today && act.strength)){
@@ -2812,6 +2816,7 @@ function renderCalendar(){
   const offset = first.getDay();                    // 일요일 시작
   const start = planAdd(planYmd(first), -offset);   // 첫 줄의 일요일
   const weeks = Math.ceil((offset + daysInMonth)/7);
+  const W = buildWeekPlan(planAdd(start, weeks*7)); // 이 달력에 보이는 마지막 날까지 계획을 미리 계산
 
   // 한 달 합계
   let mDays = 0, mSets = 0, mPT = 0;
@@ -2830,17 +2835,28 @@ function renderCalendar(){
     for(let i=0; i<7; i++){
       const ds = planAdd(start, w*7+i);
       const inMonth = ds.startsWith(calMonth);
-      const info = calDayTag(ds);
-      if(inMonth && info){
-        if(info.tag !== '회복') wDays++;
-        if(info.kind === 'pt') wPT++;
-        wSets += info.sets;
+      const act = calDayTag(ds);                       // 실제 기록
+      const didWork = !!(act && act.tag !== '회복');    // 근력운동을 한 날
+      if(inMonth && act){
+        if(didWork) wDays++;
+        if(act.kind === 'pt') wPT++;
+        wSets += act.sets;
       }
-      const kind = info ? info.kind : 'free';
-      const did = !!(info && info.tag !== '회복');   // 근력운동을 한 날
-      const cls = 'cal-day ' + kind + (did ? ' did' : '') + (inMonth ? '' : ' out') + (ds===today ? ' today' : '');
-      const sub = (info && info.sub) ? `<div class="cd-s">${info.sub}</div>` : '';
-      grid += `<div class="${cls}" data-d="${ds}"><div class="cd-n">${Number(ds.slice(8))}</div><div class="cd-t">${info ? info.tag : ''}</div>${sub}</div>`;
+      // 지난날은 실제로 한 것, 오늘·앞날은 아직 안 했으니 "할 운동"(추천)을 보여준다
+      let tag = '', kind = 'free', sub = '', plan = false;
+      if(didWork){
+        tag = act.tag; kind = act.kind; sub = act.sub || '';
+      }else if(ds < today){
+        tag = act ? '회복' : '';
+      }else{
+        const d = W.days[ds];
+        const p = d && PLAN[d.rec.key];
+        if(p){ tag = p.tag; kind = p.kind; plan = true; }
+      }
+      const cls = 'cal-day ' + kind + (didWork ? ' did' : '') + (plan ? ' plan' : '')
+                + (inMonth ? '' : ' out') + (ds===today ? ' today' : '');
+      const subHtml = sub ? `<div class="cd-s">${sub}</div>` : '';
+      grid += `<div class="${cls}" data-d="${ds}"><div class="cd-n">${Number(ds.slice(8))}</div><div class="cd-t">${tag}</div>${subHtml}</div>`;
     }
     const s0 = planAdd(start, w*7), s6 = planAdd(start, w*7+6);
     const label = Number(s0.slice(5,7))+'/'+Number(s0.slice(8)) + '~' + Number(s6.slice(5,7))+'/'+Number(s6.slice(8));

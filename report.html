@@ -172,7 +172,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v39</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v40</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -531,12 +531,14 @@ function renderCalendar(){
     for(let i=0; i<7; i++){
       const ds = calAdd(start, w*7+i);
       const inMonth = ds.startsWith(calMonth);
-      const info = calDayInfo(ds);
+      let info = calDayInfo(ds);
       if(inMonth && info){
         if(info.tag !== '회복') wDays++;
         if(info.kind === 'pt') wPT++;
         wSets += info.sets;
       }
+      // 오늘·앞날은 아직 안 한 날이니 "회복"이라고 단정하지 않는다 (읽기 전용이라 추천은 없다)
+      if(info && info.tag === '회복' && ds >= today) info = null;
       const did = !!(info && info.tag !== '회복');   // 근력운동을 한 날
       const cls = 'cal-day ' + (info ? info.kind : 'free') + (did ? ' did' : '') + (inMonth ? '' : ' out') + (ds===today ? ' today' : '');
       const sub = (info && info.sub) ? `<div class="cd-s">${info.sub}</div>` : '';
