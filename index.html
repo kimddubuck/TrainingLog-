@@ -166,6 +166,21 @@ window.__chartReady = false;
   .plan-card .pc-how{font-size:13px;color:var(--ink);line-height:1.5;}
   .plan-card .pc-tip{font-size:12px;color:var(--ink-dim);margin-top:4px;line-height:1.5;}
   .plan-card .pc-why{font-size:11.5px;color:var(--ink-faint);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);line-height:1.5;}
+  /* 추천 루틴 (근성장) */
+  .plan-card .pc-exlist{margin:6px 0 8px;}
+  .plan-card .pc-ex{display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);}
+  .plan-card .pc-ex:last-child{border-bottom:none;}
+  .plan-card .pc-ex.skip{opacity:.5;}
+  .plan-card .pe-name{font-size:13.5px;font-weight:600;color:var(--ink);flex:1;}
+  .plan-card .pe-set{font-size:12px;font-family:'IBM Plex Mono',Consolas,monospace;color:var(--ink-dim);white-space:nowrap;}
+  .plan-card .pe-why{font-size:11px;color:var(--ink-faint);width:100%;}
+  @media (min-width:420px){ .plan-card .pe-why{width:auto;min-width:92px;text-align:right;} }
+  .plan-card .pc-add{
+    width:100%;box-sizing:border-box;padding:9px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);
+    font-size:13px;font-weight:600;font-family:'IBM Plex Sans KR',sans-serif;
+  }
+  .plan-card .pc-add:active{background:var(--surface-3);}
 
   /* 운동 달력 */
   .cal-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;}
@@ -767,7 +782,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v43</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v44</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1705,11 +1720,23 @@ const PLAN = {
   pt:      { tag:'PT', kind:'pt', title:'PT 수업',
              how:'선생님께 맡기기.', tip:'끝나면 한 종목이라도 기록해 두세요 → 다음 추천이 PT 내용에 맞춰져요' },
   A:       { tag:'가슴등', kind:'A', title:'가슴·등',
-             how:'벤치프레스(↔덤벨프레스) · 랫풀다운 · 롱풀로우 · 데드리프트(가볍게)',
-             tip:'3세트씩 · 2~3개 여유 남기고 멈추기 · 끝나면 바로 우유·바나나' },
+             tip:'마지막 2~3개를 남기고 멈추기 · 내리는 구간은 천천히 · 끝나면 바로 우유·바나나',
+             // 근성장용: 한 부위 8~15회 구간으로, 미는 것 2가지 + 당기는 것 2가지
+             routine:[
+               { name:'벤치프레스',        sets:4, reps:'10~12회', why:'가슴 주운동' },
+               { name:'인클라인 덤벨프레스', sets:3, reps:'12회',   why:'윗가슴' },
+               { name:'랫풀다운',         sets:4, reps:'12회',   why:'등 주운동' },
+               { name:'덤벨 로우',        sets:3, reps:'15~20회', why:'광배 — 이완에 집중' },
+             ] },
   B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
-             how:'스쿼트(↔레그프레스) · 스플릿스쿼트(↔런지) · 오버헤드프레스 · 페이스풀 · 팔 1종목',
-             tip:'하체 먼저 · 3세트씩 · 힘들면 팔운동부터 빼기 · 끝나면 바로 우유·바나나' },
+             tip:'하체를 먼저 · 힘들면 맨 아래 팔운동부터 빼기 · 끝나면 바로 우유·바나나',
+             routine:[
+               { name:'스쿼트',           sets:4, reps:'10회',    why:'하체 주운동' },
+               { name:'스티프 데드리프트',   sets:3, reps:'15~20회', why:'뒷벅지·엉덩이' },
+               { name:'밀리터리 프레스',    sets:3, reps:'12~15회', why:'어깨 주운동' },
+               { name:'바벨 컬',          sets:2, reps:'20회',    why:'팔 (여유 있을 때)' },
+               { name:'케이블 로프푸쉬다운', sets:2, reps:'20회',    why:'팔 (여유 있을 때)' },
+             ] },
 };
 function planYmd(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1836,6 +1863,48 @@ function renderWeekBoard(){
   }
   renderTodayPlan(W);
 }
+// 추천 루틴의 종목을 지금 라이브러리에서 찾는다 (이름으로; 띄어쓰기 무시)
+function findExByName(name){
+  const key = String(name||'').replace(/\s+/g,'');
+  return masterExercises.find(e => e.name.replace(/\s+/g,'') === key)
+      || masterExercises.find(e => e.name.replace(/\s+/g,'').includes(key));
+}
+// 최근 2일 안에 선생님(또는 내가) 그 부위를 했으면 "가볍게" 표시하고 뒤로 보낸다
+function orderedRoutine(p, W){
+  if(!p.routine) return [];
+  const recent = {};   // 부위 → 며칠 전
+  for(let n=1; n<=2; n++){
+    const ds = planAdd(W.today, -n);
+    const act = actualPlanDay(ds);
+    Object.keys(act.parts||{}).forEach(bucket=>{ if(recent[bucket] == null) recent[bucket] = n; });
+  }
+  const list = p.routine.map(r=>{
+    const ex = findExByName(r.name);
+    const bucket = ex ? exBucket(ex) : null;
+    const ago = bucket ? recent[bucket] : null;
+    return { ...r, id: ex ? ex.id : null, name: ex ? ex.name : r.name,
+             skip: ago ? (ago === 1 ? '어제' : '그제') + ' ' + bucket + '을' : '' };
+  });
+  // 최근에 한 부위는 뒤로 (완전히 빼지는 않는다 — 판단은 사용자 몫)
+  return list.sort((a,b) => (a.skip?1:0) - (b.skip?1:0));
+}
+async function addRoutineToToday(routine){
+  let added = 0;
+  routine.forEach(r=>{
+    if(!r.id || r.skip) return;                 // 가볍게 표시된 건 담지 않는다
+    if(todayExerciseIds.includes(r.id)) return; // 이미 있으면 그대로
+    todayExerciseIds.push(r.id);
+    const n = Number(r.sets) || 3;
+    setCounts[r.id] = n;
+    added++;
+  });
+  if(!added){ showToast('이미 다 담겨 있어요'); return; }
+  renderTodayExercises(buildEntryFromForm());
+  await autoSave();
+  showToast(added + '개 종목을 담았어요');
+  document.querySelector('.tab[data-tab="log"]').click();
+}
+
 function renderTodayPlan(W){
   const card = document.getElementById('todayPlan');
   if(!card) return;
@@ -1851,12 +1920,22 @@ function renderTodayPlan(W){
   }
   const tmrTxt = tomorrow ? ' · 내일은 <b>' + PLAN[tomorrow.rec.key].title + '</b>' : '';
   card.className = 'plan-card ' + p.kind;
+  // 근력 하는 날이면 종목까지 적어 준다. 선생님이 최근에 한 부위는 뒤로 밀어 둔다.
+  const routine = orderedRoutine(p, W);
+  const rows = routine.map(r => `<div class="pc-ex${r.skip?' skip':''}">
+      <span class="pe-name">${r.name}</span>
+      <span class="pe-set">${r.sets}세트 × ${r.reps}</span>
+      <span class="pe-why">${r.skip ? '선생님이 ' + r.skip + ' 했어요 — 가볍게' : r.why}</span>
+    </div>`).join('');
+  const addBtn = routine.length ? '<button class="pc-add" id="planAddBtn">이 종목들 오늘 기록에 담기</button>' : '';
   card.innerHTML = `
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
     <div class="pc-title">${p.title}</div>
-    <div class="pc-how">${p.how}</div>
+    ${routine.length ? `<div class="pc-exlist">${rows}</div>${addBtn}` : `<div class="pc-how">${p.how||''}</div>`}
     <div class="pc-tip">${p.tip}</div>
     <div class="pc-why">왜? ${t.rec.why}${tmrTxt}<br>몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.</div>`;
+  const addEl = document.getElementById('planAddBtn');
+  if(addEl) addEl.onclick = ()=> addRoutineToToday(routine);
 }
 
 // ---------- Tabs ----------
