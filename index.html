@@ -427,6 +427,11 @@ window.__chartReady = false;
   .ex-search-results{margin-top:6px;display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;}
   .ex-search-item{display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;}
   .ex-search-item .esi-row{display:flex;align-items:center;gap:8px;}
+  /* PT 선생님 메모 */
+  .pt-tip{
+    font-size:11.5px;line-height:1.45;color:var(--accent-b);
+    background:var(--accent-b-dim);border-radius:7px;padding:5px 8px;margin:2px 0 6px;
+  }
   .ex-search-item:active{background:var(--surface-3);}
   .ex-search-item.added{opacity:0.5;}
   .ex-search-item .esi-name{flex:1;font-size:14px;}
@@ -762,7 +767,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v42</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v43</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1068,6 +1073,21 @@ auth.onAuthStateChanged(async (user)=>{
 // routines: 루틴 목록 [{id, label, sub, color, exerciseIds:[...]}]
 // 헬스장에서 많이 하는 기본 종목 라이브러리 (웨이트/유산소/맨몸)
 const DEFAULT_MASTER = [
+  // ===== PT 선생님이 알려주신 종목 (2026-10 추가) =====
+  {id:'militarypress',name:'밀리터리 프레스',  part:'어깨', type:'strength'},
+  {id:'inclinedb',   name:'인클라인 덤벨프레스', part:'가슴', type:'strength'},
+  {id:'ropepushdown',name:'케이블 로프푸쉬다운', part:'삼두', type:'strength'},
+  {id:'behindlat',   name:'비하인드 렛풀다운',  part:'등',  type:'strength'},
+  {id:'longpull',    name:'롱풀로우 머신',     part:'등',  type:'strength'},
+  {id:'goodmorning', name:'굿모닝 운동',      part:'하체', type:'strength'},
+  {id:'kbgoodmorning',name:'케틀벨 굿모닝',    part:'하체', type:'strength'},
+  {id:'innerthigh',  name:'이너타이 머신',     part:'허벅지', type:'strength'},
+  {id:'balancefix',  name:'불균형 교정운동',    part:'등',  type:'strength'},
+  {id:'getup',       name:'겟업동작',        part:'전신', type:'bodyweight'},
+  {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
+  {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
+  {id:'crocbreath',  name:'악어호흡',        part:'코어', type:'bodyweight'},
+
   // ===== 웨이트(근력) =====
   {id:'bench',      name:'벤치프레스',        part:'가슴', type:'strength'},
   {id:'inclinebench',name:'인클라인 벤치프레스',part:'가슴', type:'strength'},
@@ -1964,6 +1984,69 @@ function pastPanelHtml(exId){
 }
 
 // 검색 결과 렌더
+// ---------- PT 선생님 메모 ----------
+// 선생님이 밴드에 올려주신 지시사항. 종목 이름(띄어쓰기 무시)으로 찾는다.
+// id가 아니라 이름으로 맞추는 이유: 직접 만든 종목에도 그대로 붙이기 위해서다.
+const PT_TIPS = {
+  // 가슴 · 미는 동작
+  '벤치프레스':'12회 가능한 무게 4세트 · 전완을 수직으로',
+  '덤벨벤치프레스':'12회 가능한 무게 4세트 · 전완을 수직으로',
+  '인클라인덤벨프레스':'발로 지면 밀어내는 힘 · 팔은 옆으로 벌리듯 버티며 내리고, 밀 때 호흡 짧고 강하게',
+  '케이블플라이':'무게중심은 앞발 · 늘어나는 자극점을 유지하며 팔만 앞으로',
+  '딥스':'엉덩이를 뒤로 보낸 힙힌지 자세 · 고개 들지 않기',
+  // 등 · 당기는 동작
+  '덤벨로우':'8kg 20개 3세트 · 광배근 자극, 수축보다 이완에 집중',
+  '바벨로우':'20회 4세트 · 무게중심 발등 · 하체 바운스 리듬으로 당기기',
+  '인버티드로우':'15회 4세트 · 지면과 평행하게 누워 당기기',
+  '암풀다운':'어깨를 누르면서 몸통으로 당겨오는 자극점 찾기',
+  '랫풀다운':'상체를 뒤로 기울여 팔꿈치가 뒤를 향하도록 (상부 등)',
+  '비하인드렛풀다운':'상체를 집어넣고 호흡 크게 마신 뒤 귀 높이까지 (상부 등)',
+  '어시스턴트풀업':'새끼손가락을 강하게 · 팔꿈치 모은다는 느낌 · 가슴 들어 하늘로',
+  '롱풀로우머신':'팔 쭉 펴고 상체 정렬 후, 호흡 채워넣고 자연스러운 움직임으로',
+  '데드리프트':'발등 위에 바벨 · 정강이 붙이고 고관절 접기 · 발바닥 전체로 밀기',
+  '스티프데드리프트':'20회 4세트 · 발 앞부분 누르고 명치 들어 상체 세우기 · 뒷벅지 자극',
+  '불균형교정운동':'15회 3세트 · 반대쪽 손등이 이마를 향해, 팔꿈치 최대한 높게',
+  // 하체 · 고관절
+  '스쿼트':'호흡 크게 마시고 체간 유지하며 앉기 · 무게중심 발등',
+  '가블릿스쿼트':'무게중심 앞 · 엉덩이 과하게 빼지 말고 그대로 눌러 앉기',
+  '굿모닝운동':'고관절 접는 것에 집중 · 견착 신경쓰기',
+  '케틀벨굿모닝':'인사하듯 고관절 접어 뒷벅지 자극 · 머리를 앞으로 보낸다는 생각',
+  '프론트런지':'20회 4세트 · 만세해서, 몸을 축 중심으로 길어지게',
+  '토터치':'대각선 방향으로 다리 뻗으며 런지 · 뒤쪽으로 체중 쏠리지 않게',
+  '크랩워킹':'인사하는 자세에서 벌리면서 이동',
+  '이너타이머신':'뒤꿈치·앞꿈치 누른 상태로 다리 모으기 · 등받이에 몸 전체 기대기',
+  '레그레이즈':'15회 3세트 · 하체 전에 복부 자극으로 다리 당겨오기 (허리 부담 줄이기)',
+  '허리이완(다리자극)':'30회씩 · 고관절 근육을 쓰고 허리에는 힘 빼기',
+  // 어깨
+  '오버헤드프레스':'만세하면 머리 집어넣기 신경쓰기',
+  '밀리터리프레스':'15회 가능한 무게 4세트 · 어깨넓이보다 조금 넓게 · 팔 끝까지 펴지 않기',
+  '덤벨숄더프레스':'15회 가능한 무게 4세트 · 끝까지 펴기보다 밀어내는 느낌',
+  '업라이트로우':'20회 4세트 · 팔꿈치를 옆으로 벌려 몸쪽으로, 명치까지',
+  '후면리어델토이드플라이':'몸 둥글게 만 상태에서 덤벨 옆으로 · 날개뼈 말고 팔만',
+  // 팔
+  '바벨컬':'20회 4세트 · 팔꿈치 뒤로 당긴 채 접고, 버티며 천천히 펴기',
+  '해머컬':'30회 4세트 · 엄지 빼고 팔꿈치 최대한 뒤로 당겨 상체 셋팅',
+  '덤벨해머컬':'30회 4세트 · 엄지 빼고 팔꿈치 최대한 뒤로 당겨 상체 셋팅',
+  '라잉트라이셉스익스텐션':'20회 4세트 · 정수리로 내렸다 이마 쪽으로 · 완전히 펴지 않기',
+  '케이블푸쉬다운':'팔꿈치 뒤로 당겨 셋팅 · 버티면서 마지막에 팔꿈치 따라가기',
+  '케이블로프푸쉬다운':'팔꿈치 몸통에 붙이고 몸쪽으로 · 수축은 한 박자 빠르게, 이완은 천천히',
+  // 준비 · 교정 · 호흡
+  '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작',
+  '케틀벨암바':'자세 만들고 시선은 케틀벨 · 팔꿈치 당기기',
+  '악어호흡':'복부 뒤쪽으로 호흡 넣기 · 코로 들이마시고 입으로 뱉기',
+  '고관절운동(폼롤러)':'폼롤러 끼우고 천천히 · 동전 줍듯 엉덩이 자극',
+  '스핀롤':'10번씩 3세트 · 몸을 말아주는 움직임 회복',
+  '리버스노드릭컬':'엉덩이에 힘 준 상태로 10번씩',
+};
+function ptTip(ex){
+  const key = (ex && ex.name || '').replace(/\s+/g, '');
+  return PT_TIPS[key] || '';
+}
+function ptTipHtml(ex){
+  const t = ptTip(ex);
+  return t ? `<div class="pt-tip">💬 ${t}</div>` : '';
+}
+
 function renderSearchResults(query){
   const box = document.getElementById('exSearchResults');
   const q = (query||'').replace(/\s+/g,'').toLowerCase();
@@ -1987,6 +2070,7 @@ function renderSearchResults(query){
         <span class="esi-type ${t}">${tl}</span>
         <span class="esi-add">${added?'✓':'＋'}</span>
       </div>
+      ${ptTipHtml(ex)}
       ${pastMetaHtml(ex.id)}
     </div>`;
   }).join('');
@@ -2056,6 +2140,7 @@ function renderTodayExercises(existing){
         <span class="tex-name">${ex.name}<span class="tex-type ${t}">${tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
         <button class="tex-remove" data-rmex="${ex.id}">×</button>
       </div>
+      ${ptTipHtml(ex)}
       ${pastPanelHtml(ex.id)}
       <div class="sets" style="${cols}">${setsHtml}</div>
       <div class="set-ctrl">
