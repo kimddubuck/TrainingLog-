@@ -168,18 +168,29 @@ window.__chartReady = false;
   .plan-card .pc-why{font-size:11.5px;color:var(--ink-faint);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);line-height:1.5;}
   /* 추천 루틴 (근성장) */
   .plan-card .pc-exlist{margin:6px 0 8px;}
-  .plan-card .pc-ex{display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);}
+  .plan-card .pc-ex{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 8px;
+    align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);
+  }
   .plan-card .pc-ex:last-child{border-bottom:none;}
   .plan-card .pc-ex.skip{opacity:.5;}
-  .plan-card .pe-name{font-size:13.5px;font-weight:600;color:var(--ink);flex:1;}
+  .plan-card .pe-name{
+    grid-column:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink);
+    word-break:keep-all;overflow-wrap:anywhere;
+  }
   .plan-card .pe-swap{
     background:none;border:none;color:var(--ink-faint);font-size:13px;cursor:pointer;
     padding:0 2px;margin-left:5px;line-height:1;
   }
   .plan-card .pe-swap:active{color:var(--accent-b);}
-  .plan-card .pe-set{font-size:12px;font-family:'IBM Plex Mono',Consolas,monospace;color:var(--ink-dim);white-space:nowrap;}
-  .plan-card .pe-why{font-size:11px;color:var(--ink-faint);width:100%;}
-  @media (min-width:420px){ .plan-card .pe-why{width:auto;min-width:92px;text-align:right;} }
+  .plan-card .pe-set{
+    grid-column:2;font-size:12px;font-family:'IBM Plex Mono',Consolas,monospace;
+    color:var(--ink-dim);white-space:nowrap;text-align:right;
+  }
+  .plan-card .pe-why{
+    grid-column:1 / -1;font-size:11px;color:var(--ink-faint);line-height:1.45;
+    word-break:keep-all;overflow-wrap:anywhere;
+  }
   .plan-card .pc-theme{
     font-size:11.5px;color:var(--accent-b);background:var(--accent-b-dim);
     border-radius:8px;padding:5px 9px;margin:6px 0 2px;
@@ -250,7 +261,7 @@ window.__chartReady = false;
   .rt-dow{font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;}
   .rt-tag{font-size:11px;font-weight:600;margin-top:3px;color:var(--ink);}
   .routine-list .plan-card{margin:0 0 12px;border-left-width:3px;}
-  .routine-list .pc-head{font-size:14px;font-weight:700;color:var(--ink);}
+  .routine-list .pc-head{font-size:14px;font-weight:700;color:var(--ink);word-break:keep-all;}
   .rt-foot{font-size:11.5px;color:var(--ink-faint);line-height:1.6;padding:2px 2px 10px;}
 
   /* Tabs */
@@ -824,7 +835,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v52</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v53</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
