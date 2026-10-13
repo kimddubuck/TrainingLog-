@@ -168,6 +168,8 @@ window.__chartReady = false;
   .plan-card .pc-why{font-size:11.5px;color:var(--ink-faint);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);line-height:1.5;}
   /* 추천 루틴 (근성장) */
   .plan-card .pc-exlist{margin:6px 0 8px;}
+  .plan-card .pc-count{font-size:12.5px;color:var(--ink-dim);margin:6px 0 8px;}
+  .plan-card .pc-count b{color:var(--ink);}
   .plan-card .pc-ex{
     display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 8px;
     align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);
@@ -839,7 +841,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v55</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v57</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -2147,7 +2149,12 @@ function buildWeekProgram(W){
     const base = (key === 'pt' && d.rec.splitKey && PLAN[d.rec.splitKey]) ? PLAN[d.rec.splitKey] : PLAN[key];
     const rows = orderedRoutine(base, W, { extraLast, asOf: ds }).map(r=>{
       if(r.id) extraLast[r.id] = ds;
-      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:(r.care ? '⚠ ' + r.care : r.why), care:r.care };
+      const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
+      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)),
+               why:(r.care ? '⚠ ' + r.care : r.why + ' · 지난번 ' + when),
+               care:r.care,
+               // 오늘 것만 직접 바꿀 수 있게 한다 (다른 날은 그날 가서 바꾸면 된다)
+               slotKey:(ds === W.today && r.alts > 1) ? r.slotKey : null };
     });
     out.push({ ds, kind: PLAN[key].kind, title: PLAN[key].title, rows });
   }
@@ -2157,6 +2164,7 @@ function buildWeekProgram(W){
 function renderRoutineTab(){
   const wrap = document.getElementById('panel-routine');
   if(!wrap) return;
+  // (아래에서 innerHTML 을 새로 쓰고 난 뒤 ↻ 를 다시 연결한다)
   const W = buildWeekPlan();
   const th = themeOf(W.today);
   const DOWN = ['일','월','화','수','목','금','토'];
@@ -2190,7 +2198,7 @@ function renderRoutineTab(){
         const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
                    : (day.done ? '<span class="dp-done">완료</span>' : '');
         const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}">
-            <span class="pe-name">${r.name}</span>
+            <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
             ${r.why ? `<span class="pe-why">${r.why}</span>` : ''}
           </div>`).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
@@ -2201,10 +2209,19 @@ function renderRoutineTab(){
       }).join('')
     }</div>
     <div class="rt-foot">
-      지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요.<br>
+      지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요. 오늘 것은 ↻ 로 다른 종목으로 바꿀 수 있어요.<br>
       종목은 선생님이 가르쳐주신 것 중 <b>가장 오래 안 한 것</b>으로 고르고, 같은 주에 겹치지 않게 합니다.<br>
       PT날 것은 혼자 할 때 기준이에요 — 선생님이 다르게 진행하면 그대로 따르세요.
     </div>`;
+
+  wrap.querySelectorAll('.pe-swap').forEach(btn=>{
+    btn.onclick = ()=>{
+      const k = btn.dataset.slot;
+      planSwap[k] = (planSwap[k] || 0) + 1;
+      renderRoutineTab();      // 프로그램 다시 그리기
+      renderWeekBoard();       // 오늘 카드의 종목 수도 맞춘다
+    };
+  });
 }
 
 function renderTodayPlan(W){
@@ -2244,7 +2261,9 @@ function renderTodayPlan(W){
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
     ${routine.length ? `<div class="pc-theme">이번 주 · <b>${themeOf(W.today).name}</b> — ${themeOf(W.today).sub}</div>` : ''}
     <div class="pc-title">${p.title}</div>
-    ${routine.length ? `<div class="pc-exlist">${rows}</div>${addBtn}` : `<div class="pc-how">${p.how||''}</div>`}
+    ${routine.length
+        ? `<div class="pc-count">종목 ${routine.length}개 · 자세한 목록은 <b>프로그램</b> 탭에서</div>${addBtn}`
+        : `<div class="pc-how">${p.how||''}</div>`}
     ${(KNEE_CARE && routine.length) ? '<div class="pc-care">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b>. 아프면 그 종목은 건너뛰세요.</div>' : ''}
     <div class="pc-tip">${p.tip}</div>
     <div class="pc-why">왜? ${t.rec.why}${tmrTxt}<br>몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.</div>`;
