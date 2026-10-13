@@ -263,6 +263,10 @@ window.__chartReady = false;
   .routine-list .plan-card{margin:0 0 12px;border-left-width:3px;}
   .routine-list .pc-head{font-size:14px;font-weight:700;color:var(--ink);word-break:keep-all;}
   .rt-foot{font-size:11.5px;color:var(--ink-faint);line-height:1.6;padding:2px 2px 10px;}
+  .routine-list .plan-card.on{box-shadow:0 0 0 1px var(--border-strong) inset;}
+  .routine-list .pc-head b{font-family:'IBM Plex Mono',Consolas,monospace;font-size:15px;margin-right:2px;}
+  .dp-today{font-size:11px;color:var(--accent-a);font-weight:700;}
+  .dp-done{font-size:11px;color:var(--accent-b);}
 
   /* Tabs */
   .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
@@ -835,7 +839,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v53</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v54</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -848,7 +852,7 @@ window.__chartReady = false;
 
   <div class="tabs">
     <div class="tab active" data-tab="log">오늘 기록</div>
-    <div class="tab" data-tab="routine">루틴</div>
+    <div class="tab" data-tab="routine">프로그램</div>
     <div class="tab" data-tab="history">기록 보기</div>
     <div class="tab" data-tab="graph">그래프</div>
     <div class="tab" data-tab="inbody">인바디</div>
@@ -2038,12 +2042,16 @@ function slotCandidates(slot){
          .filter((e,i,arr) => arr.findIndex(x=>x.id===e.id) === i);
 }
 // 자리마다 "가장 오래 안 한 종목"을 고른다 → 같은 부위라도 매번 종목이 바뀐다
-function orderedRoutine(p, W){
+// opt.extraLast : 이번 주 앞선 날에 이미 배정한 종목 (id → 날짜). 같은 주에 같은 종목이 겹치지 않게 한다.
+// opt.asOf      : "지난번 N일 전" 을 계산할 기준 날짜
+function orderedRoutine(p, W, opt){
+  opt = opt || {};
   if(!p.routine) return [];
   // 같은 부위를 이틀 연속 해도 괜찮다 (선생님 의견) — 대신 "종목"이 겹치지 않게 돌린다
-  const last = lastDoneMap();
+  const last = Object.assign(lastDoneMap(), opt.extraLast || {});
+  const asOf = opt.asOf || W.today;
   const used = new Set();
-  const theme = themeOf(W.today);
+  const theme = themeOf(asOf);
   const list = p.routine.map((slot0, i)=>{
     // "이번 주 테마" 자리는 그 주의 결(BTT/CCT/RMT)로 채운다
     const slot = slot0.theme ? { ...theme } : slot0;
@@ -2064,7 +2072,7 @@ function orderedRoutine(p, W){
     const ex = cands[(planSwap[key] || 0) % cands.length];
     used.add(ex.id);
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
-             ago: daysAgo(last[ex.id], W.today),
+             ago: daysAgo(last[ex.id], asOf),
              care: kneeRisky(ex) ? '무릎 붓기 가라앉은 뒤에 · 지금은 가볍게/얕게' : '',
              skip: '' };
   });
@@ -2109,6 +2117,41 @@ function routineTableHtml(plan, W, title, note){
     <div class="pc-tip">${note || plan.tip}</div>
   </div>`;
 }
+// 이번 주 프로그램을 하루씩 만든다.
+// 지난날은 "실제로 한 것", 오늘부터는 "할 것". 앞선 날에 쓴 종목은 그 주에 다시 안 나온다.
+function buildWeekProgram(W){
+  const extraLast = {};
+  const out = [];
+  for(let i=0;i<7;i++){
+    const ds = planAdd(W.weekStart, i);
+    const d = W.days[ds];
+    if(!d){ out.push({ ds, kind:'free', title:'—', rows:[] }); continue; }
+    const act = d.act;
+    // 지난날·오늘 이미 한 날 → 실제로 한 것을 보여준다
+    if(act && act.strength && ds <= W.today){
+      const e = entries.find(x => x.date === ds);
+      const rows = ((e && e.exercises) || []).map(ex=>{
+        const ss = (ex.sets||[]).filter(st => st && (st.weight || st.reps || st.min || st.km));
+        if(!ss.length) return null;
+        const top = ss.filter(st=>st.weight).map(st=>st.weight+'kg').pop();
+        return { name: ex.name, set: ss.length + '세트' + (top ? ' · ' + top : ''), why:'' };
+      }).filter(Boolean);
+      rows.forEach(r=>{ const ex = findExByName(r.name); if(ex) extraLast[ex.id] = ds; });
+      out.push({ ds, kind: actualTag(act).kind, title: (act.pt?'PT · ':'') + actualTag(act).tag, done:true, rows });
+      continue;
+    }
+    // 오늘·앞날 → 추천
+    const key = d.rec.key;
+    const base = (key === 'pt' && d.rec.splitKey && PLAN[d.rec.splitKey]) ? PLAN[d.rec.splitKey] : PLAN[key];
+    const rows = orderedRoutine(base, W, { extraLast, asOf: ds }).map(r=>{
+      if(r.id) extraLast[r.id] = ds;
+      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:(r.care ? '⚠ ' + r.care : r.why), care:r.care };
+    });
+    out.push({ ds, kind: PLAN[key].kind, title: PLAN[key].title, rows });
+  }
+  return out;
+}
+
 function renderRoutineTab(){
   const wrap = document.getElementById('panel-routine');
   if(!wrap) return;
@@ -2138,14 +2181,27 @@ function renderRoutineTab(){
     </div>
     <div class="rt-week">${days.join('')}</div>
     ${KNEE_CARE ? '<div class="pc-care" style="margin:0 0 14px;">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b></div>' : ''}
-    <div class="routine-list">
-      ${routineTableHtml(PLAN.A, W, '가슴·등')}
-      ${routineTableHtml(PLAN.B, W, '하체·어깨·팔')}
-      ${routineTableHtml(PLAN.rest, W, '회복날', '무게는 쓰지 않아요 · 선생님이 알려주신 기능성 동작')}
-    </div>
+    <div class="routine-list">${
+      buildWeekProgram(W).map(day=>{
+        const dow = DOWN[dayOfWeek(day.ds)];
+        const md = Number(day.ds.slice(5,7)) + '/' + Number(day.ds.slice(8));
+        const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
+                   : (day.done ? '<span class="dp-done">완료</span>' : '');
+        const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}">
+            <span class="pe-name">${r.name}</span>
+            <span class="pe-set">${r.set}</span>
+            ${r.why ? `<span class="pe-why">${r.why}</span>` : ''}
+          </div>`).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
+        return `<div class="plan-card ${day.kind}${day.ds===W.today?' on':''}">
+          <div class="pc-head"><span><b>${dow}</b> ${md} · ${day.title}</span>${mark}</div>
+          <div class="pc-exlist">${rows}</div>
+        </div>`;
+      }).join('')
+    }</div>
     <div class="rt-foot">
-      PT날에도 같은 루틴이 뜹니다. 선생님이 다르게 진행하면 그대로 따르세요.<br>
-      종목은 <b>선생님이 가르쳐주신 것 중 가장 오래 안 한 것</b>으로 매번 바뀝니다.
+      지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요.<br>
+      종목은 선생님이 가르쳐주신 것 중 <b>가장 오래 안 한 것</b>으로 고르고, 같은 주에 겹치지 않게 합니다.<br>
+      PT날 것은 혼자 할 때 기준이에요 — 선생님이 다르게 진행하면 그대로 따르세요.
     </div>`;
 }
 
