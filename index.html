@@ -238,6 +238,21 @@ window.__chartReady = false;
   .cal-week.now{color:var(--accent-b);}
   .cal-week.now b{color:var(--accent-b);}
 
+  /* 루틴 탭 */
+  .rt-theme{background:var(--accent-b-dim);border:1px solid var(--accent-b);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+  .rt-theme-name{font-size:19px;font-weight:700;color:var(--accent-b);}
+  .rt-theme-sub{font-size:13px;color:var(--ink);margin-top:2px;}
+  .rt-theme-cycle{font-size:11.5px;color:var(--ink-dim);margin-top:6px;}
+  .rt-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;}
+  .rt-day{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 2px;text-align:center;}
+  .rt-day.today{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--border-strong) inset;}
+  .rt-day.done{background:var(--surface-2);}
+  .rt-dow{font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;}
+  .rt-tag{font-size:11px;font-weight:600;margin-top:3px;color:var(--ink);}
+  .routine-list .plan-card{margin:0 0 12px;border-left-width:3px;}
+  .routine-list .pc-head{font-size:14px;font-weight:700;color:var(--ink);}
+  .rt-foot{font-size:11.5px;color:var(--ink-faint);line-height:1.6;padding:2px 2px 10px;}
+
   /* Tabs */
   .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
   .tab{
@@ -246,7 +261,8 @@ window.__chartReady = false;
     cursor:pointer;border-bottom:2px solid transparent;
     transition:color .15s;white-space:nowrap;
   }
-  @media (max-width:380px){ .tab{font-size:12px;padding:10px 1px;} }
+  @media (max-width:430px){ .tab{font-size:12px;padding:10px 1px;letter-spacing:-0.3px;} }
+  @media (max-width:360px){ .tab{font-size:11px;} }
   .tab.active{color:var(--ink);border-bottom-color:var(--accent-a);}
 
   .panel{display:none;}
@@ -798,7 +814,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v50</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v51</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -811,6 +827,7 @@ window.__chartReady = false;
 
   <div class="tabs">
     <div class="tab active" data-tab="log">오늘 기록</div>
+    <div class="tab" data-tab="routine">루틴</div>
     <div class="tab" data-tab="history">기록 보기</div>
     <div class="tab" data-tab="graph">그래프</div>
     <div class="tab" data-tab="inbody">인바디</div>
@@ -908,6 +925,8 @@ window.__chartReady = false;
   </div>
 
   <!-- HISTORY PANEL -->
+  <div class="panel" id="panel-routine"></div>
+
   <div class="panel" id="panel-history">
     <div class="cal-card" id="calendarCard"></div>
     <div id="historySummary"></div>
@@ -2052,6 +2071,63 @@ async function addRoutineToToday(routine){
   document.querySelector('.tab[data-tab="log"]').click();
 }
 
+// ---------- 루틴 탭 ----------
+// 이번 주 테마 · 요일표 · 세 가지 루틴을 한 화면에 모아 보여준다.
+function routineTableHtml(plan, W, title, note){
+  const rows = orderedRoutine(plan, W).map(r => {
+    const setTxt = r.label || (r.sets + '세트 × ' + r.reps);
+    return `<div class="pc-ex${r.care?' care':''}">
+      <span class="pe-name">${r.name}</span>
+      <span class="pe-set">${setTxt}</span>
+      <span class="pe-why">${r.care ? '⚠ ' + r.care : r.why}</span>
+    </div>`;
+  }).join('');
+  return `<div class="plan-card ${plan.kind}">
+    <div class="pc-head"><span>${title}</span></div>
+    <div class="pc-exlist">${rows}</div>
+    <div class="pc-tip">${note || plan.tip}</div>
+  </div>`;
+}
+function renderRoutineTab(){
+  const wrap = document.getElementById('panel-routine');
+  if(!wrap) return;
+  const W = buildWeekPlan();
+  const th = themeOf(W.today);
+  const DOWN = ['일','월','화','수','목','금','토'];
+
+  // 이번 주 요일표
+  const days = [];
+  for(let i=0;i<7;i++){
+    const ds = planAdd(W.weekStart, i);
+    const d = W.days[ds];
+    const act = d && d.act;
+    const label = (act && act.strength) ? actualTag(act).tag : (d ? PLAN[d.rec.key].tag : '');
+    const done = act && act.strength;
+    days.push(`<div class="rt-day${ds===W.today?' today':''}${done?' done':''}">
+      <div class="rt-dow">${DOWN[dayOfWeek(ds)]}</div>
+      <div class="rt-tag">${label}</div>
+    </div>`);
+  }
+
+  wrap.innerHTML = `
+    <div class="rt-theme">
+      <div class="rt-theme-name">${th.name}</div>
+      <div class="rt-theme-sub">${th.sub}</div>
+      <div class="rt-theme-cycle">BTT → CCT → RMT · 3주에 한 바퀴 · 그 주 내내 같은 결로</div>
+    </div>
+    <div class="rt-week">${days.join('')}</div>
+    ${KNEE_CARE ? '<div class="pc-care" style="margin:0 0 14px;">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b></div>' : ''}
+    <div class="routine-list">
+      ${routineTableHtml(PLAN.A, W, '가슴·등')}
+      ${routineTableHtml(PLAN.B, W, '하체·어깨·팔')}
+      ${routineTableHtml(PLAN.rest, W, '회복날', '무게는 쓰지 않아요 · 선생님이 알려주신 기능성 동작')}
+    </div>
+    <div class="rt-foot">
+      PT날에도 같은 루틴이 뜹니다. 선생님이 다르게 진행하면 그대로 따르세요.<br>
+      종목은 <b>선생님이 가르쳐주신 것 중 가장 오래 안 한 것</b>으로 매번 바뀝니다.
+    </div>`;
+}
+
 function renderTodayPlan(W){
   const card = document.getElementById('todayPlan');
   if(!card) return;
@@ -2113,6 +2189,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab==='routine') renderRoutineTab();
     if(tab.dataset.tab==='history') renderHistory();
     if(tab.dataset.tab==='graph') renderGraph();
     if(tab.dataset.tab==='inbody') renderInbody();
