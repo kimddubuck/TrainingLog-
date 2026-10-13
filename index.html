@@ -180,6 +180,12 @@ window.__chartReady = false;
   .plan-card .pe-set{font-size:12px;font-family:'IBM Plex Mono',Consolas,monospace;color:var(--ink-dim);white-space:nowrap;}
   .plan-card .pe-why{font-size:11px;color:var(--ink-faint);width:100%;}
   @media (min-width:420px){ .plan-card .pe-why{width:auto;min-width:92px;text-align:right;} }
+  .plan-card .pc-care{
+    font-size:12px;line-height:1.5;color:var(--accent-pt);
+    background:var(--accent-pt-dim);border-radius:8px;padding:6px 9px;margin:4px 0 6px;
+  }
+  .plan-card .pc-ex.care .pe-name{color:var(--ink-dim);}
+  .plan-card .pc-ex.care .pe-why{color:var(--accent-pt);}
   .plan-card .pc-add{
     width:100%;box-sizing:border-box;padding:9px;border-radius:9px;cursor:pointer;
     border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);
@@ -787,7 +793,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v46</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v47</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1107,6 +1113,8 @@ const DEFAULT_MASTER = [
   {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
   {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
   {id:'crocbreath',  name:'악어호흡',        part:'코어', type:'bodyweight'},
+  {id:'hingeprep',   name:'고관절 힌지 보조운동', part:'하체', type:'bodyweight'},
+  {id:'adductorstr', name:'내전근 스트레칭',    part:'허벅지', type:'bodyweight'},
 
   // ===== 웨이트(근력) =====
   {id:'bench',      name:'벤치프레스',        part:'가슴', type:'strength'},
@@ -1715,18 +1723,29 @@ function showToast(msg){
 //  3) 화·금 → PT
 //  4) 어제·그제 이틀 연속 근력(PT 포함) → 회복
 //  5) 가슴·등 / 하체·어깨·팔 중 더 오래 안 한 쪽 (PT에서 한 부위도 센다)
+// ===== 무릎·허리 관리 모드 (2026-10 오른쪽 무릎 붓기·오른쪽 허리 욱신) =====
+// 재활 문서 지침: 붓기 있는 동안 달리기·점프·쪼그려 앉기 중단, 고관절 중심으로.
+// 통증이 가라앉고 병원에서 괜찮다고 하면 KNEE_CARE 를 false 로 두면 원래대로 돌아간다.
+const KNEE_CARE = true;
+// 무릎을 깊게 접거나 충격이 오는 것 — 지금은 뒤로 미룬다
+const KNEE_AVOID = /스쿼트|런지|레그프레스|레그 익스텐션|야외 러닝|러닝머신|줄넘기|버피|점핑잭|마운틴|스텝밀|등산/;
+function kneeRisky(ex){ return KNEE_CARE && KNEE_AVOID.test(ex && ex.name || ''); }
+
 // 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
 const RECOVERY_ROUTINE = [
   { why:'움직임 깨우기',  sets:3, reps:'좌우 5회씩', label:'좌우 5회 × 3세트',
     options:['겟업동작','크랩워킹','케틀벨 암바'] },
-  { why:'고관절·허리',   sets:3, reps:'15회',     label:'15회 × 3세트',
-    options:['고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
+  { why:'고관절 힌지 준비', sets:3, reps:'15회',     label:'15회 × 3세트',
+    options:['고관절 힌지 보조운동','고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
+  { why:'허벅지 안쪽 늘이기', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['내전근 스트레칭'] },
   { why:'척추 말기',    sets:3, reps:'10회',     label:'10회 × 3세트',
     options:['스핀롤','불균형 교정운동'] },
   { why:'호흡',       sets:1, reps:'5분',      label:'5분',
     options:['악어호흡'] },
   { why:'저강도 유산소 (대화 가능한 속도)', sets:1, reps:'30~40분', label:'30~40분',
-    options:['걷기','수영','실내자전거','야외 러닝'] },
+    // 무릎 붓기 중에는 달리기 대신 충격 없는 것으로 (수영·자전거·평지 걷기)
+    options:['수영','실내자전거','걷기','야외 러닝'] },
 ];
 
 const PLAN = {
@@ -1748,6 +1767,11 @@ const PLAN = {
              // 자리(역할)는 그대로 두고, 종목은 "가장 오래 안 한 것"으로 매번 바뀐다.
              // 같은 가슴운동이라도 돌려써야 편식이 안 되고 기능적으로 좋다 (선생님 철학).
              routine:[
+               // 선생님 방향: 고립운동보다 기능성 먼저 (BTT 대칭 · CCT 코어 · RMT 회전)
+               { why:'기능성 — 좌우 맞추기 (BTT)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
+                 options:['겟업동작','케틀벨 암바','덤벨 로우','불균형 교정운동'] },
+               { why:'기능성 — 코어·회전 (CCT·RMT)', sets:2, reps:'10회', label:'10회 × 2세트',
+                 options:['스핀롤','크랩워킹','플랭크','악어호흡'] },
                { why:'가슴 주운동',  sets:4, reps:'10~12회',
                  options:['벤치프레스','덤벨 벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스','체스트프레스'] },
                { why:'가슴 보조',   sets:3, reps:'12~15회',
@@ -1760,10 +1784,14 @@ const PLAN = {
   B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
              routine:[
+               { why:'기능성 — 좌우 맞추기 (BTT)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
+                 options:['겟업동작','케틀벨 암바','불균형 교정운동','크랩워킹'] },
+               { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
+                 options:['글루트 브릿지','힙 쓰러스트','힙어드덕션'] },
+               { why:'하체 — 접는 동작 (무릎 부담 적음)', sets:3, reps:'15~20회',
+                 options:['스티프 데드리프트','루마니안 데드리프트','케틀벨 굿모닝','굿모닝 운동','데드리프트'] },
                { why:'하체 — 앉는 동작', sets:4, reps:'10회',
-                 options:['스쿼트','가블릿 스쿼트','레그프레스','불가리안 스플릿 스쿼트','프론트런지'] },
-               { why:'하체 — 접는 동작', sets:3, reps:'15~20회',
-                 options:['스티프 데드리프트','루마니안 데드리프트','데드리프트','굿모닝 운동','케틀벨 굿모닝'] },
+                 options:['가블릿 스쿼트','스쿼트','레그프레스','불가리안 스플릿 스쿼트','프론트런지'] },
                { why:'어깨 주운동',   sets:3, reps:'12~15회',
                  options:['밀리터리 프레스','오버헤드프레스','덤벨 숄더프레스'] },
                { why:'어깨 보조',    sets:3, reps:'20회',
@@ -1952,6 +1980,9 @@ function orderedRoutine(p, W){
     // 고르는 순서: ① 선생님이 가르쳐준 종목 먼저  ② 그중 가장 오래 안 한 것
     // (가르쳐준 것만으로도 자리마다 2~4가지라 충분히 돌아간다. 나머지는 예비)
     cands.sort((a,b)=>{
+      // 무릎이 아픈 동안은 무릎 부담이 큰 종목을 맨 뒤로 보낸다
+      const ka = kneeRisky(a) ? 1 : 0, kb = kneeRisky(b) ? 1 : 0;
+      if(ka !== kb) return ka - kb;
       const ta = ptTip(a) ? 0 : 1, tb = ptTip(b) ? 0 : 1;
       if(ta !== tb) return ta - tb;
       const da = last[a.id] || '0000-00-00', db = last[b.id] || '0000-00-00';
@@ -1965,14 +1996,17 @@ function orderedRoutine(p, W){
     const ago = (p.kind === 'free') ? null : recent[bucket];
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
              ago: daysAgo(last[ex.id], W.today),
+             care: kneeRisky(ex) ? '무릎 붓기 가라앉은 뒤에 · 지금은 가볍게/얕게' : '',
              skip: ago ? (ago === 1 ? '어제' : '그제') + ' ' + bucket + '을' : '' };
   });
-  return list.sort((a,b) => (a.skip?1:0) - (b.skip?1:0));
+  // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
+  const rank = r => (r.skip ? 2 : 0) + (r.care ? 1 : 0);
+  return list.sort((a,b) => rank(a) - rank(b));
 }
 async function addRoutineToToday(routine){
   // 보통은 "가볍게" 표시된 건 빼고 담는다.
   // 다만 선생님이 어제 전신을 해서 전부 표시된 날이면, 뺄 게 없으므로 그냥 다 담는다.
-  const fresh = routine.filter(r => r.id && !r.skip);
+  const fresh = routine.filter(r => r.id && !r.skip && !r.care);
   const pick = fresh.length ? fresh : routine.filter(r => r.id);
   const allLight = !fresh.length;
   let added = 0;
@@ -2007,13 +2041,14 @@ function renderTodayPlan(W){
   // 근력 하는 날이면 종목까지 적어 준다. 선생님이 최근에 한 부위는 뒤로 밀어 둔다.
   const routine = orderedRoutine(p, W);
   const rows = routine.map(r => {
+    // 무릎 부담 종목은 줄 색을 달리해 눈에 띄게
     const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
     const setTxt = r.label || (r.sets + '세트 × ' + r.reps);
     const swap = (r.alts > 1 && r.slotKey) ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : '';
-    return `<div class="pc-ex${r.skip?' skip':''}">
+    return `<div class="pc-ex${r.skip?' skip':''}${r.care?' care':''}">
       <span class="pe-name">${r.name}${swap}</span>
       <span class="pe-set">${setTxt}</span>
-      <span class="pe-why">${r.skip ? '선생님이 ' + r.skip + ' 했어요 — 가볍게' : r.why + ' · 지난번 ' + when}</span>
+      <span class="pe-why">${r.care ? '⚠ ' + r.care : (r.skip ? '선생님이 ' + r.skip + ' 했어요 — 가볍게' : r.why + ' · 지난번 ' + when)}</span>
     </div>`;
   }).join('');
   const addBtn = routine.length
@@ -2023,6 +2058,7 @@ function renderTodayPlan(W){
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
     <div class="pc-title">${p.title}</div>
     ${routine.length ? `<div class="pc-exlist">${rows}</div>${addBtn}` : `<div class="pc-how">${p.how||''}</div>`}
+    ${(KNEE_CARE && routine.length) ? '<div class="pc-care">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b>. 아프면 그 종목은 건너뛰세요.</div>' : ''}
     <div class="pc-tip">${p.tip}</div>
     <div class="pc-why">왜? ${t.rec.why}${tmrTxt}<br>몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.</div>`;
   const addEl = document.getElementById('planAddBtn');
@@ -2211,6 +2247,8 @@ const PT_TIPS = {
   '케이블로프푸쉬다운':'팔꿈치 몸통에 붙이고 몸쪽으로 · 수축은 한 박자 빠르게, 이완은 천천히',
   // 준비 · 교정 · 호흡
   '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작',
+  '고관절힌지보조운동':'힌지를 잘 하기 위한 보조 운동 · 자주 반복해서 체크해보기',
+  '내전근스트레칭':'허벅지 안쪽 늘이기 · 고관절 힌지가 잘 되게',
   '케틀벨암바':'자세 만들고 시선은 케틀벨 · 팔꿈치 당기기',
   '악어호흡':'복부 뒤쪽으로 호흡 넣기 · 코로 들이마시고 입으로 뱉기',
   '고관절운동(폼롤러)':'폼롤러 끼우고 천천히 · 동전 줍듯 엉덩이 자극',
