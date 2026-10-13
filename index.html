@@ -841,7 +841,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v57</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v58</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1168,7 +1168,6 @@ const DEFAULT_MASTER = [
   {id:'adductorstr', name:'내전근 스트레칭',    part:'허벅지', type:'bodyweight'},
   {id:'rmtclub',     name:'RMT 클럽 스윙',    part:'전신', type:'bodyweight'},
   {id:'rmtrope',     name:'RMT 로프',        part:'전신', type:'bodyweight'},
-  {id:'coilcore',    name:'코일링 코어 (CCT)', part:'코어', type:'bodyweight'},
   {id:'groundflow',  name:'그라운드 소통',     part:'전신', type:'bodyweight'},
   {id:'bcfrontcore', name:'바디컨트롤 전면 코어', part:'코어', type:'bodyweight'},
 
@@ -1399,6 +1398,9 @@ async function loadAllData(){
     if(o.part != null) e.part = o.part;
     if(o.type) e.type = o.type;
   });
+  // 잘못 넣었다가 뺀 종목은 저장본에 남아 있어도 되살리지 않는다
+  const RETIRED = ['코일링 코어 (CCT)'].map(n=>n.replace(/\s+/g,''));
+  masterExercises = masterExercises.filter(e => !RETIRED.includes(e.name.replace(/\s+/g,'')));
   const seen = new Set(masterExercises.map(e=>e.id));
   const seenNames = new Set(masterExercises.map(e=>e.name.replace(/\s+/g,'').toLowerCase()));
   // 이전 버전에서 사용자가 저장한 커스텀 종목 흡수 (중복 이름은 스킵)
@@ -1406,6 +1408,7 @@ async function loadAllData(){
   //       이걸 덮어쓰면 기본 라이브러리를 고쳐도 앱에 반영되지 않는다.
   (Array.isArray(data.masterExercises)?data.masterExercises:[]).forEach(e=>{
     const nm = (e.name||'').replace(/\s+/g,'').toLowerCase();
+    if(RETIRED.includes((e.name||'').replace(/\s+/g,''))) return;
     if(!seen.has(e.id) && !seenNames.has(nm)){
       masterExercises.push({ id:e.id, name:e.name, part:e.part||'', type:e.type||'strength' });
       seen.add(e.id); seenNames.add(nm);
@@ -1795,7 +1798,7 @@ const THEMES = [
     options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
   { key:'CCT', name:'CCT 주간', sub:'몸통을 스프링처럼 꼬기',
     why:'CCT — 몸통 꼬아 쓰기', sets:3, reps:'10회', label:'10회 × 3세트',
-    options:['코일링 코어 (CCT)','바디컨트롤 전면 코어','스핀롤','플랭크'] },
+    options:['바디컨트롤 전면 코어','스핀롤','플랭크','크랩워킹'] },
   { key:'RMT', name:'RMT 주간', sub:'회전으로 부드럽고 강하게',
     why:'RMT — 회전으로 힘 내기', sets:3, reps:'좌우 10회', label:'좌우 10회 × 3세트',
     options:['RMT 클럽 스윙','RMT 로프','그라운드 소통','크랩워킹'] },
@@ -2456,7 +2459,6 @@ const PT_TIPS = {
   '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작 (좌우 대칭 — BTT)',
   'RMT클럽스윙':'RMT · 수평·사선 회전을 몸에 통합 — 보행·달리기가 부드러워진다',
   'RMT로프':'RMT · 회전 움직임을 전신으로 이어서',
-  '코일링코어(CCT)':'CCT · 상체와 골반을 옆으로 꼬아 사선 근사슬에 탄성을 저축했다 터뜨리기',
   '그라운드소통':'바디컨트롤 Lv.1 · 집에서 꾸준히 · 움직임을 이어서 흐르게',
   '바디컨트롤전면코어':'단계별 1~3번 동작을 꾸준히 (집에서)',
   '고관절힌지보조운동':'힌지를 잘 하기 위한 보조 운동 · 자주 반복해서 체크해보기',
@@ -2770,7 +2772,7 @@ const BIG_GROUPS = [
 ];
 const BIG_RULES = [
   ['RMT', /RMT|토터치|크랩워킹|회전|그라운드/],
-  ['CCT', /코일링|플랭크|크런치|싯업|윗몸|레그 ?레이즈|슈퍼맨|스핀롤|악어호흡|허리이완|바디컨트롤/],
+  ['CCT', /플랭크|크런치|싯업|윗몸|레그 ?레이즈|슈퍼맨|스핀롤|악어호흡|허리이완|바디컨트롤/],
   ['BTT', /겟업|암바|원암|한팔|스플릿|불가리안|런지|교정|힌지 ?보조|내전근|고관절|노드릭|노르딕|이너타이|힙어드덕션/],
 ];
 // 저장된 수정값(exOverrides[id].grp)이 있으면 그걸 우선한다 — 선생님·사용자가 고친 것이 규칙을 이긴다
