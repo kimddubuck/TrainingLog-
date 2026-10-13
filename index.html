@@ -269,6 +269,9 @@ window.__chartReady = false;
   .routine-list .pc-head b{font-family:'IBM Plex Mono',Consolas,monospace;font-size:15px;margin-right:2px;}
   .dp-today{font-size:11px;color:var(--accent-a);font-weight:700;}
   .dp-done{font-size:11px;color:var(--accent-b);}
+  .routine-list .pc-time{font-size:11.5px;color:var(--ink-dim);margin:2px 0 4px;}
+  .routine-list .pc-time b{color:var(--accent-b);font-size:12.5px;}
+  .plan-card .pc-ex.extra{opacity:.55;}
 
   /* Tabs */
   .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
@@ -841,7 +844,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v58</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v60</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1856,6 +1859,10 @@ const PLAN = {
                  options:['랫풀다운','비하인드 렛풀다운','어시스턴트 풀업','암풀다운','풀업(턱걸이)'] },
                { why:'등 — 앞으로 당기기', sets:3, reps:'15~20회',
                  options:['덤벨 로우','바벨 로우','시티드 케이블 로우','롱풀로우 머신','인버티드로우'] },
+               { why:'팔 (여유 있을 때)', sets:2, reps:'20회',
+                 options:['바벨 컬','덤벨 해머컬','해머 컬','덤벨 컬'] },
+               { why:'팔 (여유 있을 때)', sets:2, reps:'20회',
+                 options:['케이블 푸쉬다운','케이블 로프푸쉬다운','라잉 트라이셉스 익스텐션'] },
              ] },
   B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
@@ -2124,6 +2131,24 @@ function routineTableHtml(plan, W, title, note){
     <div class="pc-tip">${note || plan.tip}</div>
   </div>`;
 }
+// ===== 걸리는 시간 어림잡기 =====
+// 웨이트 한 세트 = 움직임 40초 + 쉬는 시간 80초 ≈ 2분
+// 맨몸·기능성 한 세트 ≈ 1.2분 (쉬는 시간이 짧다)
+// 유산소·스트레칭은 적힌 시간 그대로
+// 준비(매일루틴·옷 갈아입기 등) 6분을 따로 더한다
+const MIN_SETUP = 6, MIN_PER_SET = 2, MIN_PER_SET_LIGHT = 1.2;
+const TIME_BUDGET = 60;   // 목표: 한 시간 안에
+function slotMinutes(r){
+  const txt = String(r.set || '');
+  const m = txt.match(/(\d+)\s*~?\s*(\d+)?분/);
+  if(m) return Number(m[1]);                      // "30~40분" → 30 (짧은 쪽 기준)
+  const sec = txt.match(/(\d+)초/);
+  const sets = Number((txt.match(/(\d+)\s*세트/) || [0,1])[1]) || 1;
+  if(sec) return sets * 1.5;                       // 좌우 30초 × 2
+  const light = /좌우|회 ×|회씩/.test(txt) && !/세트 ×/.test(txt);
+  return sets * (light ? MIN_PER_SET_LIGHT : MIN_PER_SET);
+}
+
 // 이번 주 프로그램을 하루씩 만든다.
 // 지난날은 "실제로 한 것", 오늘부터는 "할 것". 앞선 날에 쓴 종목은 그 주에 다시 안 나온다.
 function buildWeekProgram(W){
@@ -2144,7 +2169,9 @@ function buildWeekProgram(W){
         return { name: ex.name, set: ss.length + '세트' + (top ? ' · ' + top : ''), why:'' };
       }).filter(Boolean);
       rows.forEach(r=>{ const ex = findExByName(r.name); if(ex) extraLast[ex.id] = ds; });
-      out.push({ ds, kind: actualTag(act).kind, title: (act.pt?'PT · ':'') + actualTag(act).tag, done:true, rows });
+      const mins = Math.round(rows.reduce((n,r)=>n+slotMinutes(r), MIN_SETUP));
+      out.push({ ds, kind: actualTag(act).kind, title: (act.pt?'PT · ':'') + actualTag(act).tag,
+                 done:true, rows, minutes:mins, core:mins });
       continue;
     }
     // 오늘·앞날 → 추천
@@ -2159,7 +2186,17 @@ function buildWeekProgram(W){
                // 오늘 것만 직접 바꿀 수 있게 한다 (다른 날은 그날 가서 바꾸면 된다)
                slotKey:(ds === W.today && r.alts > 1) ? r.slotKey : null };
     });
-    out.push({ ds, kind: PLAN[key].kind, title: PLAN[key].title, rows });
+    // 앞에서부터 시간을 더해 가다가 60분을 넘으면 그 뒤는 "시간 남으면"으로 표시한다
+    let acc = MIN_SETUP;
+    rows.forEach(r=>{
+      const m = slotMinutes(r);
+      acc += m;
+      r.min = m;
+      r.extra = acc > TIME_BUDGET;
+    });
+    const core = rows.filter(r=>!r.extra).reduce((n,r)=>n+r.min, MIN_SETUP);
+    out.push({ ds, kind: PLAN[key].kind, title: PLAN[key].title, rows,
+               minutes: Math.round(acc), core: Math.round(core) });
   }
   return out;
 }
@@ -2200,13 +2237,14 @@ function renderRoutineTab(){
         const md = Number(day.ds.slice(5,7)) + '/' + Number(day.ds.slice(8));
         const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
                    : (day.done ? '<span class="dp-done">완료</span>' : '');
-        const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}">
+        const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}${r.extra?' extra':''}">
             <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
-            ${r.why ? `<span class="pe-why">${r.why}</span>` : ''}
+            ${r.why ? `<span class="pe-why">${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why}</span>` : ''}
           </div>`).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
         return `<div class="plan-card ${day.kind}${day.ds===W.today?' on':''}">
           <div class="pc-head"><span><b>${dow}</b> ${md} · ${day.title}</span>${mark}</div>
+          ${day.minutes ? `<div class="pc-time">약 <b>${day.core}분</b>${day.minutes > day.core ? ' · 다 하면 ' + day.minutes + '분' : ''}</div>` : ''}
           <div class="pc-exlist">${rows}</div>
         </div>`;
       }).join('')
