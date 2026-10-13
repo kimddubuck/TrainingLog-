@@ -180,6 +180,11 @@ window.__chartReady = false;
   .plan-card .pe-set{font-size:12px;font-family:'IBM Plex Mono',Consolas,monospace;color:var(--ink-dim);white-space:nowrap;}
   .plan-card .pe-why{font-size:11px;color:var(--ink-faint);width:100%;}
   @media (min-width:420px){ .plan-card .pe-why{width:auto;min-width:92px;text-align:right;} }
+  .plan-card .pc-theme{
+    font-size:11.5px;color:var(--accent-b);background:var(--accent-b-dim);
+    border-radius:8px;padding:5px 9px;margin:6px 0 2px;
+  }
+  .plan-card .pc-theme b{font-size:12.5px;}
   .plan-card .pc-care{
     font-size:12px;line-height:1.5;color:var(--accent-pt);
     background:var(--accent-pt-dim);border-radius:8px;padding:6px 9px;margin:4px 0 6px;
@@ -793,7 +798,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v48</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v50</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1734,6 +1739,26 @@ const KNEE_CARE = true;
 const KNEE_AVOID = /스쿼트|런지|레그프레스|레그 익스텐션|야외 러닝|러닝머신|줄넘기|버피|점핑잭|마운틴|스텝밀|등산/;
 function kneeRisky(ex){ return KNEE_CARE && KNEE_AVOID.test(ex && ex.name || ''); }
 
+// ===== 이번 주 테마 (3주에 한 바퀴) =====
+// 한 주 내내 같은 결로 간다. 날마다 바꾸면 몸에 붙지 않는다.
+const THEMES = [
+  { key:'BTT', name:'BTT 주간', sub:'좌우 비틀림 대칭',
+    why:'BTT — 좌우 비틀림 대칭', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
+    options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
+  { key:'CCT', name:'CCT 주간', sub:'몸통을 스프링처럼 꼬기',
+    why:'CCT — 몸통 꼬아 쓰기', sets:3, reps:'10회', label:'10회 × 3세트',
+    options:['코일링 코어 (CCT)','스핀롤','플랭크','크랩워킹'] },
+  { key:'RMT', name:'RMT 주간', sub:'회전으로 부드럽고 강하게',
+    why:'RMT — 회전으로 힘 내기', sets:3, reps:'좌우 10회', label:'좌우 10회 × 3세트',
+    options:['RMT 클럽 스윙','RMT 로프','스핀롤','크랩워킹'] },
+];
+// 기준일(2026-01-04 일요일)부터 몇 번째 주인지로 정한다 — 달이 바뀌어도 순서가 끊기지 않는다
+function themeOf(ds){
+  const days = Math.floor((new Date(ds+'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
+  const week = Math.floor(days / 7);
+  return THEMES[((week % 3) + 3) % 3];
+}
+
 // 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
 const RECOVERY_ROUTINE = [
   { why:'움직임 깨우기',  sets:3, reps:'좌우 5회씩', label:'좌우 5회 × 3세트',
@@ -1742,8 +1767,7 @@ const RECOVERY_ROUTINE = [
     options:['고관절 힌지 보조운동','고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
   { why:'허벅지 안쪽 늘이기', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['내전근 스트레칭'] },
-  { why:'척추 말기 · 회전 (CCT·RMT)', sets:3, reps:'10회', label:'10회 × 3세트',
-    options:['스핀롤','코일링 코어 (CCT)','RMT 클럽 스윙','불균형 교정운동'] },
+  { theme:true },
   { why:'호흡',       sets:1, reps:'5분',      label:'5분',
     options:['악어호흡'] },
   { why:'저강도 유산소 (대화 가능한 속도)', sets:1, reps:'30~40분', label:'30~40분',
@@ -1764,18 +1788,15 @@ const PLAN = {
              tip:'이틀 연속 근력을 했어요 · 오늘은 무게 대신 움직임으로',
              routine: RECOVERY_ROUTINE },
   pt:      { tag:'PT', kind:'pt', title:'PT 수업',
-             how:'선생님께 맡기기.', tip:'끝나면 한 종목이라도 기록해 두세요 → 다음 추천이 PT 내용에 맞춰져요' },
+             how:'선생님께 맡기기.',
+             tip:'아래는 혼자 할 때 기준이에요 · 선생님이 다르게 진행하면 그대로 따르세요 · 끝나면 종목을 기록해 두기' },
   A:       { tag:'가슴등', kind:'A', title:'가슴·등',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 마지막 2~3개 남기고 멈추기 · 끝나면 바로 우유·바나나',
              // 자리(역할)는 그대로 두고, 종목은 "가장 오래 안 한 것"으로 매번 바뀐다.
              // 같은 가슴운동이라도 돌려써야 편식이 안 되고 기능적으로 좋다 (선생님 철학).
              routine:[
-               // 선생님 방향: 고립운동보다 기능성 먼저
-               // BTT 좌우 비틀림 대칭 · CCT 몸통을 스프링처럼 꼬기 · RMT 회전 전신 (WeckMethod)
-               { why:'BTT — 좌우 비틀림 대칭', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
-                 options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
-               { why:'CCT — 몸통 꼬아 쓰기', sets:2, reps:'10회', label:'10회 × 2세트',
-                 options:['코일링 코어 (CCT)','스핀롤','플랭크','크랩워킹'] },
+               // 고립운동보다 기능성 먼저. 어떤 결로 할지는 "이번 주 테마"가 정한다 (BTT→CCT→RMT)
+               { theme:true },
                { why:'가슴 주운동',  sets:4, reps:'10~12회',
                  options:['벤치프레스','덤벨 벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스','체스트프레스'] },
                { why:'가슴 보조',   sets:3, reps:'12~15회',
@@ -1788,10 +1809,7 @@ const PLAN = {
   B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
              routine:[
-               { why:'BTT — 좌우 비틀림 대칭', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
-                 options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
-               { why:'RMT — 회전으로 힘 내기', sets:2, reps:'좌우 10회', label:'좌우 10회 × 2세트',
-                 options:['RMT 클럽 스윙','RMT 로프','스핀롤','크랩워킹'] },
+               { theme:true },
                { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
                  options:['글루트 브릿지','힙 쓰러스트','힙어드덕션'] },
                { why:'하체 — 접는 동작 (무릎 부담 적음)', sets:3, reps:'15~20회',
@@ -1867,9 +1885,12 @@ function recommendPlan(ds, known){
   const dow = dayOfWeek(ds);
   if(dow === 0) return { key:'rest', why:'일요일은 회복하는 날' };
   if(dow === 1) return { key:'walk', why:'월요일은 아파트 헬스장이 쉬어요' };
-  if(PT_DAYS.includes(dow)) return { key:'pt', why:'화·금은 PT' };
+  // PT 날도 그날의 분할(가슴·등 / 하체·어깨·팔)을 같이 정해 둔다.
+  // 선생님이 다르게 진행하면 그걸 따르면 되고, 겹쳐도 종목만 다르면 괜찮다.
+  const isPT = PT_DAYS.includes(dow);
   const k1 = known[planAdd(ds,-1)], k2 = known[planAdd(ds,-2)];
   if(k1 && k1.strength && k2 && k2.strength) return { key:'recover', why:'어제·그제 이틀 연속으로 근력운동을 했어요' };
+  if(isPT) return { key:'pt', why:'화·금은 PT', splitKey: leastRecentSplit(ds, known) };
   // 이번 주(일~토)에 근력을 이미 4일 했으면 더 하지 않는다.
   // 9월에 주 5일까지 늘렸다가 지쳐서 포기한 적이 있다. 주 4일이 상한이다.
   const dow0 = dayOfWeek(ds);
@@ -1879,6 +1900,11 @@ function recommendPlan(ds, known){
     if(k && k.strength) weekStrength++;
   }
   if(weekStrength >= 4) return { key:'recover', why:'이번 주에 이미 근력 ' + weekStrength + '일 — 주 4일이 상한이에요' };
+  const r = splitInfo(ds, known);
+  return { key:r.key, why:'더 오래 안 한 쪽 — 가슴·등 ' + r.agoA + ' / 하체·어깨·팔 ' + r.agoB };
+}
+// 가슴·등(A) 과 하체·어깨·팔(B) 중 더 오래 안 한 쪽
+function splitInfo(ds, known){
   let lastA = null, lastB = null;
   for(let n=1; n<=28; n++){
     const k = known[planAdd(ds,-n)];
@@ -1888,8 +1914,9 @@ function recommendPlan(ds, known){
   }
   const ago = n => n == null ? '4주 넘게 안 함' : (n + '일 전');
   const key = (lastA == null ? 99 : lastA) >= (lastB == null ? 99 : lastB) ? 'A' : 'B';
-  return { key, why:'더 오래 안 한 쪽 — 가슴·등 ' + ago(lastA) + ' / 하체·어깨·팔 ' + ago(lastB) };
+  return { key, agoA: ago(lastA), agoB: ago(lastB) };
 }
+function leastRecentSplit(ds, known){ return splitInfo(ds, known).key; }
 // 4주 전부터 이번 주 일요일까지: 지난날은 실제 기록, 오늘 이후는 추천대로 한다고 가정하고 이어서 계산
 function buildWeekPlan(untilDs){
   const today = todayStr();
@@ -1973,14 +2000,13 @@ function slotCandidates(slot){
 // 자리마다 "가장 오래 안 한 종목"을 고른다 → 같은 부위라도 매번 종목이 바뀐다
 function orderedRoutine(p, W){
   if(!p.routine) return [];
-  const recent = {};   // 부위 → 며칠 전
-  for(let n=1; n<=2; n++){
-    const act = actualPlanDay(planAdd(W.today, -n));
-    Object.keys(act.parts||{}).forEach(b=>{ if(recent[b] == null) recent[b] = n; });
-  }
+  // 같은 부위를 이틀 연속 해도 괜찮다 (선생님 의견) — 대신 "종목"이 겹치지 않게 돌린다
   const last = lastDoneMap();
   const used = new Set();
-  const list = p.routine.map((slot, i)=>{
+  const theme = themeOf(W.today);
+  const list = p.routine.map((slot0, i)=>{
+    // "이번 주 테마" 자리는 그 주의 결(BTT/CCT/RMT)로 채운다
+    const slot = slot0.theme ? { ...theme } : slot0;
     const cands = slotCandidates(slot).filter(e => !used.has(e.id));
     if(!cands.length) return { ...slot, id:null, name:(slot.options||[slot.name])[0], ago:null, alts:0 };
     // 고르는 순서: ① 선생님이 가르쳐준 종목 먼저  ② 그중 가장 오래 안 한 것
@@ -1997,13 +2023,10 @@ function orderedRoutine(p, W){
     const key = p.kind + '-' + i;
     const ex = cands[(planSwap[key] || 0) % cands.length];
     used.add(ex.id);
-    const bucket = exBucket(ex);
-    // 회복날 동작은 어제 그 부위를 했어도 그대로 한다 (오히려 풀어줘야 한다)
-    const ago = (p.kind === 'free') ? null : recent[bucket];
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
              ago: daysAgo(last[ex.id], W.today),
              care: kneeRisky(ex) ? '무릎 붓기 가라앉은 뒤에 · 지금은 가볍게/얕게' : '',
-             skip: ago ? (ago === 1 ? '어제' : '그제') + ' ' + bucket + '을' : '' };
+             skip: '' };
   });
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
   const rank = r => (r.skip ? 2 : 0) + (r.care ? 1 : 0);
@@ -2045,7 +2068,9 @@ function renderTodayPlan(W){
   const tmrTxt = tomorrow ? ' · 내일은 <b>' + PLAN[tomorrow.rec.key].title + '</b>' : '';
   card.className = 'plan-card ' + p.kind;
   // 근력 하는 날이면 종목까지 적어 준다. 선생님이 최근에 한 부위는 뒤로 밀어 둔다.
-  const routine = orderedRoutine(p, W);
+  // PT 날이면 그날 분할(A/B)의 루틴을 같이 보여준다 — 선생님이 다르게 하면 그대로 따르면 된다
+  const src = (p.kind === 'pt' && t.rec.splitKey && PLAN[t.rec.splitKey]) ? PLAN[t.rec.splitKey] : p;
+  const routine = orderedRoutine(src, W);
   const rows = routine.map(r => {
     // 무릎 부담 종목은 줄 색을 달리해 눈에 띄게
     const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
@@ -2062,6 +2087,7 @@ function renderTodayPlan(W){
     : '';
   card.innerHTML = `
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
+    ${routine.length ? `<div class="pc-theme">이번 주 · <b>${themeOf(W.today).name}</b> — ${themeOf(W.today).sub}</div>` : ''}
     <div class="pc-title">${p.title}</div>
     ${routine.length ? `<div class="pc-exlist">${rows}</div>${addBtn}` : `<div class="pc-how">${p.how||''}</div>`}
     ${(KNEE_CARE && routine.length) ? '<div class="pc-care">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b>. 아프면 그 종목은 건너뛰세요.</div>' : ''}
