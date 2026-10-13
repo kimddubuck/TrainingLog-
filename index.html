@@ -793,7 +793,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v47</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v48</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1115,6 +1115,9 @@ const DEFAULT_MASTER = [
   {id:'crocbreath',  name:'악어호흡',        part:'코어', type:'bodyweight'},
   {id:'hingeprep',   name:'고관절 힌지 보조운동', part:'하체', type:'bodyweight'},
   {id:'adductorstr', name:'내전근 스트레칭',    part:'허벅지', type:'bodyweight'},
+  {id:'rmtclub',     name:'RMT 클럽 스윙',    part:'전신', type:'bodyweight'},
+  {id:'rmtrope',     name:'RMT 로프',        part:'전신', type:'bodyweight'},
+  {id:'coilcore',    name:'코일링 코어 (CCT)', part:'코어', type:'bodyweight'},
 
   // ===== 웨이트(근력) =====
   {id:'bench',      name:'벤치프레스',        part:'가슴', type:'strength'},
@@ -1739,8 +1742,8 @@ const RECOVERY_ROUTINE = [
     options:['고관절 힌지 보조운동','고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
   { why:'허벅지 안쪽 늘이기', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['내전근 스트레칭'] },
-  { why:'척추 말기',    sets:3, reps:'10회',     label:'10회 × 3세트',
-    options:['스핀롤','불균형 교정운동'] },
+  { why:'척추 말기 · 회전 (CCT·RMT)', sets:3, reps:'10회', label:'10회 × 3세트',
+    options:['스핀롤','코일링 코어 (CCT)','RMT 클럽 스윙','불균형 교정운동'] },
   { why:'호흡',       sets:1, reps:'5분',      label:'5분',
     options:['악어호흡'] },
   { why:'저강도 유산소 (대화 가능한 속도)', sets:1, reps:'30~40분', label:'30~40분',
@@ -1767,11 +1770,12 @@ const PLAN = {
              // 자리(역할)는 그대로 두고, 종목은 "가장 오래 안 한 것"으로 매번 바뀐다.
              // 같은 가슴운동이라도 돌려써야 편식이 안 되고 기능적으로 좋다 (선생님 철학).
              routine:[
-               // 선생님 방향: 고립운동보다 기능성 먼저 (BTT 대칭 · CCT 코어 · RMT 회전)
-               { why:'기능성 — 좌우 맞추기 (BTT)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
-                 options:['겟업동작','케틀벨 암바','덤벨 로우','불균형 교정운동'] },
-               { why:'기능성 — 코어·회전 (CCT·RMT)', sets:2, reps:'10회', label:'10회 × 2세트',
-                 options:['스핀롤','크랩워킹','플랭크','악어호흡'] },
+               // 선생님 방향: 고립운동보다 기능성 먼저
+               // BTT 좌우 비틀림 대칭 · CCT 몸통을 스프링처럼 꼬기 · RMT 회전 전신 (WeckMethod)
+               { why:'BTT — 좌우 비틀림 대칭', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
+                 options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
+               { why:'CCT — 몸통 꼬아 쓰기', sets:2, reps:'10회', label:'10회 × 2세트',
+                 options:['코일링 코어 (CCT)','스핀롤','플랭크','크랩워킹'] },
                { why:'가슴 주운동',  sets:4, reps:'10~12회',
                  options:['벤치프레스','덤벨 벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스','체스트프레스'] },
                { why:'가슴 보조',   sets:3, reps:'12~15회',
@@ -1784,8 +1788,10 @@ const PLAN = {
   B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
              routine:[
-               { why:'기능성 — 좌우 맞추기 (BTT)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
-                 options:['겟업동작','케틀벨 암바','불균형 교정운동','크랩워킹'] },
+               { why:'BTT — 좌우 비틀림 대칭', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
+                 options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
+               { why:'RMT — 회전으로 힘 내기', sets:2, reps:'좌우 10회', label:'좌우 10회 × 2세트',
+                 options:['RMT 클럽 스윙','RMT 로프','스핀롤','크랩워킹'] },
                { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
                  options:['글루트 브릿지','힙 쓰러스트','힙어드덕션'] },
                { why:'하체 — 접는 동작 (무릎 부담 적음)', sets:3, reps:'15~20회',
@@ -2246,7 +2252,10 @@ const PT_TIPS = {
   '케이블푸쉬다운':'팔꿈치 뒤로 당겨 셋팅 · 버티면서 마지막에 팔꿈치 따라가기',
   '케이블로프푸쉬다운':'팔꿈치 몸통에 붙이고 몸쪽으로 · 수축은 한 박자 빠르게, 이완은 천천히',
   // 준비 · 교정 · 호흡
-  '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작',
+  '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작 (좌우 대칭 — BTT)',
+  'RMT클럽스윙':'RMT · 수평·사선 회전을 몸에 통합 — 보행·달리기가 부드러워진다',
+  'RMT로프':'RMT · 회전 움직임을 전신으로 이어서',
+  '코일링코어(CCT)':'CCT · 상체와 골반을 옆으로 꼬아 사선 근사슬에 탄성을 저축했다 터뜨리기',
   '고관절힌지보조운동':'힌지를 잘 하기 위한 보조 운동 · 자주 반복해서 체크해보기',
   '내전근스트레칭':'허벅지 안쪽 늘이기 · 고관절 힌지가 잘 되게',
   '케틀벨암바':'자세 만들고 시선은 케틀벨 · 팔꿈치 당기기',
