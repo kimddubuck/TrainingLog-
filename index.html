@@ -787,7 +787,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v45</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v46</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1715,13 +1715,32 @@ function showToast(msg){
 //  3) 화·금 → PT
 //  4) 어제·그제 이틀 연속 근력(PT 포함) → 회복
 //  5) 가슴·등 / 하체·어깨·팔 중 더 오래 안 한 쪽 (PT에서 한 부위도 센다)
+// 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
+const RECOVERY_ROUTINE = [
+  { why:'움직임 깨우기',  sets:3, reps:'좌우 5회씩', label:'좌우 5회 × 3세트',
+    options:['겟업동작','크랩워킹','케틀벨 암바'] },
+  { why:'고관절·허리',   sets:3, reps:'15회',     label:'15회 × 3세트',
+    options:['고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
+  { why:'척추 말기',    sets:3, reps:'10회',     label:'10회 × 3세트',
+    options:['스핀롤','불균형 교정운동'] },
+  { why:'호흡',       sets:1, reps:'5분',      label:'5분',
+    options:['악어호흡'] },
+  { why:'저강도 유산소 (대화 가능한 속도)', sets:1, reps:'30~40분', label:'30~40분',
+    options:['걷기','수영','실내자전거','야외 러닝'] },
+];
+
 const PLAN = {
-  rest:    { tag:'회복', kind:'free', title:'회복 — 산책·스트레칭',
-             how:'가벼운 산책 20~30분 + 매일루틴. 근력운동은 쉬어요.', tip:'잠을 충분히 — 7시간 이상' },
-  walk:    { tag:'회복', kind:'free', title:'회복 — 걷기 30~40분',
-             how:'코로 숨 쉬며 옆 사람과 대화할 수 있는 속도로.', tip:'매일루틴도 같이' },
-  recover: { tag:'회복', kind:'free', title:'회복 — 수영이나 걷기',
-             how:'가볍게 30분만. 근력운동은 쉬어요.', tip:'매일루틴 + 물 충분히' },
+  // 회복날은 "아무것도 안 하는 날"이 아니라 기능성 동작으로 몸을 되돌리는 날.
+  // 선생님이 알려주신 움직임·교정·호흡 동작으로 채운다. 무거운 것은 하나도 없다.
+  rest:    { tag:'회복', kind:'free', title:'회복 — 몸 풀고 푹 쉬기',
+             tip:'무게는 전혀 쓰지 않아요 · 잠을 충분히 (7시간 이상)',
+             routine: RECOVERY_ROUTINE },
+  walk:    { tag:'회복', kind:'free', title:'회복 — 걷기 + 기능성 동작',
+             tip:'헬스장이 쉬는 날 · 걷기는 코로 숨 쉬며 대화할 수 있는 속도로',
+             routine: RECOVERY_ROUTINE },
+  recover: { tag:'회복', kind:'free', title:'회복 — 가볍게 움직이기',
+             tip:'이틀 연속 근력을 했어요 · 오늘은 무게 대신 움직임으로',
+             routine: RECOVERY_ROUTINE },
   pt:      { tag:'PT', kind:'pt', title:'PT 수업',
              how:'선생님께 맡기기.', tip:'끝나면 한 종목이라도 기록해 두세요 → 다음 추천이 PT 내용에 맞춰져요' },
   A:       { tag:'가슴등', kind:'A', title:'가슴·등',
@@ -1817,6 +1836,15 @@ function recommendPlan(ds, known){
   if(PT_DAYS.includes(dow)) return { key:'pt', why:'화·금은 PT' };
   const k1 = known[planAdd(ds,-1)], k2 = known[planAdd(ds,-2)];
   if(k1 && k1.strength && k2 && k2.strength) return { key:'recover', why:'어제·그제 이틀 연속으로 근력운동을 했어요' };
+  // 이번 주(일~토)에 근력을 이미 4일 했으면 더 하지 않는다.
+  // 9월에 주 5일까지 늘렸다가 지쳐서 포기한 적이 있다. 주 4일이 상한이다.
+  const dow0 = dayOfWeek(ds);
+  let weekStrength = 0;
+  for(let n=1; n<=dow0; n++){
+    const k = known[planAdd(ds, -n)];
+    if(k && k.strength) weekStrength++;
+  }
+  if(weekStrength >= 4) return { key:'recover', why:'이번 주에 이미 근력 ' + weekStrength + '일 — 주 4일이 상한이에요' };
   let lastA = null, lastB = null;
   for(let n=1; n<=28; n++){
     const k = known[planAdd(ds,-n)];
@@ -1933,7 +1961,8 @@ function orderedRoutine(p, W){
     const ex = cands[(planSwap[key] || 0) % cands.length];
     used.add(ex.id);
     const bucket = exBucket(ex);
-    const ago = recent[bucket];
+    // 회복날 동작은 어제 그 부위를 했어도 그대로 한다 (오히려 풀어줘야 한다)
+    const ago = (p.kind === 'free') ? null : recent[bucket];
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
              ago: daysAgo(last[ex.id], W.today),
              skip: ago ? (ago === 1 ? '어제' : '그제') + ' ' + bucket + '을' : '' };
@@ -1979,14 +2008,17 @@ function renderTodayPlan(W){
   const routine = orderedRoutine(p, W);
   const rows = routine.map(r => {
     const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
+    const setTxt = r.label || (r.sets + '세트 × ' + r.reps);
     const swap = (r.alts > 1 && r.slotKey) ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : '';
     return `<div class="pc-ex${r.skip?' skip':''}">
       <span class="pe-name">${r.name}${swap}</span>
-      <span class="pe-set">${r.sets}세트 × ${r.reps}</span>
+      <span class="pe-set">${setTxt}</span>
       <span class="pe-why">${r.skip ? '선생님이 ' + r.skip + ' 했어요 — 가볍게' : r.why + ' · 지난번 ' + when}</span>
     </div>`;
   }).join('');
-  const addBtn = routine.length ? '<button class="pc-add" id="planAddBtn">이 종목들 오늘 기록에 담기</button>' : '';
+  const addBtn = routine.length
+    ? '<button class="pc-add" id="planAddBtn">' + (p.kind === 'free' ? '회복 동작 오늘 기록에 담기' : '이 종목들 오늘 기록에 담기') + '</button>'
+    : '';
   card.innerHTML = `
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
     <div class="pc-title">${p.title}</div>
