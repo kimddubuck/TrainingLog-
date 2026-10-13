@@ -368,7 +368,17 @@ window.__chartReady = false;
   .add-inline button{display:block;width:100%;box-sizing:border-box;border:none;border-radius:8px;background:var(--accent-a);color:#1B1F23;font-weight:700;font-size:14px;padding:12px;cursor:pointer;}
   .add-inline .second-row{display:none;}
 
-  .master-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);}
+  .big-head{margin:16px 0 4px;padding:7px 10px;background:var(--surface-2);border-radius:8px;font-size:12px;color:var(--ink-dim);}
+  .big-head b{font-size:14px;color:var(--accent-b);margin-right:6px;}
+  .big-head em{font-style:normal;float:right;color:var(--ink-faint);}
+  .gpick{display:flex;gap:4px;width:100%;margin-top:2px;}
+  .gchip{
+    font-size:10.5px;padding:3px 8px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--border);background:var(--surface-2);color:var(--ink-faint);
+    font-family:'IBM Plex Sans KR',sans-serif;
+  }
+  .gchip.on{border-color:var(--accent-b);background:var(--accent-b-dim);color:var(--accent-b);font-weight:600;}
+  .master-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);flex-wrap:wrap;}
   .master-item:first-of-type{border-top:none;}
   .master-item .mname{font-size:13.5px;}
   .master-item .mpart{font-size:11px;color:var(--ink-faint);}
@@ -814,7 +824,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v51</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v52</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -2656,6 +2666,38 @@ document.getElementById('manageModal').addEventListener('click', (e)=>{
 
 
 
+// ---------- 대그룹 (BTT · CCT · RMT) ----------
+// 선생님이 쓰는 세 갈래로 종목을 묶는다.
+//  BTT 좌우 밸런스를 맞춰주는 대칭 운동   (한쪽씩 하거나 좌우 차이를 잡는 것)
+//  CCT 몸통을 스프링처럼 꼬아 쓰는 코어   (코어·버티기·꼬기)
+//  RMT 몸을 회전시켜 힘을 내는 전신 운동  (회전·전신 흐름)
+//  기본 양쪽을 똑같이 쓰는 기본 근력·유산소 (셋 중 어디에도 딱 맞지 않는 것)
+const BIG_GROUPS = [
+  { key:'BTT', name:'BTT', sub:'좌우 밸런스를 맞춰주는 대칭 운동' },
+  { key:'CCT', name:'CCT', sub:'몸통을 스프링처럼 꼬아 쓰는 코어' },
+  { key:'RMT', name:'RMT', sub:'회전시켜 부드럽고 강력한 힘' },
+  { key:'기본', name:'기본', sub:'양쪽을 똑같이 쓰는 근력·유산소' },
+];
+const BIG_RULES = [
+  ['RMT', /RMT|토터치|크랩워킹|회전/],
+  ['CCT', /코일링|플랭크|크런치|싯업|윗몸|레그 ?레이즈|슈퍼맨|스핀롤|악어호흡|허리이완|바디컨트롤|그라운드/],
+  ['BTT', /겟업|암바|원암|한팔|스플릿|불가리안|런지|교정|힌지 ?보조|내전근|고관절|노드릭|노르딕|이너타이|힙어드덕션/],
+];
+// 저장된 수정값(exOverrides[id].grp)이 있으면 그걸 우선한다 — 선생님·사용자가 고친 것이 규칙을 이긴다
+function bigGroupOf(ex){
+  if(!ex) return '기본';
+  const o = exOverrides[ex.id];
+  if(o && o.grp) return o.grp;
+  const hay = (ex.name||'') + ' ' + (ex.part||'');
+  for(const [g, re] of BIG_RULES) if(re.test(hay)) return g;
+  return '기본';
+}
+async function setBigGroup(id, grp){
+  exOverrides[id] = { ...(exOverrides[id]||{}), grp };
+  await persistConfig();
+  renderManageMaster('대그룹을 ' + grp + ' 으로 옮겼어요');
+}
+
 // 지금 고치는 중인 종목 / 삭제 확인을 기다리는 종목
 let editingExId = null, delArmExId = null, delArmTimer = null;
 const escAttr = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
@@ -2663,14 +2705,15 @@ const escAttr = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').
 function renderManageMaster(msg){
   const wrap = document.getElementById('mpanel-master');
   const typeLabel = t => t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
-  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 없는 운동은 맨 아래에서 새로 추가하세요.</p>';
+  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 대그룹은 BTT / CCT / RMT / 기본 단추로 바꿔요.</p>';
   if(msg) html += `<p class="mx-note">${msg}</p>`;
-  // 타입별로 그룹핑해서 보여주기
-  ['strength','cardio','bodyweight'].forEach(t=>{
-    const items = masterExercises.filter(ex=>exType(ex)===t);
+  // 대그룹(BTT·CCT·RMT·기본)으로 묶어서 보여준다
+  BIG_GROUPS.forEach(g=>{
+    const items = masterExercises.filter(ex=>bigGroupOf(ex)===g.key);
     if(!items.length) return;
-    html += `<div class="section-label" style="margin-top:12px;color:var(--ink-dim);font-weight:600;">${typeLabel(t)} (${items.length})</div>`;
+    html += `<div class="big-head"><b>${g.name}</b> <span>${g.sub}</span> <em>${items.length}개</em></div>`;
     items.forEach(ex=>{
+      const t = exType(ex);
       if(editingExId === ex.id){
         html += `<div class="master-item editing">
           <div class="mx-edit">
@@ -2690,12 +2733,16 @@ function renderManageMaster(msg){
         return;
       }
       const armed = (delArmExId === ex.id);
+      const cur = bigGroupOf(ex);
+      const picks = BIG_GROUPS.map(b =>
+        `<button class="gchip${b.key===cur?' on':''}" data-exgrp="${ex.id}" data-grp="${b.key}">${b.name}</button>`).join('');
       html += `<div class="master-item">
         <span class="mname">${ex.name}</span>
         ${ex.part?`<span class="mpart">· ${ex.part}</span>`:''}
         <span class="mtype ${t}">${typeLabel(t)}</span>
         <button class="medit" data-exedit="${ex.id}">✏️</button>
         <button class="mdel${armed?' armed':''}" data-exdel="${ex.id}">${armed?'정말 삭제?':'×'}</button>
+        <div class="gpick">${picks}</div>
       </div>`;
     });
   });
@@ -2710,6 +2757,10 @@ function renderManageMaster(msg){
     <button id="addMasterBtn">추가</button>
   </div>`;
   wrap.innerHTML = html;
+  // 대그룹 단추
+  wrap.querySelectorAll('.gchip').forEach(btn=>{
+    btn.onclick = ()=> setBigGroup(btn.dataset.exgrp, btn.dataset.grp);
+  });
 
   // 새로 추가할 때 쓰는 종류 선택 (편집칸의 종류 버튼과 섞이지 않게 범위를 좁힌다)
   let newType = 'strength';
