@@ -257,9 +257,17 @@ window.__chartReady = false;
   .rt-theme-sub{font-size:13px;color:var(--ink);margin-top:2px;}
   .rt-theme-cycle{font-size:11.5px;color:var(--ink-dim);margin-top:6px;}
   .rt-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;}
-  .rt-day{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 2px;text-align:center;}
-  .rt-day.today{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--border-strong) inset;}
+  .rt-day{
+    background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 2px;
+    text-align:center;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif;
+  }
   .rt-day.done{background:var(--surface-2);}
+  /* 오늘 = 주황 테두리 */
+  .rt-day.today{border-color:var(--accent-a);}
+  .rt-day.today .rt-dow{color:var(--accent-a);font-weight:700;}
+  /* 고른 날 = 꽉 찬 색 */
+  .rt-day.sel{background:var(--accent-b-dim);border-color:var(--accent-b);}
+  .rt-day.sel .rt-tag{color:var(--accent-b);}
   .rt-dow{font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',Consolas,monospace;}
   .rt-tag{font-size:11px;font-weight:600;margin-top:3px;color:var(--ink);}
   .routine-list .plan-card{margin:0 0 12px;border-left-width:3px;}
@@ -844,7 +852,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v60</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v61</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -2201,6 +2209,7 @@ function buildWeekProgram(W){
   return out;
 }
 
+let programDay = null;   // 프로그램 탭에서 고른 날 (기본은 오늘)
 function renderRoutineTab(){
   const wrap = document.getElementById('panel-routine');
   if(!wrap) return;
@@ -2209,19 +2218,22 @@ function renderRoutineTab(){
   const th = themeOf(W.today);
   const DOWN = ['일','월','화','수','목','금','토'];
 
-  // 이번 주 요일표
-  const days = [];
-  for(let i=0;i<7;i++){
-    const ds = planAdd(W.weekStart, i);
+  // 고른 날이 이번 주가 아니면 오늘로 되돌린다
+  const weekDays = [];
+  for(let i=0;i<7;i++) weekDays.push(planAdd(W.weekStart, i));
+  if(!programDay || !weekDays.includes(programDay)) programDay = W.today;
+
+  // 이번 주 요일 단추 — 누르면 그 날 운동만 보인다
+  const days = weekDays.map(ds=>{
     const d = W.days[ds];
     const act = d && d.act;
     const label = (act && act.strength) ? actualTag(act).tag : (d ? PLAN[d.rec.key].tag : '');
     const done = act && act.strength;
-    days.push(`<div class="rt-day${ds===W.today?' today':''}${done?' done':''}">
+    return `<button class="rt-day${ds===W.today?' today':''}${done?' done':''}${ds===programDay?' sel':''}" data-pday="${ds}">
       <div class="rt-dow">${DOWN[dayOfWeek(ds)]}</div>
       <div class="rt-tag">${label}</div>
-    </div>`);
-  }
+    </button>`;
+  });
 
   wrap.innerHTML = `
     <div class="rt-theme">
@@ -2232,7 +2244,7 @@ function renderRoutineTab(){
     <div class="rt-week">${days.join('')}</div>
     ${KNEE_CARE ? '<div class="pc-care" style="margin:0 0 14px;">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b></div>' : ''}
     <div class="routine-list">${
-      buildWeekProgram(W).map(day=>{
+      buildWeekProgram(W).filter(day => day.ds === programDay).map(day=>{
         const dow = DOWN[dayOfWeek(day.ds)];
         const md = Number(day.ds.slice(5,7)) + '/' + Number(day.ds.slice(8));
         const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
@@ -2250,11 +2262,15 @@ function renderRoutineTab(){
       }).join('')
     }</div>
     <div class="rt-foot">
+      위 요일을 누르면 그 날 운동이 보여요 (주황 테두리가 오늘).<br>
       지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요. 오늘 것은 ↻ 로 다른 종목으로 바꿀 수 있어요.<br>
       종목은 선생님이 가르쳐주신 것 중 <b>가장 오래 안 한 것</b>으로 고르고, 같은 주에 겹치지 않게 합니다.<br>
       PT날 것은 혼자 할 때 기준이에요 — 선생님이 다르게 진행하면 그대로 따르세요.
     </div>`;
 
+  wrap.querySelectorAll('.rt-day').forEach(btn=>{
+    btn.onclick = ()=>{ programDay = btn.dataset.pday; renderRoutineTab(); };
+  });
   wrap.querySelectorAll('.pe-swap').forEach(btn=>{
     btn.onclick = ()=>{
       const k = btn.dataset.slot;
