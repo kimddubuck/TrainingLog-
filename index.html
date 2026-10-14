@@ -635,6 +635,11 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .di-manage-row:first-child{border-top:none;}
   .di-manage-row .din{flex:1;font-size:14px;}
   .di-manage-row .dit{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);}
+  .di-manage-row.off .din{color:var(--ink-faint);}
+  .di-manage-row .dioff-tag{font-style:normal;font-size:10px;padding:1px 6px;border-radius:6px;background:var(--surface-3);color:var(--ink-faint);margin-left:4px;}
+  .di-manage-row .dioff{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);font-size:11.5px;border-radius:7px;padding:4px 8px;cursor:pointer;white-space:nowrap;}
+  .daily-off-note{line-height:1.6;word-break:keep-all;margin:6px 0 0;}
+  .daily-off-note b{color:var(--ink);}
   .di-manage-row .diedit{background:none;border:none;color:var(--ink-faint);font-size:14px;cursor:pointer;padding:0 4px;}
   .di-manage-row .didel{background:none;border:none;color:var(--ink-faint);font-size:18px;cursor:pointer;}
   .di-manage-row .didel.armed{color:var(--accent-pt);font-size:11.5px;font-weight:700;}
@@ -911,7 +916,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v73</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v74</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1409,6 +1414,21 @@ async function addMasterExercise(name, part, type){
   await persistConfig();
   return { duplicate:false, id };
 }
+// (v74) 매일 루틴을 "쉬는 중"으로 옮긴 것을 저장 — 다시 하지 않게 표시도 같이
+async function persistDailyMoved(){
+  if(saveBlocked()) return;
+  try{ await docRef.set({ dailyItems, dailyMoved:'v74' }, { merge:true }); }
+  catch(e){ console.error('dailyMoved save failed', e); }
+}
+// 그 날 이 매일 루틴에 적은 값이 있는지 (쉬는 중이어도 적은 게 있으면 보여서 고칠 수 있게)
+function dailyHasData(entry, id){
+  const sets = entry && entry.daily && entry.daily[id];
+  return Array.isArray(sets) && sets.some(x => x && (x.reps != null || x.weight != null || x.duration != null || x.distance != null || x.t));
+}
+// 오늘 기록 화면에 보일 매일 루틴: 쓰는 중인 것 + 쉬는 중이지만 그 날 적은 것
+function dailyShown(entry){
+  return dailyItems.filter(d => !d.off || dailyHasData(entry, d.id));
+}
 // 매일 루틴 항목 이름/종류 고치기 (매일 루틴은 저장본이 그대로 쓰이므로 바로 고치면 된다)
 async function editDailyItem(id, name, type){
   name = (name||'').trim();
@@ -1535,6 +1555,12 @@ async function loadAllData(){
   // ----- 매일 루틴 로드 + 마이그레이션 -----
   if(Array.isArray(data.dailyItems) && data.dailyItems.length){
     dailyItems = data.dailyItems;
+    // (v74) 워밍업·회복 동작이 프로그램(운동날 워밍업 · 회복날)으로 옮겨가서, 그때 있던 매일 루틴은 "쉬는 중"으로 둔다.
+    // 지우지 않는다 — 지난 기록의 이름이 이 목록에서 나오기 때문. 편집에서 "다시 쓰기"로 되살릴 수 있다.
+    if(data.dailyMoved !== 'v74'){
+      dailyItems.forEach(d => { d.off = true; });
+      persistDailyMoved();
+    }
   }else{
     dailyItems = DEFAULT_DAILY.map(d=>({...d}));
     entries.forEach(en=>{
@@ -2610,6 +2636,9 @@ function renderDayTypeAndForm(){
   dailySetCounts = {};
 
   document.getElementById('noteInput').value = existing ? (existing.note||'') : '';
+  // 날짜가 바뀌면 세트 시각도 새로 — 그 다음에 기존 기록의 시각을 다시 채운다 (매일 루틴은 renderDaily, 종목은 renderTodayExercises)
+  // 예전엔 이 줄이 renderDaily 뒤에 있어서, 되살린 매일 루틴 시각이 지워진 채로 저장됐다
+  setTimes = {}; dailyTimes = {};
   renderDaily(existing);
 
   if(pt){
@@ -2623,7 +2652,6 @@ function renderDayTypeAndForm(){
   }
 
   // 기존 기록의 종목을 오늘 목록으로 불러오기
-  setTimes = {}; dailyTimes = {};   // 날짜가 바뀌면 세트 시각도 새로 (기존 기록의 시각은 아래에서 다시 채운다)
   todayExerciseIds = existing && existing.exercises ? existing.exercises.map(x=>x.id).filter(id=>exById(id)) : [];
   document.getElementById('exSearch').value = '';
   document.getElementById('exSearchResults').innerHTML = '';
@@ -2950,15 +2978,27 @@ function renderDailyManage(msg){
       </div>`;
     }
     const armed = (delArmDailyId === item.id);
-    return `<div class="di-manage-row">
-      <span class="din">${item.name}</span>
+    return `<div class="di-manage-row${item.off ? ' off' : ''}">
+      <span class="din">${item.name}${item.off ? ' <em class="dioff-tag">쉬는 중</em>' : ''}</span>
       <span class="dit">${label(item.type)}</span>
+      <button class="dioff" data-dioff="${item.id}">${item.off ? '다시 쓰기' : '쉬기'}</button>
       <button class="diedit" data-diedit="${item.id}">✏️</button>
       <button class="didel${armed?' armed':''}" data-didel="${item.id}">${armed?'정말 삭제?':'×'}</button>
     </div>`;
   }).join('');
   wrap.innerHTML = html || '<p class="section-label">아직 매일 루틴이 없어요.</p>';
 
+  wrap.querySelectorAll('.dioff').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const it = dailyItems.find(d => d.id === btn.dataset.dioff);
+      if(!it) return;
+      const entryNow = buildEntryFromForm();   // 지금 화면 값을 먼저 잡아 둔다
+      if(it.off) delete it.off; else it.off = true;
+      await persistConfig();
+      renderDailyManage(it.off ? `"${it.name}" 쉬는 중 — 오늘 기록 화면에서 빠져요 (지난 기록은 그대로)` : `"${it.name}" 다시 매일 루틴으로`);
+      renderDaily(entryNow);
+    };
+  });
   wrap.querySelectorAll('.diedit').forEach(btn=>{
     btn.onclick = ()=>{ editingDailyId = btn.dataset.diedit; delArmDailyId = null; clearTimeout(delArmDailyTimer); renderDailyManage(); };
   });
@@ -2989,7 +3029,7 @@ function renderDailyManage(msg){
         delArmDailyId = id;
         clearTimeout(delArmDailyTimer);
         delArmDailyTimer = setTimeout(()=>{ delArmDailyId = null; renderDailyManage(); }, 5000);
-        renderDailyManage('한 번 더 누르면 지웁니다. 과거 기록은 그대로 남아요.');
+        renderDailyManage('한 번 더 누르면 지웁니다. 지우면 지난 기록에서 이 이름이 안 보여요 — 안 쓰는 거면 "쉬기"를 권해요.');
         return;
       }
       clearTimeout(delArmDailyTimer);
@@ -3247,7 +3287,11 @@ function getDailySetCount(item, existing){
 }
 function renderDaily(existing){
   const wrap = document.getElementById('dailyList');
-  if(!dailyItems.length){ wrap.innerHTML = '<p class="section-label">매일 루틴이 없어요. 오른쪽 위 "편집"에서 추가하세요.</p>'; return; }
+  const shown = dailyShown(existing);
+  if(!shown.length){
+    wrap.innerHTML = '<p class="section-label daily-off-note">지금 쓰는 매일 루틴이 없어요. 워밍업·회복 동작은 <b>프로그램</b> 탭의 "담기"로 기록해요. 다시 쓰려면 오른쪽 위 "편집".</p>';
+    return;
+  }
   // 저장돼 있던 시각을 먼저 되살린다 (완료 버튼에 찍어서 그려야 하므로 HTML 만들기 전에)
   if(existing && existing.daily){
     Object.keys(existing.daily).forEach(itemId => {
@@ -3257,7 +3301,7 @@ function renderDaily(existing){
     });
   }
   wrap.innerHTML = '';
-  dailyItems.forEach(item=>{
+  shown.forEach(item=>{
     const n = getDailySetCount(item, existing);
     const typeLabel = item.type==='cardio'?'유산소':(item.type==='bodyweight'?'맨몸':'근력');
     // 세트를 끝냈을 때 누르는 버튼 (운동 종목과 같은 방식)
@@ -3386,7 +3430,14 @@ function buildEntryFromForm(){
 
   // 매일 루틴 값 수집
   const daily = {};
+  const savedDay = entryForDate(dateStr);
   dailyItems.forEach(item=>{
+    // 화면에 안 그린 항목(쉬는 중)은 원래 저장된 값을 그대로 둔다 — 빈칸으로 덮어쓰지 않는다
+    if(!document.querySelector(`[data-daily="${item.id}"]`)){
+      const keep = savedDay && savedDay.daily && savedDay.daily[item.id];
+      if(keep) daily[item.id] = keep;
+      return;
+    }
     const n = dailySetCounts[item.id] || (item.type==='cardio'?1:3);
     const sets = [];
     for(let i=1;i<=n;i++){
