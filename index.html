@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=71"></script>
+<script src="exinfo.js?v=72"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -911,7 +911,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v71</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v72</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1958,6 +1958,7 @@ const PLAN = {
   legs:    { tag:'하체', kind:'B', title:'하체 집중',
              tip:'공통 워밍업 먼저 · 마지막 2~3개 남기고 멈추기 · 끝나면 바로 우유·바나나',
              routine:[
+               { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
                { why:'하체 주운동 (백스쿼트)', sets:4, reps:'10~12회',
                  options:['스쿼트','가블릿 스쿼트','레그프레스'] },
                { why:'한 다리 (스플릿스쿼트)', sets:3, reps:'좌우 12회',
@@ -1972,6 +1973,7 @@ const PLAN = {
   shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔',
              tip:'공통 워밍업 먼저 · 팔은 마지막에 · 끝나면 바로 우유·바나나',
              routine:[
+               { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
                { why:'어깨 주운동 (오버헤드프레스)', sets:4, reps:'12~15회',
                  options:['오버헤드프레스','밀리터리 프레스'] },
                { why:'덤벨 숄더프레스', sets:3, reps:'15회',
@@ -1988,6 +1990,7 @@ const PLAN = {
              // 자리(역할)는 그대로 두고, 종목은 "가장 오래 안 한 것"으로 매번 바뀐다.
              // 같은 가슴운동이라도 돌려써야 편식이 안 되고 기능적으로 좋다 (선생님 철학).
              routine:[
+               { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
                { why:'가슴 주운동 (벤치프레스)',  sets:4, reps:'10~12회',
                  options:['벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스'] },
                { why:'덤벨프레스',   sets:3, reps:'12~15회',
@@ -2211,6 +2214,9 @@ function orderedRoutine(p, W, opt){
       // 무릎이 아픈 동안은 무릎 부담이 큰 종목을 맨 뒤로 보낸다
       const ka = kneeRisky(a) ? 1 : 0, kb = kneeRisky(b) ? 1 : 0;
       if(ka !== kb) return ka - kb;
+      // 이번 주 결(BTT/CCT/RMT)에 맞는 종목을 먼저 — 예: CCT 주간엔 등 로우 자리에서 덤벨 로우(한쪽씩)
+      const ma = bigGroupOf(a) === theme.key ? 0 : 1, mb = bigGroupOf(b) === theme.key ? 0 : 1;
+      if(ma !== mb) return ma - mb;
       const ta = ptTip(a) ? 0 : 1, tb = ptTip(b) ? 0 : 1;
       if(ta !== tb) return ta - tb;
       const da = last[a.id] || '0000-00-00', db = last[b.id] || '0000-00-00';
@@ -2222,6 +2228,7 @@ function orderedRoutine(p, W, opt){
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
              ago: daysAgo(last[ex.id], asOf),
              care: kneeRisky(ex) ? '무릎 상태 보고 · 가볍게/얕게 (아프면 건너뛰기)' : '',
+             why: (!slot0.theme && bigGroupOf(ex) === theme.key) ? slot.why + ' · 이번 주 ' + theme.key : slot.why,
              skip: '' };
   });
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
