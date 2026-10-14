@@ -890,7 +890,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v67</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v68</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1078,7 +1078,7 @@ window.__chartReady = false;
   <!-- 내 몸 상태 — 체형분석 결과를 3D 사람 위에 표시. three.js 는 이 탭을 처음 열 때만 불러온다 -->
   <div class="panel" id="panel-body">
     <div class="card">
-      <div class="body-head">내 몸 상태 <span class="body-src">2022-12-28 체형분석 + 지금 증상</span></div>
+      <div class="body-head">내 몸 상태 <span class="body-src">2022-12-28 체형분석 + 지금 증상 · 해부도</span></div>
       <div id="bodyMount" class="body-mount"><div class="body-loading">3D 불러오는 중…</div></div>
       <div class="body-btns">
         <button class="body-btn" data-view="front">앞</button>
@@ -1086,9 +1086,11 @@ window.__chartReady = false;
         <button class="body-btn" data-view="back">뒤</button>
         <button class="body-btn" data-view="left">왼쪽</button>
         <button class="body-btn on" data-view="auto">회전</button>
+        <button class="body-btn on" data-view="lines">기준선</button>
       </div>
       <p class="body-note">손가락으로 끌면 돌아가요. 기울기·돌림은 눈에 보이게 <b>3배 과장</b>했고,
-      몸 비율은 체형분석 사진에서 잰 거예요. 아래 목록을 누르면 그 자리로 돌아가며 깜빡여요.</p>
+      몸 비율은 체형분석 사진에서 잰 거예요. 색이 입혀진 근육이 풀어줄 곳·힘 기를 곳이고,
+      <b>흰 점선은 수평·수직 기준</b>, <b>빨간 선은 실제 기울기</b>예요. 아래 목록을 누르면 그 자리로 돌아가며 깜빡여요.</p>
     </div>
     <div class="card">
       <div class="body-legend">
@@ -2520,8 +2522,8 @@ async function openBodyTab(){
   const list = document.getElementById('bodyList');
   try{
     if(!window.THREE)      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
-    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=67');
-    if(!window.initBody3D) await loadScript('body3d.js?v=67');
+    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=68');
+    if(!window.initBody3D) await loadScript('body3d.js?v=68');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';
@@ -2547,6 +2549,7 @@ function setBodyAutoBtn(on){
 document.querySelectorAll('.body-btn').forEach(b=> b.addEventListener('click', ()=>{
   if(!window.body3dView) return;   // 아직 3D 가 안 떴으면 아무것도 안 함
   if(b.dataset.view === 'auto'){ setBodyAutoBtn(body3dAuto()); return; }
+  if(b.dataset.view === 'lines'){ b.classList.toggle('on', body3dLines()); return; }
   setBodyAutoBtn(false);
   body3dView(b.dataset.view);
 }));
