@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=72"></script>
+<script src="exinfo.js?v=73"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -911,7 +911,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v72</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v73</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1260,7 +1260,8 @@ const DEFAULT_MASTER = [
   {id:'goodmorning', name:'굿모닝 운동',      part:'하체', type:'strength'},
   {id:'kbgoodmorning',name:'케틀벨 굿모닝',    part:'하체', type:'strength'},
   {id:'innerthigh',  name:'이너타이 머신',     part:'허벅지', type:'strength'},
-  {id:'balancefix',  name:'불균형 교정운동',    part:'등',  type:'strength'},
+  // 선생님 이름은 "불균형 교정운동" — 한 팔로 케이블을 당기며, 반대 팔꿈치를 높이 들어 몸통을 꼰다 (번호는 그대로라 지난 기록이 이어진다)
+  {id:'balancefix',  name:'원암 케이블 회전 로우 (불균형 교정)', part:'등',  type:'strength'},
   {id:'getup',       name:'겟업동작',        part:'전신', type:'bodyweight'},
   {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
   {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
@@ -1902,7 +1903,9 @@ const THEMES = [
     options:['케틀벨 굿모닝','글루트 브릿지','굿모닝 운동'] },
   { key:'CCT', name:'CCT 주간', sub:'한쪽으로 꼬아 버티기 (한 번에 한쪽씩)',
     why:'CCT — 한쪽씩 꼬아 버티기', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
-    options:['불균형 교정운동','겟업동작','케틀벨 암바'] },
+    options:['원암 케이블 회전 로우 (불균형 교정)','겟업동작','케틀벨 암바'],
+    // 종목마다 선생님이 정한 횟수가 다르면 여기서 바꾼다
+    labels:{ '원암 케이블 회전 로우 (불균형 교정)':'15회씩 × 3세트' } },
   { key:'RMT', name:'RMT 주간', sub:'이쪽 꼬임 → 저쪽 꼬임 (스윙)',
     why:'RMT — 좌우로 넘기는 스윙', sets:3, reps:'좌우 10회', label:'좌우 10회 × 3세트',
     options:['RMT 클럽 스윙','RMT 로프'] },
@@ -2226,6 +2229,7 @@ function orderedRoutine(p, W, opt){
     const ex = cands[(planSwap[key] || 0) % cands.length];
     used.add(ex.id);
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
+             label: (slot.labels && slot.labels[ex.name]) || slot.label,
              ago: daysAgo(last[ex.id], asOf),
              care: kneeRisky(ex) ? '무릎 상태 보고 · 가볍게/얕게 (아프면 건너뛰기)' : '',
              why: (!slot0.theme && bigGroupOf(ex) === theme.key) ? slot.why + ' · 이번 주 ' + theme.key : slot.why,
@@ -2706,7 +2710,7 @@ const PT_TIPS = {
   '롱풀로우머신':'팔 쭉 펴고 상체 정렬 후, 호흡 채워넣고 자연스러운 움직임으로',
   '데드리프트':'발등 위에 바벨 · 정강이 붙이고 고관절 접기 · 발바닥 전체로 밀기',
   '스티프데드리프트':'20회 4세트 · 발 앞부분 누르고 명치 들어 상체 세우기 · 뒷벅지 자극',
-  '불균형교정운동':'15회 3세트 · 반대쪽 손등이 이마를 향해, 팔꿈치 최대한 높게',
+  '원암케이블회전로우(불균형교정)':'15회씩 3세트 · 반대쪽 손등이 이마를 향해, 팔꿈치 최대한 높게 들고 당기기',
   // 하체 · 고관절
   '스쿼트':'호흡 크게 마시고 체간 유지하며 앉기 · 무게중심 발등',
   '가블릿스쿼트':'무게중심 앞 · 엉덩이 과하게 빼지 말고 그대로 눌러 앉기',
