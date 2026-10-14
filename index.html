@@ -868,7 +868,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v64</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v66</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1195,6 +1195,7 @@ const DEFAULT_MASTER = [
   {id:'adductorstr', name:'내전근 스트레칭',    part:'허벅지', type:'bodyweight'},
   {id:'rmtclub',     name:'RMT 클럽 스윙',    part:'전신', type:'bodyweight'},
   {id:'rmtrope',     name:'RMT 로프',        part:'전신', type:'bodyweight'},
+  {id:'slowjog',     name:'슬로우 조깅',      part:'유산소', type:'cardio'},
   {id:'groundflow',  name:'그라운드 소통',     part:'전신', type:'bodyweight'},
   {id:'bcfrontcore', name:'바디컨트롤 전면 코어', part:'코어', type:'bodyweight'},
 
@@ -1814,6 +1815,7 @@ function showToast(msg){
 // 통증이 가라앉고 병원에서 괜찮다고 하면 KNEE_CARE 를 false 로 두면 원래대로 돌아간다.
 const KNEE_CARE = true;
 // 무릎을 깊게 접거나 충격이 오는 것 — 지금은 뒤로 미룬다
+// 슬로우 조깅은 충격이 적어 여기서 뺀다 (대신 아프면 걷기로 바꾸라고 메모에 적어 둔다)
 const KNEE_AVOID = /스쿼트|런지|레그프레스|레그 익스텐션|야외 러닝|러닝머신|줄넘기|버피|점핑잭|마운틴|스텝밀|등산/;
 function kneeRisky(ex){ return KNEE_CARE && KNEE_AVOID.test(ex && ex.name || ''); }
 
@@ -1850,7 +1852,7 @@ const RECOVERY_ROUTINE = [
     options:['악어호흡'] },
   { why:'저강도 유산소 (대화 가능한 속도)', sets:1, reps:'30~40분', label:'30~40분',
     // 무릎 붓기 중에는 달리기 대신 충격 없는 것으로 (수영·자전거·평지 걷기)
-    options:['수영','실내자전거','걷기','야외 러닝'] },
+    options:['수영','실내자전거','걷기','슬로우 조깅','야외 러닝'] },
 ];
 
 // 선생님이 정해준 공통 워밍업 — 개인 운동이든 PT든 운동 전에 먼저 한다
@@ -2144,7 +2146,7 @@ function orderedRoutine(p, W, opt){
     used.add(ex.id);
     return { ...slot, id:ex.id, name:ex.name, slotKey:key, alts:cands.length,
              ago: daysAgo(last[ex.id], asOf),
-             care: kneeRisky(ex) ? '무릎 붓기 가라앉은 뒤에 · 지금은 가볍게/얕게' : '',
+             care: kneeRisky(ex) ? '무릎 상태 보고 · 가볍게/얕게 (아프면 건너뛰기)' : '',
              skip: '' };
   });
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
@@ -2299,7 +2301,7 @@ function renderRoutineTab(){
       <div class="rt-theme-cycle">BTT → CCT → RMT · 3주에 한 바퀴 · 그 주 내내 같은 결로</div>
     </div>
     <div class="rt-week">${days.join('')}</div>
-    ${KNEE_CARE ? '<div class="pc-care" style="margin:0 0 14px;">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b></div>' : ''}
+    ${KNEE_CARE ? '<div class="pc-care" style="margin:0 0 14px;">🦵 오른쪽 무릎 관리 중 — <b>붓기 있는 날은 달리기·점프 쉬고</b>, 괜찮은 날엔 짧고 가볍게</div>' : ''}
     <div class="routine-list">${
       buildWeekProgram(W).filter(day => day.ds === programDay).map(day=>{
         const dow = DOWN[dayOfWeek(day.ds)];
@@ -2417,7 +2419,7 @@ function renderTodayPlan(W){
     ${routine.length
         ? `<div class="pc-count">종목 ${routine.length}개 · 자세한 목록은 <b>프로그램</b> 탭에서</div>${addBtn}`
         : `<div class="pc-how">${p.how||''}</div>`}
-    ${(KNEE_CARE && routine.length) ? '<div class="pc-care">🦵 오른쪽 무릎 붓기·허리 관리 중 — <b>달리기·점프·깊이 앉기는 쉬어요</b>. 아프면 그 종목은 건너뛰세요.</div>' : ''}
+    ${(KNEE_CARE && routine.length) ? '<div class="pc-care">🦵 오른쪽 무릎 관리 중 — <b>붓기 있는 날은 달리기·점프 쉬고</b>, 괜찮은 날엔 <b>짧고 가볍게</b>. 다음날 붓거나 아프면 그날은 걷기로.</div>' : ''}
     <div class="pc-tip">${p.tip}</div>
     <div class="pc-why">왜? ${t.rec.why}${tmrTxt}<br>몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.</div>`;
   const addEl = document.getElementById('planAddBtn');
@@ -2609,6 +2611,7 @@ const PT_TIPS = {
   '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작 (좌우 대칭 — BTT)',
   'RMT클럽스윙':'RMT · 수평·사선 회전을 몸에 통합 — 보행·달리기가 부드러워진다',
   'RMT로프':'RMT · 회전 움직임을 전신으로 이어서',
+  '슬로우조깅':'코로 숨 쉬며 대화할 수 있는 속도 · 보폭 짧게, 소리 안 나게 · 무릎 아프면 바로 걷기로',
   '그라운드소통':'바디컨트롤 Lv.1 · 집에서 꾸준히 · 움직임을 이어서 흐르게',
   '바디컨트롤전면코어':'단계별 1~3번 동작을 꾸준히 (집에서)',
   '고관절힌지보조운동':'힌지를 잘 하기 위한 보조 운동 · 자주 반복해서 체크해보기',
