@@ -273,6 +273,20 @@ window.__chartReady = false;
   .routine-list .plan-card{margin:0 0 12px;border-left-width:3px;}
   .routine-list .pc-head{font-size:14px;font-weight:700;color:var(--ink);word-break:keep-all;}
   .rt-foot{font-size:11.5px;color:var(--ink-faint);line-height:1.6;padding:2px 2px 10px;}
+  /* 프로그램 짜는 규칙 — 접었다 펴는 카드 */
+  .algo{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:4px 0 12px;}
+  .algo summary{
+    padding:12px 14px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;
+    list-style:none;display:flex;justify-content:space-between;align-items:center;
+  }
+  .algo summary::-webkit-details-marker{display:none;}
+  .algo summary::after{content:'＋';color:var(--ink-faint);font-weight:400;}
+  .algo[open] summary::after{content:'－';}
+  .algo[open] summary{border-bottom:1px solid var(--border);}
+  .algo-body{padding:12px 14px 14px;font-size:12.5px;line-height:1.65;color:var(--ink-dim);}
+  .algo-body p{margin:0 0 10px;word-break:keep-all;}
+  .algo-body b{color:var(--ink);}
+  .algo-note{color:var(--ink-faint);border-top:1px dashed var(--border);padding-top:8px;}
   .routine-list .plan-card.on{box-shadow:0 0 0 1px var(--border-strong) inset;}
   .routine-list .pc-head b{font-family:'IBM Plex Mono',Consolas,monospace;font-size:15px;margin-right:2px;}
   .dp-today{font-size:11px;color:var(--accent-a);font-weight:700;}
@@ -280,6 +294,8 @@ window.__chartReady = false;
   .routine-list .pc-time{font-size:11.5px;color:var(--ink-dim);margin:2px 0 4px;}
   .routine-list .pc-time b{color:var(--accent-b);font-size:12.5px;}
   .plan-card .pc-ex.extra{opacity:.55;}
+  .plan-card .pc-ex.warm .pe-name{color:var(--ink-dim);font-weight:500;}
+  .plan-card .pc-ex.warm .pe-why{color:var(--accent-a);}
 
   /* Tabs */
   .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
@@ -852,7 +868,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v61</span></p>
+    <p class="sub">화·금 PT · 개인운동 주 2일(가슴·등 / 하체·어깨·팔) · 나머지는 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v64</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1837,6 +1853,16 @@ const RECOVERY_ROUTINE = [
     options:['수영','실내자전거','걷기','야외 러닝'] },
 ];
 
+// 선생님이 정해준 공통 워밍업 — 개인 운동이든 PT든 운동 전에 먼저 한다
+const WARMUP = { kind:'free', routine:[
+  { why:'워밍업 — WGS 세계최고 스트레칭', sets:2, reps:'15회', label:'15회 × 2세트',
+    options:['WGS스트레칭'] },
+  { why:'워밍업 — 어깨 안정화·흉추 가동성', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
+    options:['케틀벨 암바'] },
+  { why:'워밍업 — 바디컨트롤', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['그라운드 소통','바디컨트롤 전면 코어'] },
+]};
+
 const PLAN = {
   // 회복날은 "아무것도 안 하는 날"이 아니라 기능성 동작으로 몸을 되돌리는 날.
   // 선생님이 알려주신 움직임·교정·호흡 동작으로 채운다. 무거운 것은 하나도 없다.
@@ -1849,30 +1875,54 @@ const PLAN = {
   recover: { tag:'회복', kind:'free', title:'회복 — 가볍게 움직이기',
              tip:'이틀 연속 근력을 했어요 · 오늘은 무게 대신 움직임으로',
              routine: RECOVERY_ROUTINE },
-  pt:      { tag:'PT', kind:'pt', title:'PT 수업',
+  pt:      { tag:'PT', kind:'pt', title:'PT 수업', routine:[],
              how:'선생님께 맡기기.',
              tip:'아래는 혼자 할 때 기준이에요 · 선생님이 다르게 진행하면 그대로 따르세요 · 끝나면 종목을 기록해 두기' },
-  A:       { tag:'가슴등', kind:'A', title:'가슴·등',
+  legs:    { tag:'하체', kind:'B', title:'하체 집중',
+             tip:'공통 워밍업 먼저 · 마지막 2~3개 남기고 멈추기 · 끝나면 바로 우유·바나나',
+             routine:[
+               { why:'하체 주운동 (백스쿼트)', sets:4, reps:'10~12회',
+                 options:['스쿼트','가블릿 스쿼트','레그프레스'] },
+               { why:'한 다리 (스플릿스쿼트)', sets:3, reps:'좌우 12회',
+                 options:['불가리안 스플릿 스쿼트','프론트런지','런지'] },
+               { why:'머신 (레그프레스)', sets:3, reps:'15회',
+                 options:['레그프레스','이너타이 머신','힙어드덕션'] },
+               { why:'워킹런지', sets:3, reps:'좌우 12회',
+                 options:['런지','프론트런지','토터치'] },
+               { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
+                 options:['글루트 브릿지','힙 쓰러스트','스티프 데드리프트'] },
+             ] },
+  shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔',
+             tip:'공통 워밍업 먼저 · 팔은 마지막에 · 끝나면 바로 우유·바나나',
+             routine:[
+               { why:'어깨 주운동 (오버헤드프레스)', sets:4, reps:'12~15회',
+                 options:['오버헤드프레스','밀리터리 프레스'] },
+               { why:'덤벨 숄더프레스', sets:3, reps:'15회',
+                 options:['덤벨 숄더프레스'] },
+               { why:'후면 어깨 (페이스풀)', sets:3, reps:'20회',
+                 options:['페이스풀','후면 리어 델토이드 플라이','업라이트로우'] },
+               { why:'팔 — 이두 (바벨컬)', sets:3, reps:'20회',
+                 options:['바벨 컬','덤벨 해머컬','해머 컬'] },
+               { why:'팔 — 삼두 (케이블푸쉬다운)', sets:3, reps:'20회',
+                 options:['케이블 푸쉬다운','케이블 로프푸쉬다운','라잉 트라이셉스 익스텐션'] },
+             ] },
+  chestback: { tag:'가슴등', kind:'A', title:'가슴·등',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 마지막 2~3개 남기고 멈추기 · 끝나면 바로 우유·바나나',
              // 자리(역할)는 그대로 두고, 종목은 "가장 오래 안 한 것"으로 매번 바뀐다.
              // 같은 가슴운동이라도 돌려써야 편식이 안 되고 기능적으로 좋다 (선생님 철학).
              routine:[
-               // 고립운동보다 기능성 먼저. 어떤 결로 할지는 "이번 주 테마"가 정한다 (BTT→CCT→RMT)
-               { theme:true },
-               { why:'가슴 주운동',  sets:4, reps:'10~12회',
-                 options:['벤치프레스','덤벨 벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스','체스트프레스'] },
-               { why:'가슴 보조',   sets:3, reps:'12~15회',
-                 options:['케이블 플라이','펙덱 플라이','케이블 크로스오버','체스트 플라이','딥스'] },
-               { why:'등 — 위에서 당기기', sets:4, reps:'12회',
-                 options:['랫풀다운','비하인드 렛풀다운','어시스턴트 풀업','암풀다운','풀업(턱걸이)'] },
-               { why:'등 — 앞으로 당기기', sets:3, reps:'15~20회',
-                 options:['덤벨 로우','바벨 로우','시티드 케이블 로우','롱풀로우 머신','인버티드로우'] },
-               { why:'팔 (여유 있을 때)', sets:2, reps:'20회',
-                 options:['바벨 컬','덤벨 해머컬','해머 컬','덤벨 컬'] },
-               { why:'팔 (여유 있을 때)', sets:2, reps:'20회',
-                 options:['케이블 푸쉬다운','케이블 로프푸쉬다운','라잉 트라이셉스 익스텐션'] },
+               { why:'가슴 주운동 (벤치프레스)',  sets:4, reps:'10~12회',
+                 options:['벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스'] },
+               { why:'덤벨프레스',   sets:3, reps:'12~15회',
+                 options:['덤벨 벤치프레스','케이블 플라이','딥스'] },
+               { why:'등 — 렛풀다운', sets:4, reps:'12회',
+                 options:['랫풀다운','비하인드 렛풀다운','어시스턴트 풀업','암풀다운'] },
+               { why:'데드리프트', sets:3, reps:'10~15회',
+                 options:['데드리프트','스티프 데드리프트','루마니안 데드리프트'] },
+               { why:'롱풀로우', sets:3, reps:'15~20회',
+                 options:['롱풀로우 머신','덤벨 로우','바벨 로우','인버티드로우'] },
              ] },
-  B:       { tag:'하체팔', kind:'B', title:'하체·어깨·팔',
+  B_old:   { tag:'하체팔', kind:'B', title:'하체·어깨·팔 (예전 합본)',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
              routine:[
                { theme:true },
@@ -1947,27 +1997,26 @@ function topPart(act){
   });
   return best && best.name;
 }
+// 선생님이 짜준 요일표 그대로 간다 (3분할: 하체 / 가슴·등 / 어깨·팔)
+//  일 하체 · 월 회복 · 화 PT · 수 가슴·등 · 목 어깨·팔 · 금 PT · 토 회복
+const WEEK_PLAN = ['legs','walk','pt','chestback','shoulderarm','pt','rest'];
+const WEEK_WHY = {
+  legs:'일요일은 하체 (선생님 루틴)',
+  chestback:'수요일은 가슴·등 (선생님 루틴)',
+  shoulderarm:'목요일은 어깨·팔 (선생님 루틴)',
+  walk:'월요일은 아파트 헬스장이 쉬어요',
+  rest:'토요일은 회복하는 날',
+  pt:'화·금은 PT',
+};
 function recommendPlan(ds, known){
-  const dow = dayOfWeek(ds);
-  if(dow === 0) return { key:'rest', why:'일요일은 회복하는 날' };
-  if(dow === 1) return { key:'walk', why:'월요일은 아파트 헬스장이 쉬어요' };
-  // PT 날도 그날의 분할(가슴·등 / 하체·어깨·팔)을 같이 정해 둔다.
-  // 선생님이 다르게 진행하면 그걸 따르면 되고, 겹쳐도 종목만 다르면 괜찮다.
-  const isPT = PT_DAYS.includes(dow);
+  const key = WEEK_PLAN[dayOfWeek(ds)];
+  const rec = { key, why: WEEK_WHY[key] };
+  // 사흘 연속 근력이면 알려만 준다 (요일표는 그대로 — 무게를 줄이면 된다)
   const k1 = known[planAdd(ds,-1)], k2 = known[planAdd(ds,-2)];
-  if(k1 && k1.strength && k2 && k2.strength) return { key:'recover', why:'어제·그제 이틀 연속으로 근력운동을 했어요' };
-  if(isPT) return { key:'pt', why:'화·금은 PT', splitKey: leastRecentSplit(ds, known) };
-  // 이번 주(일~토)에 근력을 이미 4일 했으면 더 하지 않는다.
-  // 9월에 주 5일까지 늘렸다가 지쳐서 포기한 적이 있다. 주 4일이 상한이다.
-  const dow0 = dayOfWeek(ds);
-  let weekStrength = 0;
-  for(let n=1; n<=dow0; n++){
-    const k = known[planAdd(ds, -n)];
-    if(k && k.strength) weekStrength++;
+  if(key !== 'walk' && key !== 'rest' && k1 && k1.strength && k2 && k2.strength){
+    rec.why += ' · 사흘째 연속이라 무게는 가볍게';
   }
-  if(weekStrength >= 4) return { key:'recover', why:'이번 주에 이미 근력 ' + weekStrength + '일 — 주 4일이 상한이에요' };
-  const r = splitInfo(ds, known);
-  return { key:r.key, why:'더 오래 안 한 쪽 — 가슴·등 ' + r.agoA + ' / 하체·어깨·팔 ' + r.agoB };
+  return rec;
 }
 // 가슴·등(A) 과 하체·어깨·팔(B) 중 더 오래 안 한 쪽
 function splitInfo(ds, known){
@@ -2184,8 +2233,16 @@ function buildWeekProgram(W){
     }
     // 오늘·앞날 → 추천
     const key = d.rec.key;
-    const base = (key === 'pt' && d.rec.splitKey && PLAN[d.rec.splitKey]) ? PLAN[d.rec.splitKey] : PLAN[key];
-    const rows = orderedRoutine(base, W, { extraLast, asOf: ds }).map(r=>{
+    const base = PLAN[key];
+    // 운동하는 날이면 공통 워밍업을 맨 앞에 붙인다 (PT 날도 마찬가지)
+    const isWorkout = (key === 'legs' || key === 'chestback' || key === 'shoulderarm' || key === 'pt');
+    const warm = isWorkout
+      ? orderedRoutine(WARMUP, W, { extraLast, asOf: ds }).map(r=>{
+          if(r.id) extraLast[r.id] = ds;
+          return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:r.why, warm:true };
+        })
+      : [];
+    const rows = warm.concat(orderedRoutine(base, W, { extraLast, asOf: ds }).map(r=>{
       if(r.id) extraLast[r.id] = ds;
       const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
       return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)),
@@ -2193,7 +2250,7 @@ function buildWeekProgram(W){
                care:r.care,
                // 오늘 것만 직접 바꿀 수 있게 한다 (다른 날은 그날 가서 바꾸면 된다)
                slotKey:(ds === W.today && r.alts > 1) ? r.slotKey : null };
-    });
+    }));
     // 앞에서부터 시간을 더해 가다가 60분을 넘으면 그 뒤는 "시간 남으면"으로 표시한다
     let acc = MIN_SETUP;
     rows.forEach(r=>{
@@ -2249,7 +2306,7 @@ function renderRoutineTab(){
         const md = Number(day.ds.slice(5,7)) + '/' + Number(day.ds.slice(8));
         const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
                    : (day.done ? '<span class="dp-done">완료</span>' : '');
-        const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}${r.extra?' extra':''}">
+        const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}${r.extra?' extra':''}${r.warm?' warm':''}">
             <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
             ${r.why ? `<span class="pe-why">${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why}</span>` : ''}
@@ -2261,6 +2318,45 @@ function renderRoutineTab(){
         </div>`;
       }).join('')
     }</div>
+    <details class="algo">
+      <summary>이 프로그램은 어떻게 짜였나요?</summary>
+      <div class="algo-body">
+        <p><b>1. 요일은 선생님이 정한 대로</b><br>
+        일 하체 · 월 회복 · 화 PT · 수 가슴·등 · 목 어깨·팔 · 금 PT · 토 회복.
+        이건 바뀌지 않아요.</p>
+
+        <p><b>2. 운동 전에는 늘 같은 워밍업</b><br>
+        WGS 스트레칭 15회 2세트 → 케틀벨 암바(어깨·흉추) → 바디컨트롤.
+        PT 날에도 붙여요.</p>
+
+        <p><b>3. 이번 주 결(테마)은 3주에 한 바퀴</b><br>
+        BTT(좌우 대칭) → CCT(몸통 꼬기) → RMT(회전). 한 주 내내 같은 결로 가고,
+        워밍업의 바디컨트롤 자리가 그 결을 따라요.</p>
+
+        <p><b>4. 자리는 고정, 종목은 바뀜</b><br>
+        "가슴 주운동" 같은 <b>자리</b>는 그대로 두고, 거기 넣을 종목을 이렇게 골라요.<br>
+        ① 선생님이 가르쳐주신 종목 먼저 →
+        ② 그중 <b>가장 오래 안 한 것</b> →
+        ③ 같은 주에 이미 쓴 종목은 빼기.<br>
+        그래서 운동 편식이 안 되고, 한 주 안에서 종목이 겹치지 않아요.</p>
+
+        <p><b>5. 무릎·허리 관리 중</b><br>
+        스쿼트·런지·레그프레스·달리기처럼 무릎을 깊게 접거나 충격이 오는 것은
+        맨 아래로 내리고 ⚠ 를 붙여요. "담기" 할 때도 빠져요.
+        붓기가 빠지면 이 설정을 꺼서 원래대로 되돌릴 수 있어요.</p>
+
+        <p><b>6. 한 시간에 맞추기</b><br>
+        웨이트 1세트 2분, 맨몸·기능성 1세트 1.2분, 유산소는 적힌 시간,
+        준비 6분으로 계산해요. 60분을 넘어가는 종목은 흐려지고 ⏱ 가 붙어요.</p>
+
+        <p><b>7. 기록하면 그 날은 실제 기록으로</b><br>
+        지난 날짜를 누르면 추천이 아니라 <b>그날 실제로 한 것</b>(세트·무게)이 나와요.
+        그리고 그 기록이 다음 종목을 고르는 재료가 돼요.</p>
+
+        <p class="algo-note">※ 몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.
+        선생님이 다르게 진행하면 선생님 말씀이 먼저예요.</p>
+      </div>
+    </details>
     <div class="rt-foot">
       위 요일을 누르면 그 날 운동이 보여요 (주황 테두리가 오늘).<br>
       지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요. 오늘 것은 ↻ 로 다른 종목으로 바꿀 수 있어요.<br>
