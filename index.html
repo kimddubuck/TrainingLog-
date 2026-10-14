@@ -48,6 +48,17 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
+<script src="exinfo.js?v=71"></script>
+<script>
+// exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
+if(!window.EXINFO) window.EXINFO = (function(){
+  const none = { key:'일반', basis:'정의', why:'' };
+  const miss = ()=>'<p>설명 파일을 불러오지 못했어요. 새로고침해 주세요.</p>';
+  return { WECK:{}, injectCSS(){}, chipsHTML:()=>'', detailHTML:()=>'', weckHTML:miss, toolsHTML:miss, howHTML:miss,
+    classify: ex => ({ name: ex && ex.name, tool:'', side:'', weck: none, toolText:'', toolKid:'', icon:'', sideText:'' }) };
+})();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -193,6 +204,9 @@ window.__chartReady = false;
     grid-column:1 / -1;font-size:11px;color:var(--ink-faint);line-height:1.45;
     word-break:keep-all;overflow-wrap:anywhere;
   }
+  .plan-card .pe-detail{grid-column:1 / -1;display:none;}
+  .plan-card .pc-ex.open .pe-detail{display:block;}
+  .plan-card .pc-ex.xi-row{cursor:pointer;}
   .plan-card .pc-theme{
     font-size:11.5px;color:var(--accent-b);background:var(--accent-b-dim);
     border-radius:8px;padding:5px 9px;margin:6px 0 2px;
@@ -443,6 +457,8 @@ window.__chartReady = false;
   .big-head b{font-size:14px;color:var(--accent-b);margin-right:6px;}
   .big-head em{font-style:normal;float:right;color:var(--ink-faint);}
   .gpick{display:flex;gap:4px;width:100%;margin-top:2px;}
+  .mx-info{width:100%;margin-top:-2px;}
+  .mx-why{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:3px;word-break:keep-all;}
   .gchip{
     font-size:10.5px;padding:3px 8px;border-radius:999px;cursor:pointer;
     border:1px solid var(--border);background:var(--surface-2);color:var(--ink-faint);
@@ -895,7 +911,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v70</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v71</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1880,15 +1896,16 @@ function kneeRisky(ex){ return KNEE_CARE && KNEE_AVOID.test(ex && ex.name || '')
 // ===== 이번 주 테마 (3주에 한 바퀴) =====
 // 한 주 내내 같은 결로 간다. 날마다 바꾸면 몸에 붙지 않는다.
 const THEMES = [
-  { key:'BTT', name:'BTT 주간', sub:'좌우 비틀림 대칭',
-    why:'BTT — 좌우 비틀림 대칭', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
-    options:['겟업동작','케틀벨 암바','불균형 교정운동','덤벨 로우'] },
-  { key:'CCT', name:'CCT 주간', sub:'몸통을 스프링처럼 꼬기',
-    why:'CCT — 몸통 꼬아 쓰기', sets:3, reps:'10회', label:'10회 × 3세트',
-    options:['바디컨트롤 전면 코어','스핀롤','플랭크','크랩워킹'] },
-  { key:'RMT', name:'RMT 주간', sub:'회전으로 부드럽고 강하게',
-    why:'RMT — 회전으로 힘 내기', sets:3, reps:'좌우 10회', label:'좌우 10회 × 3세트',
-    options:['RMT 클럽 스윙','RMT 로프','그라운드 소통','크랩워킹'] },
+  // 종목은 exinfo.js 에서 그 결로 나온 것 중, 무릎 부담 없고 회복날에 맞는 가벼운 것만
+  { key:'BTT', name:'BTT 주간', sub:'양쪽 같이 비틀기 (양손·양발이 같이)',
+    why:'BTT — 양쪽 같이 (골반 세우는 힘)', sets:3, reps:'15회', label:'15회 × 3세트',
+    options:['케틀벨 굿모닝','글루트 브릿지','굿모닝 운동'] },
+  { key:'CCT', name:'CCT 주간', sub:'한쪽으로 꼬아 버티기 (한 번에 한쪽씩)',
+    why:'CCT — 한쪽씩 꼬아 버티기', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
+    options:['불균형 교정운동','겟업동작','케틀벨 암바'] },
+  { key:'RMT', name:'RMT 주간', sub:'이쪽 꼬임 → 저쪽 꼬임 (스윙)',
+    why:'RMT — 좌우로 넘기는 스윙', sets:3, reps:'좌우 10회', label:'좌우 10회 × 3세트',
+    options:['RMT 클럽 스윙','RMT 로프'] },
 ];
 // 기준일(2026-01-04 일요일)부터 몇 번째 주인지로 정한다 — 달이 바뀌어도 순서가 끊기지 않는다
 function themeOf(ds){
@@ -2334,6 +2351,7 @@ function renderRoutineTab(){
   const W = buildWeekPlan();
   const th = themeOf(W.today);
   const DOWN = ['일','월','화','수','목','금','토'];
+  const algoOpen = [...wrap.querySelectorAll('details.algo')].map(d => d.open);
 
   // 고른 날이 이번 주가 아니면 오늘로 되돌린다
   const weekDays = [];
@@ -2366,11 +2384,12 @@ function renderRoutineTab(){
         const md = Number(day.ds.slice(5,7)) + '/' + Number(day.ds.slice(8));
         const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
                    : (day.done ? '<span class="dp-done">완료</span>' : '');
-        const rows = day.rows.map(r => `<div class="pc-ex${r.care?' care':''}${r.extra?' extra':''}${r.warm?' warm':''}">
+        const rows = day.rows.map(r => { const info = exInfoByName(r.name, r.id); return `<div class="pc-ex xi-row${r.care?' care':''}${r.extra?' extra':''}${r.warm?' warm':''}">
             <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
-            ${r.why ? `<span class="pe-why">${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why}</span>` : ''}
-          </div>`).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
+            <span class="pe-why">${EXINFO.chipsHTML(info)}${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why || ''}</span>
+            <div class="pe-detail">${EXINFO.detailHTML(info)}</div>
+          </div>`; }).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
         return `<div class="plan-card ${day.kind}${day.ds===W.today?' on':''}">
           <div class="pc-head"><span><b>${dow}</b> ${md} · ${day.title}</span>${mark}</div>
           ${day.minutes ? `<div class="pc-time">약 <b>${day.core}분</b>${day.minutes > day.core ? ' · 다 하면 ' + day.minutes + '분' : ''}</div>` : ''}
@@ -2379,53 +2398,35 @@ function renderRoutineTab(){
       }).join('')
     }</div>
     <details class="algo">
-      <summary>이 프로그램은 어떻게 짜였나요?</summary>
-      <div class="algo-body">
-        <p><b>1. 요일은 선생님이 정한 대로</b><br>
-        일 하체 · 월 회복 · 화 PT · 수 가슴·등 · 목 어깨·팔 · 금 PT · 토 회복.
-        이건 바뀌지 않아요.</p>
-
-        <p><b>2. 운동 전에는 늘 같은 워밍업</b><br>
-        WGS 스트레칭 15회 2세트 → 케틀벨 암바(어깨·흉추) → 바디컨트롤.
-        PT 날에도 붙여요.</p>
-
-        <p><b>3. 이번 주 결(테마)은 3주에 한 바퀴</b><br>
-        BTT(좌우 대칭) → CCT(몸통 꼬기) → RMT(회전). 한 주 내내 같은 결로 가고,
-        워밍업의 바디컨트롤 자리가 그 결을 따라요.</p>
-
-        <p><b>4. 자리는 고정, 종목은 바뀜</b><br>
-        "가슴 주운동" 같은 <b>자리</b>는 그대로 두고, 거기 넣을 종목을 이렇게 골라요.<br>
-        ① 선생님이 가르쳐주신 종목 먼저 →
-        ② 그중 <b>가장 오래 안 한 것</b> →
-        ③ 같은 주에 이미 쓴 종목은 빼기.<br>
-        그래서 운동 편식이 안 되고, 한 주 안에서 종목이 겹치지 않아요.</p>
-
-        <p><b>5. 무릎·허리 관리 중</b><br>
-        스쿼트·런지·레그프레스·달리기처럼 무릎을 깊게 접거나 충격이 오는 것은
-        맨 아래로 내리고 ⚠ 를 붙여요. "담기" 할 때도 빠져요.
-        붓기가 빠지면 이 설정을 꺼서 원래대로 되돌릴 수 있어요.</p>
-
-        <p><b>6. 한 시간에 맞추기</b><br>
-        웨이트 1세트 2분, 맨몸·기능성 1세트 1.2분, 유산소는 적힌 시간,
-        준비 6분으로 계산해요. 60분을 넘어가는 종목은 흐려지고 ⏱ 가 붙어요.</p>
-
-        <p><b>7. 기록하면 그 날은 실제 기록으로</b><br>
-        지난 날짜를 누르면 추천이 아니라 <b>그날 실제로 한 것</b>(세트·무게)이 나와요.
-        그리고 그 기록이 다음 종목을 고르는 재료가 돼요.</p>
-
-        <p class="algo-note">※ 몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.
-        선생님이 다르게 진행하면 선생님 말씀이 먼저예요.</p>
-      </div>
+      <summary>이 프로그램은 어떻게 짜였나요? (그림)</summary>
+      <div class="algo-body">${EXINFO.howHTML({
+        days: WEEK_PLAN.map((k, i)=>({ dow: DOWN[i], tag: PLAN[k].tag,
+          kind: k === 'pt' ? 'p' : (k === 'walk' || k === 'rest' || k === 'recover') ? 'r' : 'w' })),
+        theme: th.key })}</div>
+    </details>
+    <details class="algo">
+      <summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary>
+      <div class="algo-body">${EXINFO.weckHTML()}</div>
+    </details>
+    <details class="algo">
+      <summary>바벨 · 덤벨 · 머신은 뭐가 달라요? (연구 근거)</summary>
+      <div class="algo-body">${EXINFO.toolsHTML()}</div>
     </details>
     <div class="rt-foot">
       위 요일을 누르면 그 날 운동이 보여요 (주황 테두리가 오늘).<br>
+      종목 줄을 누르면 <b>기구·한쪽/양쪽·BTT/CCT/RMT</b> 설명과 근거가 펼쳐져요.<br>
       지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요. 오늘 것은 ↻ 로 다른 종목으로 바꿀 수 있어요.<br>
       종목은 선생님이 가르쳐주신 것 중 <b>가장 오래 안 한 것</b>으로 고르고, 같은 주에 겹치지 않게 합니다.<br>
       PT날 것은 혼자 할 때 기준이에요 — 선생님이 다르게 진행하면 그대로 따르세요.
     </div>`;
 
+  wrap.querySelectorAll('details.algo').forEach((d, i)=>{ if(algoOpen[i]) d.open = true; });
   wrap.querySelectorAll('.rt-day').forEach(btn=>{
     btn.onclick = ()=>{ programDay = btn.dataset.pday; renderRoutineTab(); };
+  });
+  // 종목 줄을 누르면 설명이 펼쳐진다 (↻ 단추는 빼고)
+  wrap.querySelectorAll('.pc-ex.xi-row').forEach(row=>{
+    row.onclick = (e)=>{ if(e.target.closest('.pe-swap')) return; row.classList.toggle('open'); };
   });
   wrap.querySelectorAll('.pe-swap').forEach(btn=>{
     btn.onclick = ()=>{
@@ -2494,6 +2495,7 @@ function renderTodayPlan(W){
 }
 
 // ---------- Tabs ----------
+if(window.EXINFO) EXINFO.injectCSS();
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3027,30 +3029,33 @@ document.getElementById('manageModal').addEventListener('click', (e)=>{
 
 
 // ---------- 대그룹 (BTT · CCT · RMT) ----------
-// 선생님이 쓰는 세 갈래로 종목을 묶는다.
-//  BTT 좌우 밸런스를 맞춰주는 대칭 운동   (한쪽씩 하거나 좌우 차이를 잡는 것)
-//  CCT 몸통을 스프링처럼 꼬아 쓰는 코어   (코어·버티기·꼬기)
-//  RMT 몸을 회전시켜 힘을 내는 전신 운동  (회전·전신 흐름)
-//  기본 양쪽을 똑같이 쓰는 기본 근력·유산소 (셋 중 어디에도 딱 맞지 않는 것)
+// 종목을 BTT · CCT · RMT 로 묶는다. 나누는 기준은 exinfo.js (WeckMethod 공식 정의 + 근거 표시).
+//  BTT  양쪽 같이 비틀기 — 양손·양발이 같이 움직여 한쪽으로 꼴 수 없음 (공식 예: 파워리프팅·멀리뛰기·키핑 풀업)
+//  CCT  한쪽으로 꼬아 버티기 — 한 번에 한쪽씩 몸통을 꼼 (공식 예: 스플릿 스쿼트·런지·꼬아서 하는 프레스·로우)
+//  RMT  이쪽 꼬임 → 저쪽 꼬임 — 클럽·로프 스윙
+//  일반 셋 중 어디라고 근거가 없음 (기계·한 관절·유산소·스트레칭·버티는 코어)
+//  ?    선생님만의 동작이라 공식 자료에 없음 → 선생님 확인
 const BIG_GROUPS = [
-  { key:'BTT', name:'BTT', sub:'좌우 밸런스를 맞춰주는 대칭 운동' },
-  { key:'CCT', name:'CCT', sub:'몸통을 스프링처럼 꼬아 쓰는 코어' },
-  { key:'RMT', name:'RMT', sub:'회전시켜 부드럽고 강력한 힘' },
-  { key:'기본', name:'기본', sub:'양쪽을 똑같이 쓰는 근력·유산소' },
+  { key:'BTT', name:'BTT', btn:'BTT', sub:'양쪽 같이 비틀기 — 양손·양발이 같이 움직여요' },
+  { key:'CCT', name:'CCT', btn:'CCT', sub:'한쪽으로 꼬아 버티기 — 한 번에 한쪽씩' },
+  { key:'RMT', name:'RMT', btn:'RMT', sub:'이쪽 꼬임 → 저쪽 꼬임 — 클럽·로프 스윙' },
+  { key:'일반', name:'셋 다 아님', btn:'일반', sub:'기계·한 관절·유산소·스트레칭·버티는 코어' },
+  { key:'?', name:'선생님 확인', btn:'확인', sub:'선생님만의 동작 — 공식 자료에 없어요' },
 ];
-const BIG_RULES = [
-  ['RMT', /RMT|토터치|크랩워킹|회전|그라운드/],
-  ['CCT', /플랭크|크런치|싯업|윗몸|레그 ?레이즈|슈퍼맨|스핀롤|악어호흡|허리이완|바디컨트롤/],
-  ['BTT', /겟업|암바|원암|한팔|스플릿|불가리안|런지|교정|힌지 ?보조|내전근|고관절|노드릭|노르딕|이너타이|힙어드덕션/],
-];
-// 저장된 수정값(exOverrides[id].grp)이 있으면 그걸 우선한다 — 선생님·사용자가 고친 것이 규칙을 이긴다
+function exInfo(ex){
+  const o = ex && exOverrides[ex.id];
+  return EXINFO.classify(ex || {}, o && o.grp);
+}
+// 프로그램 줄처럼 이름만 아는 경우 — 목록에서 같은 종목을 찾아 종류(맨몸·유산소)까지 맞춘다
+function exInfoByName(name, id){
+  const key = String(name || '').replace(/\s+/g, '');
+  const ex = (id && masterExercises.find(e => e.id === id))
+          || masterExercises.find(e => String(e.name || '').replace(/\s+/g, '') === key);
+  return exInfo(ex || { name });
+}
 function bigGroupOf(ex){
-  if(!ex) return '기본';
-  const o = exOverrides[ex.id];
-  if(o && o.grp) return o.grp;
-  const hay = (ex.name||'') + ' ' + (ex.part||'');
-  for(const [g, re] of BIG_RULES) if(re.test(hay)) return g;
-  return '기본';
+  if(!ex) return '일반';
+  return exInfo(ex).weck.key;
 }
 async function setBigGroup(id, grp){
   exOverrides[id] = { ...(exOverrides[id]||{}), grp };
@@ -3065,7 +3070,8 @@ const escAttr = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').
 function renderManageMaster(msg){
   const wrap = document.getElementById('mpanel-master');
   const typeLabel = t => t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
-  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 대그룹은 BTT / CCT / RMT / 기본 단추로 바꿔요.</p>';
+  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 아래 단추로 BTT / CCT / RMT / 일반 / 확인 을 바꿔요 (선생님 말씀이 먼저).</p>'
+    + '<details class="algo"><summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary><div class="algo-body">' + EXINFO.weckHTML() + '</div></details>';
   if(msg) html += `<p class="mx-note">${msg}</p>`;
   // 대그룹(BTT·CCT·RMT·기본)으로 묶어서 보여준다
   BIG_GROUPS.forEach(g=>{
@@ -3095,13 +3101,16 @@ function renderManageMaster(msg){
       const armed = (delArmExId === ex.id);
       const cur = bigGroupOf(ex);
       const picks = BIG_GROUPS.map(b =>
-        `<button class="gchip${b.key===cur?' on':''}" data-exgrp="${ex.id}" data-grp="${b.key}">${b.name}</button>`).join('');
+        `<button class="gchip${b.key===cur?' on':''}" data-exgrp="${ex.id}" data-grp="${b.key}">${b.btn}</button>`).join('');
+      const info = exInfo(ex);
       html += `<div class="master-item">
         <span class="mname">${ex.name}</span>
         ${ex.part?`<span class="mpart">· ${ex.part}</span>`:''}
         <span class="mtype ${t}">${typeLabel(t)}</span>
         <button class="medit" data-exedit="${ex.id}">✏️</button>
         <button class="mdel${armed?' armed':''}" data-exdel="${ex.id}">${armed?'정말 삭제?':'×'}</button>
+        <div class="mx-info">${EXINFO.chipsHTML(info)}<span class="xi-basis b-${info.weck.basis}">${info.weck.basis}</span>
+          <div class="mx-why">${info.icon} ${info.toolText} · ${info.weck.why}</div></div>
         <div class="gpick">${picks}</div>
       </div>`;
     });

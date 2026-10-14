@@ -35,6 +35,8 @@ window.__chartReady = false;
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (앱과 같은 파일) -->
+<script src="exinfo.js?v=71"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{
@@ -92,6 +94,58 @@ window.__chartReady = false;
   .tabs{display:flex;gap:6px;margin:18px 0;border-bottom:1px solid var(--border);}
   .tab{flex:1;text-align:center;padding:10px 4px;font-size:13.5px;font-weight:600;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;}
   .tab.active{color:var(--ink);border-bottom-color:var(--accent-a);}
+  /* 탭이 6개라 좁은 화면에선 옆으로 밀어서 본다 */
+  .tabs{overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{white-space:nowrap;flex:1 0 auto;padding:10px 8px;}
+  @media (max-width:430px){ .tab{font-size:12.5px;padding:10px 7px;} }
+  .r-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;}
+  /* 식단 */
+  .meal-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+  .meal-nav .cal-nav:disabled{opacity:.3;}
+  .meal-day{font-family:'IBM Plex Mono',Consolas,monospace;font-size:14.5px;font-weight:600;text-align:center;}
+  .meal-day span{display:block;font-family:'IBM Plex Sans KR',sans-serif;font-size:11px;font-weight:400;color:var(--ink-faint);}
+  .meal-slot-r{padding:10px 0;border-top:1px solid var(--border);}
+  .meal-lbl{font-size:12.5px;color:var(--ink-dim);margin-bottom:6px;}
+  .meal-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .meal-cell{position:relative;display:inline-block;line-height:0;}
+  .meal-cell img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block;}
+  .meal-also{font-size:12px;color:var(--ink-dim);border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;}
+  /* 설명 카드 (앱과 같은 모양) */
+  .algo{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:4px 0 12px;}
+  .algo summary{padding:12px 14px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  .algo summary::-webkit-details-marker{display:none;}
+  .algo summary::after{content:'＋';color:var(--ink-faint);font-weight:400;}
+  .algo[open] summary::after{content:'－';}
+  .algo[open] summary{border-bottom:1px solid var(--border);}
+  .algo-body{padding:12px 14px 14px;font-size:12.5px;line-height:1.65;color:var(--ink-dim);}
+  .dict-head{margin:14px 0 4px;padding:7px 10px;border-radius:8px;background:var(--surface-2);border-left:4px solid var(--wk);font-size:12px;color:var(--ink-dim);}
+  .dict-head:first-child{margin-top:0;}
+  .dict-head b{color:var(--wk);font-size:13px;margin-right:4px;} .dict-head em{float:right;font-style:normal;color:var(--ink-faint);}
+  .dict-item{padding:8px 2px;border-bottom:1px solid var(--border);}
+  .dict-name{font-size:13.5px;color:var(--ink);font-weight:600;margin-bottom:3px;} .dict-name span{font-size:11px;color:var(--ink-faint);font-weight:400;}
+  .dict-why{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:3px;word-break:keep-all;}
+  /* 내 몸 (앱과 같은 모양) */
+  .body-head{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .body-src{font-size:11px;font-weight:400;color:var(--ink-faint);}
+  .body-mount{width:100%;min-height:380px;border-radius:12px;overflow:hidden;background:linear-gradient(#262D33,#1C2126);position:relative;}
+  .body-mount canvas{display:block;}
+  .body-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--ink-faint);text-align:center;padding:16px;word-break:keep-all;pointer-events:none;z-index:1;}
+  .body-credit{display:block;margin-top:6px;color:var(--ink-faint);} .body-credit a{color:var(--ink-dim);}
+  .body-btns{display:flex;gap:5px;margin-top:10px;}
+  .body-btn{flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-dim);font-size:12px;cursor:pointer;font-family:inherit;}
+  .body-btn.on{border-color:var(--accent-a);color:var(--accent-a);}
+  .body-note{font-size:11.5px;color:var(--ink-faint);line-height:1.6;margin:10px 0 0;word-break:keep-all;} .body-note b{color:var(--ink-dim);}
+  .body-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-dim);margin-bottom:6px;}
+  .body-legend span{display:flex;align-items:center;gap:5px;}
+  .body-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;}
+  .body-dot.pain{background:#E05A4F;} .body-dot.release{background:#E8A33D;} .body-dot.strength{background:#4FA8A0;}
+  .body-row{display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .body-row .body-dot{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;font-size:10px;color:#fff;margin-top:1px;}
+  .body-row:last-child{border-bottom:none;}
+  .body-row.sel{background:rgba(232,163,61,.08);border-radius:8px;}
+  .body-name{font-size:13px;color:var(--ink);font-weight:600;word-break:keep-all;}
+  .body-desc{font-size:11.5px;color:var(--ink-dim);line-height:1.5;margin-top:2px;word-break:keep-all;}
   .panel{display:none;} .panel.active{display:block;}
   .hist-entry{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
   .hist-top{display:flex;justify-content:space-between;align-items:flex-start;}
@@ -178,13 +232,16 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 <span style="color:var(--ink-faint);">· v42</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v71</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
     <div class="tab active" data-tab="history">최근 기록</div>
     <div class="tab" data-tab="graph">진행 그래프</div>
     <div class="tab" data-tab="inbody">인바디</div>
+    <div class="tab" data-tab="meal">식단</div>
+    <div class="tab" data-tab="body">내 몸</div>
+    <div class="tab" data-tab="guide">종목·원리</div>
   </div>
 
   <div class="panel active" id="panel-history">
@@ -217,6 +274,52 @@ window.__chartReady = false;
     </div>
     <div id="ibHistory" style="margin-top:16px;"></div>
   </div>
+
+  <!-- 식단 — 운동 안 한 날의 사진도 보이게 날짜별로 (읽기 전용) -->
+  <div class="panel" id="panel-meal">
+    <div class="r-card">
+      <div class="meal-nav">
+        <button class="cal-nav" id="mealPrev">‹</button>
+        <div class="meal-day" id="mealDay"></div>
+        <button class="cal-nav" id="mealNext">›</button>
+      </div>
+      <div id="mealView"></div>
+    </div>
+    <p class="section-label" style="text-align:center;">사진을 누르면 크게 보여요 · ‹ › 는 사진이 있는 날로만 넘어가요</p>
+  </div>
+
+  <!-- 내 몸 상태 — 앱과 같은 3D 해부 모델 (읽기 전용) -->
+  <div class="panel" id="panel-body">
+    <div class="r-card">
+      <div class="body-head">내 몸 상태 — 3D 해부 모델 <span class="body-src">2022-12-28 체형분석 + 지금 증상</span></div>
+      <div id="bodyMount" class="body-mount"><div class="body-loading">3D 불러오는 중…</div></div>
+      <div class="body-btns">
+        <button class="body-btn" data-view="front">앞</button>
+        <button class="body-btn" data-view="right">오른쪽</button>
+        <button class="body-btn" data-view="back">뒤</button>
+        <button class="body-btn" data-view="left">왼쪽</button>
+        <button class="body-btn on" data-view="auto">회전</button>
+        <button class="body-btn on" data-view="lines">기준선</button>
+      </div>
+      <p class="body-note">손가락으로 끌면 돌아가요. 전신 뼈대 + 오른쪽 다리 근육(아픈 쪽)이고,
+      결과지 각도대로 기울여 놓았어요(뼈대 2배, 선·숫자 3배 과장).
+      <b>흰 점선은 수평·수직 기준</b>, <b>빨간 선은 실제 기울기</b>. 색이 입혀진 근육이 풀어줄 곳·힘 기를 곳이에요.<br>
+      <span class="body-credit">3D 모델: <a href="https://anatomytool.org/open3dmodel-create" target="_blank" rel="noopener">Open3DModel</a> (CC BY-SA 4.0)</span></p>
+    </div>
+    <div class="r-card">
+      <div class="body-legend">
+        <span><i class="body-dot pain"></i>지금 아픈 곳</span>
+        <span><i class="body-dot release"></i>풀어줄 곳</span>
+        <span><i class="body-dot strength"></i>힘 기를 곳</span>
+      </div>
+      <div id="bodyList"></div>
+    </div>
+  </div>
+
+  <!-- 종목·원리 — 프로그램 짜는 법, BTT·CCT·RMT, 기구 차이, 종목 사전 (읽기 전용) -->
+  <div class="panel" id="panel-guide">
+    <div id="guideView"></div>
+  </div>
 </div>
 
 <script>
@@ -237,7 +340,7 @@ const DEFAULT_MASTER = [
 ];
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 let CUP_ML = 165;
-let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dailyItems = [];
+let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dailyItems = [], exOverrides = {};
 
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
 function allExercises(){ return masterExercises; }
@@ -399,8 +502,150 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
     if(tab.dataset.tab==='graph') renderGraph();
     if(tab.dataset.tab==='inbody') renderIbChart();
+    if(tab.dataset.tab==='meal') renderMealTab();
+    if(tab.dataset.tab==='body') openBodyTab();
+    if(tab.dataset.tab==='guide') renderGuide();
   });
 });
+
+// ---------- 종목 사전 (앱과 같은 기준) ----------
+if(window.EXINFO) EXINFO.injectCSS();
+function exInfoOf(ex){
+  const o = ex && ex.id && exOverrides[ex.id];
+  const m = ex && ex.id && masterExercises.find(x => x.id === ex.id);
+  return EXINFO.classify(m || ex || {}, o && o.grp);
+}
+// 기록 줄 앞에 붙는 작은 딱지 (BTT·CCT·RMT 만)
+function wkChipHTML(ex){
+  if(!window.EXINFO) return '';
+  const k = exInfoOf(ex).weck.key;
+  return `<span class="xi-wk xi-${k === '?' ? 'Q' : k}">${k === '?' ? '확인' : k}</span>`;
+}
+
+// ---------- 식단 (읽기 전용) ----------
+const MEAL_SLOTS_R = [['breakfast','아침'],['snackAM','간식 · 오전'],['lunch','점심'],['snackPM','간식 · 오후'],
+                      ['dinner','저녁'],['snackNight','간식 · 저녁 이후'],['snack','간식']];
+function mealDays(){
+  return Object.keys(meals).filter(d => MEAL_SLOTS_R.some(([k]) => (meals[d][k] || []).length)).sort();
+}
+let mealDayCur = null;
+function renderMealTab(){
+  const days = mealDays();
+  const view = document.getElementById('mealView');
+  const dayEl = document.getElementById('mealDay');
+  if(!days.length){ dayEl.textContent = ''; view.innerHTML = '<div class="empty">아직 식단 사진이 없어요</div>'; return; }
+  if(!mealDayCur || !days.includes(mealDayCur)) mealDayCur = days[days.length - 1];
+  const i = days.indexOf(mealDayCur);
+  dayEl.innerHTML = `${mealDayCur} (${DAY_NAMES[dayOfWeek(mealDayCur)]}) <span>${i + 1} / ${days.length}일</span>`;
+  document.getElementById('mealPrev').disabled = i <= 0;
+  document.getElementById('mealNext').disabled = i >= days.length - 1;
+  const mm = meals[mealDayCur] || {};
+  let prevMin = null;
+  view.innerHTML = MEAL_SLOTS_R.map(([k, lbl])=>{
+    const imgs = mm[k] || [];
+    if(!imgs.length) return '';
+    const st = slotTime(imgs);
+    let timeHtml = '';
+    if(st){
+      const cur = hhmmToMin(st);
+      const gap = (prevMin != null && cur != null) ? ` <span class="mgap">+${minToText(cur - prevMin)}</span>` : '';
+      timeHtml = ` <span class="mslot-time">${st}</span>${gap}`;
+      if(cur != null) prevMin = cur;
+    }
+    const thumbs = imgs.map(p=>{
+      const pt = photoTime(p);
+      return `<span class="meal-cell"><img class="meal-photo" src="${photoUrl(p)}" loading="lazy">${pt ? `<span class="mtime">${pt}</span>` : ''}</span>`;
+    }).join('');
+    return `<div class="meal-slot-r"><div class="meal-lbl">${lbl}${timeHtml}</div><div class="meal-row">${thumbs}</div></div>`;
+  }).join('');
+  // 그날 운동 기록이 있으면 한 줄로 알려준다
+  const en = entries.find(e => e.date === mealDayCur);
+  if(en) view.innerHTML += `<div class="meal-also">🏋️ 이날 운동: ${en.pt ? 'PT 수업' : (en.group || '운동')}${(en.exercises || []).length ? ' · ' + en.exercises.length + '종목' : ''} (최근 기록 탭에서 자세히)</div>`;
+}
+document.getElementById('mealPrev').onclick = ()=>{ const d = mealDays(); const i = d.indexOf(mealDayCur); if(i > 0){ mealDayCur = d[i - 1]; renderMealTab(); } };
+document.getElementById('mealNext').onclick = ()=>{ const d = mealDays(); const i = d.indexOf(mealDayCur); if(i < d.length - 1){ mealDayCur = d[i + 1]; renderMealTab(); } };
+
+// ---------- 내 몸 (3D) — 처음 열 때만 불러온다 ----------
+function loadScript(src){
+  return new Promise((ok, no)=>{
+    const el = document.createElement('script');
+    el.src = src; el.onload = ok; el.onerror = ()=>no(new Error('불러오기 실패: ' + src));
+    document.head.appendChild(el);
+  });
+}
+let bodyTabReady = false;
+async function openBodyTab(){
+  if(bodyTabReady) return;
+  bodyTabReady = true;
+  const mount = document.getElementById('bodyMount');
+  const list = document.getElementById('bodyList');
+  const loadingEl = mount.querySelector('.body-loading');
+  const showStatus = t => { if(!loadingEl) return; loadingEl.textContent = t; loadingEl.style.display = t ? '' : 'none'; };
+  try{
+    if(!window.THREE)      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+    if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
+    if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
+    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=71');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=71');
+  }catch(e){
+    bodyTabReady = false;
+    showStatus('3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.');
+    return;
+  }
+  initBody3D('bodyMount', BODY_DATA, { onStatus: showStatus }).catch(()=>{
+    bodyTabReady = false; mount.dataset.ready = '';
+    showStatus('3D 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.');
+  });
+  list.innerHTML = BODY_DATA.markers.map((m, i)=>
+    `<div class="body-row" data-i="${i}"><i class="body-dot ${m.kind}">${i + 1}</i>
+       <div><div class="body-name">${m.name}</div><div class="body-desc">${m.note}</div></div></div>`).join('');
+  list.querySelectorAll('.body-row').forEach(r=> r.addEventListener('click', ()=>{
+    list.querySelectorAll('.body-row').forEach(x=>x.classList.toggle('sel', x === r));
+    setBodyBtn('auto', false);
+    if(window.body3dFocus) body3dFocus(+r.dataset.i);
+    if(mount.scrollIntoView) mount.scrollIntoView({ behavior:'smooth', block:'start' });
+  }));
+}
+function setBodyBtn(view, on){
+  const b = document.querySelector('.body-btn[data-view="' + view + '"]');
+  if(b) b.classList.toggle('on', on);
+}
+document.querySelectorAll('.body-btn').forEach(b=> b.addEventListener('click', ()=>{
+  if(!window.body3dView) return;
+  const v = b.dataset.view;
+  if(v === 'auto'){ setBodyBtn('auto', body3dAuto()); return; }
+  if(v === 'lines'){ setBodyBtn('lines', body3dLines()); return; }
+  setBodyBtn('auto', false);
+  body3dView(v);
+}));
+
+// ---------- 종목·원리 ----------
+function renderGuide(){
+  const wrap = document.getElementById('guideView');
+  if(!window.EXINFO){ wrap.innerHTML = '<div class="empty">설명 파일을 불러오지 못했어요</div>'; return; }
+  const open = [...wrap.querySelectorAll('details.algo')].map(d => d.open);
+  // 종목 사전: 결별로 묶어서, 종목마다 기구·쪽·근거
+  const groups = ['BTT','CCT','RMT','일반','?'];
+  const items = masterExercises.filter(e => !(exOverrides[e.id] && exOverrides[e.id].deleted))
+    .map(e => ({ e, info: exInfoOf(e) }));
+  const dict = groups.map(g=>{
+    const list = items.filter(x => x.info.weck.key === g);
+    if(!list.length) return '';
+    const W = EXINFO.WECK[g];
+    return `<div class="dict-head" style="--wk:${W.color}">${/^(BTT|CCT|RMT)$/.test(g) ? `<b>${g}</b> <span>${W.kr}</span>` : `<b>${W.kr}</b>`} <em>${list.length}개</em></div>`
+      + list.map(({ e, info }) => `<div class="dict-item">
+          <div class="dict-name">${e.name}${e.part ? ` <span>· ${e.part}</span>` : ''}</div>
+          <div>${EXINFO.chipsHTML(info)}<span class="xi-basis b-${info.weck.basis}">${info.weck.basis}</span></div>
+          <div class="dict-why">${info.icon} ${info.toolText} · ${info.weck.why}</div>
+        </div>`).join('');
+  }).join('');
+  wrap.innerHTML = `
+    <details class="algo" open><summary>프로그램은 이렇게 짜여요 (그림)</summary><div class="algo-body">${EXINFO.howHTML()}</div></details>
+    <details class="algo"><summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary><div class="algo-body">${EXINFO.weckHTML()}</div></details>
+    <details class="algo"><summary>바벨 · 덤벨 · 머신은 뭐가 달라요? (연구 근거)</summary><div class="algo-body">${EXINFO.toolsHTML()}</div></details>
+    <details class="algo"><summary>종목 사전 — ${items.length}개 (결 · 기구 · 근거)</summary><div class="algo-body">${dict}</div></details>`;
+  wrap.querySelectorAll('details.algo').forEach((d, i)=>{ if(open.length) d.open = !!open[i]; });
+}
 
 let historyFilter = 'all';
 let openMonths = {};
@@ -414,7 +659,7 @@ function entryCardHTML(e){
     const rows = e.exercises.map(ex=>{
       const setsTxt = setsToText(ex);
       if(!setsTxt) return '';
-      return `<div class="hx-row"><span class="hx-txt"><b>${exNameOf(ex)}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
+      return `<div class="hx-row"><span class="hx-txt">${wkChipHTML(ex)}<b>${exNameOf(ex)}</b> ${setsTxt}</span>${histSparkHtml(ex, e.date)}</div>${setTimesHtml(ex)}`;
     }).filter(Boolean);
     body += rows.join('');
     if(!rows.length) body += `<div style="color:var(--ink-faint);font-size:12.5px;">기록한 운동 없음</div>`;
@@ -931,6 +1176,7 @@ function renderIbHistory(){
     inbody = data.inbody || [];
     dailyItems = Array.isArray(data.dailyItems) ? data.dailyItems : [];
     meals = data.meals || {};
+    exOverrides = (data.exOverrides && typeof data.exOverrides === 'object') ? data.exOverrides : {};
     if(Array.isArray(data.masterExercises) && data.masterExercises.length){
       masterExercises = data.masterExercises;
     }else{
