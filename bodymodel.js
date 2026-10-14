@@ -57,11 +57,13 @@
     // sideSign: 오른쪽 덩어리면 -1 (x 음수), 거울 왼쪽이면 +1
     const all = meshesOf(root);
     const by = (re) => all.filter(m => re.test(norm(m.userData.orig)));
+    // 거울로 만든 왼쪽 묶음(x 를 뒤집음)에서는 y·z 축 회전 방향이 반대로 나오므로 부호를 뒤집어 준다 (x 축 회전은 그대로)
+    const mir = sideSign > 0 ? -1 : 1;
     // 머리: 오른쪽으로 기울기 · 왼쪽으로 회전 · 앞으로(거북목)
     const headParts = by(HEAD_RE);
     if(headParts.length){
       const g = pivotGroup(root, headParts, new THREE.Vector3(0, 1.45, 0));
-      g.rotation.z = deg(-F.headTiltRight * POSE); g.rotation.y = deg(F.headRotLeft * POSE);
+      g.rotation.z = mir * deg(-F.headTiltRight * POSE); g.rotation.y = mir * deg(F.headRotLeft * POSE);
       g.position.z += F.forwardHead * 0.004 * POSE;
     }
     // 어깨·팔: 올라감 (왼쪽 4°, 오른쪽 2°)
@@ -77,7 +79,7 @@
     if(pelvParts.length){
       const g = pivotGroup(root, pelvParts, new THREE.Vector3(0, 0.98, 0));
       g.rotation.x = deg(-F.pelvisTiltFwd * POSE * 0.5);
-      g.rotation.z = deg(F.pelvisRightLow * POSE);
+      g.rotation.z = mir * deg(F.pelvisRightLow * POSE * 0.7);
     }
     // 다리: 덩어리의 높이로 허벅지/정강이/발을 가른다 (뼈든 근육이든)
     const legParts = all.filter(m => { const n = norm(m.userData.orig); return !HEAD_RE.test(n) && !ARM_RE.test(n) && !PELV_RE.test(n) && !SPINE_RE.test(n) && !/rib|sternum|costal/.test(n); });
