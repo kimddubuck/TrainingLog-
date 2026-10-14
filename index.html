@@ -317,7 +317,9 @@ window.__chartReady = false;
   .body-src{font-size:11px;font-weight:400;color:var(--ink-faint);}
   .body-mount{width:100%;min-height:380px;border-radius:12px;overflow:hidden;background:linear-gradient(#262D33,#1C2126);position:relative;}
   .body-mount canvas{display:block;}
-  .body-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--ink-faint);text-align:center;padding:16px;word-break:keep-all;}
+  .body-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--ink-faint);text-align:center;padding:16px;word-break:keep-all;pointer-events:none;z-index:1;}
+  .body-credit{display:block;margin-top:6px;color:var(--ink-faint);}
+  .body-credit a{color:var(--ink-dim);}
   .body-btns{display:flex;gap:6px;margin-top:10px;}
   .body-btn{flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-dim);font-size:12.5px;cursor:pointer;}
   .body-btn.on{border-color:var(--accent-a);color:var(--accent-a);}
@@ -328,21 +330,7 @@ window.__chartReady = false;
   .body-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;}
   .body-row .body-dot{width:18px;height:18px;display:flex;align-items:center;justify-content:center;
     font-style:normal;font-weight:700;font-size:10px;color:#fff;}
-  /* 해부 그림 */
-  .illu-wrap{width:100%;background:#F3F0E9;border-radius:12px;overflow:hidden;touch-action:pan-y;user-select:none;}
-  .illu-svg{display:block;width:100%;height:auto;}
-  .illu-ref{stroke:#2B3137;stroke-width:2;stroke-dasharray:8 6;opacity:.75;}
-  .illu-tilt{stroke:#E0352B;stroke-width:3.5;}
-  .illu-joint{fill:#E0352B;}
-  .illu-lead{stroke:#2B3137;stroke-width:1.5;opacity:.6;}
-  .illu-label{fill:#1F2428;font-weight:700;}
-  .illu-foot{fill:#6B7076;}
-  .illu-dot{cursor:pointer;}
-  .illu-dot.blink{animation:illuBlink .5s ease-in-out 5;}
-  @keyframes illuBlink{50%{opacity:.25;}}
-  .illu-empty{min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;
-    font-size:13px;line-height:1.7;color:#5E6A72;padding:20px;word-break:keep-all;}
-  .illu-empty span{display:block;margin-top:10px;font-size:12px;}
+
   .body-dot.pain{background:#E05A4F;} .body-dot.release{background:#E8A33D;} .body-dot.strength{background:#4FA8A0;}
   .body-row{display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
   .body-row .body-dot{margin-top:1px;}
@@ -907,7 +895,7 @@ window.__chartReady = false;
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v69</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 매일 WGS스트레칭 <span style="color:var(--ink-faint);">· v70</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1094,22 +1082,9 @@ window.__chartReady = false;
 
   <!-- 내 몸 상태 — 체형분석 결과를 3D 사람 위에 표시. three.js 는 이 탭을 처음 열 때만 불러온다 -->
   <div class="panel" id="panel-body">
-    <!-- 해부 그림(AI 일러스트) 위에 기준선·각도·번호 점 -->
+    <!-- 진짜 해부 3D 모델(Open3DModel, CC BY-SA) 위에 체형분석 수치·기준선·표시점 -->
     <div class="card">
-      <div class="body-head">내 몸 상태 — 해부 그림 <span class="body-src">2022-12-28 체형분석 + 지금 증상</span></div>
-      <div id="illuMount" class="illu-wrap"><div class="illu-empty">그림 불러오는 중…</div></div>
-      <div class="body-btns">
-        <button class="body-btn on" data-illu="front">앞</button>
-        <button class="body-btn" data-illu="right">오른쪽</button>
-        <button class="body-btn" data-illu="back">뒤</button>
-        <button class="body-btn" data-illu="left">왼쪽</button>
-      </div>
-      <p class="body-note">그림은 AI가 그린 해부 일러스트예요. <b>흰 점선은 수평·수직 기준</b>,
-      <b>빨간 선은 결과지 숫자대로 기울인 실제 선</b>(3배 과장). 번호 점은 아래 목록의 번호예요.
-      옆·뒤 그림은 아직 없어서 끌어 넘기면 안내만 나와요.</p>
-    </div>
-    <div class="card">
-      <div class="body-head">3D 근육 인체 — 돌려보기 <span class="body-src">근육 자리를 덩어리로 흉내 낸 것</span></div>
+      <div class="body-head">내 몸 상태 — 3D 해부 모델 <span class="body-src">2022-12-28 체형분석 + 지금 증상</span></div>
       <div id="bodyMount" class="body-mount"><div class="body-loading">3D 불러오는 중…</div></div>
       <div class="body-btns">
         <button class="body-btn" data-view="front">앞</button>
@@ -1119,9 +1094,11 @@ window.__chartReady = false;
         <button class="body-btn on" data-view="auto">회전</button>
         <button class="body-btn on" data-view="lines">기준선</button>
       </div>
-      <p class="body-note">손가락으로 끌면 돌아가요. 기울기·돌림은 눈에 보이게 <b>3배 과장</b>했고,
-      몸 비율은 체형분석 사진에서 잰 거예요. 색이 입혀진 근육이 풀어줄 곳·힘 기를 곳이고,
-      <b>흰 점선은 수평·수직 기준</b>, <b>빨간 선은 실제 기울기</b>예요. 아래 목록을 누르면 그 자리로 돌아가며 깜빡여요.</p>
+      <p class="body-note">손가락으로 끌면 돌아가요. 전신 뼈대 + 오른쪽 다리 근육(아픈 쪽)이고,
+      결과지 각도대로 머리·어깨·골반·다리를 기울여 놓았어요(뼈대는 2배, 선·숫자는 3배 과장).
+      <b>흰 점선은 수평·수직 기준</b>, <b>빨간 선은 실제 기울기</b>. 색이 입혀진 근육이 풀어줄 곳·힘 기를 곳이고,
+      모델에 없는 근육(허리·배·목·가슴)은 점으로만 찍었어요. 아래 목록을 누르면 그 자리로 돌아가며 깜빡여요.<br>
+      <span class="body-credit">3D 모델: <a href="https://anatomytool.org/open3dmodel-create" target="_blank" rel="noopener">Open3DModel</a> (CC BY-SA 4.0), 혈관·신경을 빼고 뼈·근육만 씀</span></p>
     </div>
     <div class="card">
       <div class="body-legend">
@@ -2553,43 +2530,37 @@ async function openBodyTab(){
   const list = document.getElementById('bodyList');
   try{
     if(!window.THREE)      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
-    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=69');
-    if(!window.initBody3D) await loadScript('body3d.js?v=69');
-    if(!window.initBodyIllu) await loadScript('bodyillu.js?v=69');
+    if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
+    if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
+    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=70');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=70');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';
     return;
   }
-  mount.innerHTML = '';
-  document.getElementById('illuMount').innerHTML = '';
-  initBodyIllu('illuMount', BODY_DATA);
+  // 모델(5MB)을 받는 동안은 진행 글을 보여준다
+  const loadingEl = mount.querySelector('.body-loading');
+  const showStatus = t => { if(!loadingEl) return; loadingEl.textContent = t; loadingEl.style.display = t ? '' : 'none'; };
+  initBody3D('bodyMount', BODY_DATA, { onStatus: showStatus }).catch(e=>{
+    bodyTabReady = false; mount.dataset.ready = '';
+    showStatus('3D 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.');
+  });
   list.innerHTML = BODY_DATA.markers.map((m, i)=>
     `<div class="body-row" data-i="${i}"><i class="body-dot ${m.kind}">${i + 1}</i>
        <div><div class="body-name">${m.name}</div><div class="body-desc">${m.note}</div></div></div>`).join('');
   window.body3dFocusAll = function(i){
     list.querySelectorAll('.body-row').forEach(x=>x.classList.toggle('sel', +x.dataset.i === i));
     setBodyAutoBtn(false);
-    body3dFocus(i);
-    const inIllu = bodyIlluFocus(i);
-    const target = inIllu ? document.getElementById('illuMount') : mount;
-    if(target.scrollIntoView) target.scrollIntoView({ behavior:'smooth', block:'start' });
+    if(window.body3dFocus) body3dFocus(i);   // 모델이 아직 안 떴으면 목록 표시만
+    if(mount.scrollIntoView) mount.scrollIntoView({ behavior:'smooth', block:'start' });
   };
   list.querySelectorAll('.body-row').forEach(r=> r.addEventListener('click', ()=> body3dFocusAll(+r.dataset.i)));
-  initBody3D('bodyMount', BODY_DATA);
 }
 function setBodyAutoBtn(on){
   const b = document.querySelector('.body-btn[data-view="auto"]');
   if(b) b.classList.toggle('on', on);
 }
-function setIlluBtn(name){
-  document.querySelectorAll('.body-btn[data-illu]').forEach(x=> x.classList.toggle('on', x.dataset.illu === name));
-}
-window.onBodyIlluView = setIlluBtn;
-document.querySelectorAll('.body-btn[data-illu]').forEach(b=> b.addEventListener('click', ()=>{
-  if(!window.bodyIlluView) return;
-  setIlluBtn(bodyIlluView(b.dataset.illu));
-}));
 document.querySelectorAll('.body-btn[data-view]').forEach(b=> b.addEventListener('click', ()=>{
   if(!window.body3dView) return;   // 아직 3D 가 안 떴으면 아무것도 안 함
   if(b.dataset.view === 'auto'){ setBodyAutoBtn(body3dAuto()); return; }
