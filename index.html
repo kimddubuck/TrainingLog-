@@ -630,6 +630,9 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .today-ex-head .tex-name .tex-type{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);margin-left:6px;font-weight:400;}
   .today-ex-head .tex-name .tex-type.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
   .today-ex-head .tex-name .tex-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
+  .today-ex-head .tex-btns{display:flex;align-items:center;gap:2px;flex:none;}
+  .today-ex-head .tex-swap{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);font-size:15px;line-height:1;cursor:pointer;width:32px;height:28px;border-radius:8px;}
+  .today-ex-head .tex-swap:active{color:var(--accent-b);border-color:var(--accent-b);}
   .today-ex-head .tex-remove{background:none;border:none;color:var(--ink-faint);font-size:18px;cursor:pointer;padding:0 4px;}
   .di-manage-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--border);}
   .di-manage-row:first-child{border-top:none;}
@@ -916,7 +919,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v74</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v75</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -2200,9 +2203,10 @@ function findExByName(name){
       || masterExercises.find(e => e.name.replace(/\s+/g,'').includes(key));
 }
 // 종목별로 "마지막으로 한 날"을 모아 둔다 (종목 번호 기준)
-function lastDoneMap(){
+function lastDoneMap(exceptDate){
   const map = {};
   entries.forEach(e=>{
+    if(exceptDate && e.date === exceptDate) return;
     (e.exercises||[]).forEach(x=>{
       if(!(x.sets||[]).some(st => st && (st.weight || st.reps))) return;
       if(!map[x.id] || map[x.id] < e.date) map[x.id] = e.date;
@@ -2224,6 +2228,20 @@ function slotCandidates(slot){
 // 자리마다 "가장 오래 안 한 종목"을 고른다 → 같은 부위라도 매번 종목이 바뀐다
 // opt.extraLast : 이번 주 앞선 날에 이미 배정한 종목 (id → 날짜). 같은 주에 같은 종목이 겹치지 않게 한다.
 // opt.asOf      : "지난번 N일 전" 을 계산할 기준 날짜
+// 한 자리의 후보를 고르는 순서 (프로그램 탭 · 오늘 기록 ↻ 공용)
+//  ① 무릎 부담 큰 것은 뒤로  ② 이번 주 결(BTT/CCT/RMT)에 맞는 것 먼저  ③ 선생님이 가르쳐준 것 먼저  ④ 가장 오래 안 한 것 먼저
+function candOrder(theme, last){
+  return (a, b)=>{
+    const ka = kneeRisky(a) ? 1 : 0, kb = kneeRisky(b) ? 1 : 0;
+    if(ka !== kb) return ka - kb;
+    const ma = bigGroupOf(a) === theme.key ? 0 : 1, mb = bigGroupOf(b) === theme.key ? 0 : 1;
+    if(ma !== mb) return ma - mb;
+    const ta = ptTip(a) ? 0 : 1, tb = ptTip(b) ? 0 : 1;
+    if(ta !== tb) return ta - tb;
+    const da = last[a.id] || '0000-00-00', db = last[b.id] || '0000-00-00';
+    return da.localeCompare(db);
+  };
+}
 function orderedRoutine(p, W, opt){
   opt = opt || {};
   if(!p.routine) return [];
@@ -2239,18 +2257,7 @@ function orderedRoutine(p, W, opt){
     if(!cands.length) return { ...slot, id:null, name:(slot.options||[slot.name])[0], ago:null, alts:0 };
     // 고르는 순서: ① 선생님이 가르쳐준 종목 먼저  ② 그중 가장 오래 안 한 것
     // (가르쳐준 것만으로도 자리마다 2~4가지라 충분히 돌아간다. 나머지는 예비)
-    cands.sort((a,b)=>{
-      // 무릎이 아픈 동안은 무릎 부담이 큰 종목을 맨 뒤로 보낸다
-      const ka = kneeRisky(a) ? 1 : 0, kb = kneeRisky(b) ? 1 : 0;
-      if(ka !== kb) return ka - kb;
-      // 이번 주 결(BTT/CCT/RMT)에 맞는 종목을 먼저 — 예: CCT 주간엔 등 로우 자리에서 덤벨 로우(한쪽씩)
-      const ma = bigGroupOf(a) === theme.key ? 0 : 1, mb = bigGroupOf(b) === theme.key ? 0 : 1;
-      if(ma !== mb) return ma - mb;
-      const ta = ptTip(a) ? 0 : 1, tb = ptTip(b) ? 0 : 1;
-      if(ta !== tb) return ta - tb;
-      const da = last[a.id] || '0000-00-00', db = last[b.id] || '0000-00-00';
-      return da.localeCompare(db);
-    });
+    cands.sort(candOrder(theme, last));
     const key = p.kind + '-' + i;
     const ex = cands[(planSwap[key] || 0) % cands.length];
     used.add(ex.id);
@@ -2264,6 +2271,56 @@ function orderedRoutine(p, W, opt){
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
   const rank = r => (r.skip ? 2 : 0) + (r.care ? 1 : 0);
   return list.sort((a,b) => rank(a) - rank(b));
+}
+// ===== 오늘 기록 카드의 ↻ =====
+// 이 종목이 들어 있는 "자리"를 찾는다 — 그 날 요일의 루틴 → 공통 워밍업 → 다른 날 루틴·회복·결 순서로.
+// (기록을 시작하면 프로그램 탭은 "실제로 한 것"으로 바뀌므로, 프로그램의 ↻ 상태와는 따로 계산한다)
+function swapSlotOf(exId, ds){
+  const theme = themeOf(ds);
+  const resolve = sl => sl.theme ? { ...theme } : sl;
+  const dayKey = WEEK_PLAN[dayOfWeek(ds)];
+  const groups = [
+    ((PLAN[dayKey] && PLAN[dayKey].routine) || []).map(resolve),
+    WARMUP.routine,
+    ...Object.keys(PLAN).filter(k => k !== dayKey).map(k => (PLAN[k].routine || []).map(resolve)),
+    THEMES,
+  ];
+  for(const slots of groups){
+    for(const sl of slots){
+      const cands = slotCandidates(sl);
+      if(cands.length > 1 && cands.some(e => e.id === exId)) return { slot: sl, cands, theme };
+    }
+  }
+  return null;
+}
+// 그 카드에 적은 값(무게·횟수·시간·완료 시각)이 있는지 — 있으면 바꾸지 않는다 (기록 보호)
+function cardHasData(exId){
+  if(Object.keys(setTimes).some(k => k.startsWith(exId + '|') && setTimes[k])) return true;
+  return [...document.querySelectorAll(`#todayExerciseList input[data-ex="${exId}"]`)].some(i => i.value !== '');
+}
+function swapTodayExercise(exId){
+  const ds = document.getElementById('dateInput').value;
+  if(cardHasData(exId)){ showToast('이미 적은 기록이 있어서 못 바꿔요 — 빼려면 ×'); return; }
+  const found = swapSlotOf(exId, ds);
+  if(!found){ showToast('바꿀 다른 종목이 없어요'); return; }
+  // 오늘 적은 기록은 빼고 "가장 오래 안 한 것"을 센다 — 기록할수록 순서가 흔들리지 않게
+  const last = lastDoneMap(ds);
+  const order = found.cands.slice().sort(candOrder(found.theme, last));
+  const at = order.findIndex(e => e.id === exId);
+  let next = null;
+  for(let k = 1; k < order.length; k++){
+    const c = order[(at + k) % order.length];
+    if(!todayExerciseIds.includes(c.id)){ next = c; break; }
+  }
+  if(!next){ showToast('같은 자리의 다른 종목이 이미 다 담겨 있어요'); return; }
+  const snapshot = buildEntryFromForm();          // 다른 카드에 적은 값은 그대로 둔다
+  const old = exById(exId);
+  todayExerciseIds = todayExerciseIds.map(id => id === exId ? next.id : id);
+  setCounts[next.id] = Number(found.slot.sets) || setCounts[exId] || (exType(next) === 'cardio' ? 1 : 3);
+  delete setCounts[exId];
+  renderTodayExercises(snapshot);
+  autoSave();
+  showToast((old ? old.name : '') + ' → ' + next.name + (kneeRisky(next) ? ' (⚠ 무릎 상태 보고)' : ''));
 }
 async function addRoutineToToday(routine){
   // 보통은 "가볍게" 표시된 건 빼고 담는다.
@@ -2764,9 +2821,9 @@ const PT_TIPS = {
   '케이블푸쉬다운':'팔꿈치 뒤로 당겨 셋팅 · 버티면서 마지막에 팔꿈치 따라가기',
   '케이블로프푸쉬다운':'팔꿈치 몸통에 붙이고 몸쪽으로 · 수축은 한 박자 빠르게, 이완은 천천히',
   // 준비 · 교정 · 호흡
-  '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작 (좌우 대칭 — BTT)',
-  'RMT클럽스윙':'RMT · 수평·사선 회전을 몸에 통합 — 보행·달리기가 부드러워진다',
-  'RMT로프':'RMT · 회전 움직임을 전신으로 이어서',
+  '겟업동작':'운동 전후로 · 다양한 움직임이 들어 있는 동작',
+  'RMT클럽스윙':'RMT · 클럽을 휘둘러 이쪽 꼬임 → 저쪽 꼬임 (공식 첫 동작: 아래로 8자 돌리기)',
+  'RMT로프':'RMT · 로프를 좌우로 휘둘러 이쪽 꼬임 → 저쪽 꼬임',
   '슬로우조깅':'코로 숨 쉬며 대화할 수 있는 속도 · 보폭 짧게, 소리 안 나게 · 무릎 아프면 바로 걷기로',
   '그라운드소통':'바디컨트롤 Lv.1 · 집에서 꾸준히 · 움직임을 이어서 흐르게',
   '바디컨트롤전면코어':'단계별 1~3번 동작을 꾸준히 (집에서)',
@@ -2878,7 +2935,7 @@ function renderTodayExercises(existing){
     div.innerHTML = `
       <div class="today-ex-head">
         <span class="tex-name">${ex.name}<span class="tex-type ${t}">${tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
-        <button class="tex-remove" data-rmex="${ex.id}">×</button>
+        <span class="tex-btns">${swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : ''}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
       ${ptTipHtml(ex)}
       ${pastPanelHtml(ex.id)}
@@ -2919,6 +2976,9 @@ function renderTodayExercises(existing){
       renderTodayExercises(snapshot);
       autoSave();
     };
+  });
+  list.querySelectorAll('.tex-swap').forEach(btn=>{
+    btn.onclick = ()=> swapTodayExercise(btn.dataset.swapex);
   });
   list.querySelectorAll('.tex-remove').forEach(btn=>{
     btn.onclick = ()=>{
