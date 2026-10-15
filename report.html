@@ -36,7 +36,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (앱과 같은 파일) -->
-<script src="exinfo.js?v=73"></script>
+<script src="exinfo.js?v=76"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{
@@ -232,7 +232,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v71</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v76</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -643,6 +643,7 @@ function renderGuide(){
     <details class="algo" open><summary>프로그램은 이렇게 짜여요 (그림)</summary><div class="algo-body">${EXINFO.howHTML()}</div></details>
     <details class="algo"><summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary><div class="algo-body">${EXINFO.weckHTML()}</div></details>
     <details class="algo"><summary>바벨 · 덤벨 · 머신은 뭐가 달라요? (연구 근거)</summary><div class="algo-body">${EXINFO.toolsHTML()}</div></details>
+    <details class="algo"><summary>교정운동은 뭘 바로잡나요? (회복날 시리즈)</summary><div class="algo-body">${EXINFO.fixHTML()}</div></details>
     <details class="algo"><summary>종목 사전 — ${items.length}개 (결 · 기구 · 근거)</summary><div class="algo-body">${dict}</div></details>`;
   wrap.querySelectorAll('details.algo').forEach((d, i)=>{ if(open.length) d.open = !!open[i]; });
 }

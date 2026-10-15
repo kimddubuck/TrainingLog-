@@ -75,6 +75,8 @@
                   short:'심폐 · 회복' },
     '회복':     { icon:'🧘', kid:'굳은 곳을 풀고 숨을 고르는 시간.',
                   short:'풀기 · 숨 고르기' },
+    '교정':     { icon:'🧩', kid:'틀어진 자세를 바로잡는 동작. 무게 없이, 가볍게, 정확하게, 자주.',
+                  short:'자세 바로잡기' },
     '웨이트':   { icon:'🏋️', kid:'이름만으로는 기구(바벨/덤벨/기계)를 알 수 없어요.',
                   short:'기구 확인' },
   };
@@ -95,10 +97,40 @@
       src:'uniVsBi' },
   ];
 
+  // ----- 교정운동 사전: 무엇을 바로잡는지(결과지 항목) · 하는 법 · 근거 수준 -----
+  // basis: '연구' = 무작위 비교 연구가 있음 · '교과' = 물리치료·재활 교과서/전문가 지침 · '일반' = 널리 쓰이지만 직접 비교 연구는 적음
+  const FIX = {
+    '맥길컬업':        { for:'허리 통증 · 골반 전방경사', how:'누워 한 무릎 세우고, 손을 허리 밑에. 허리를 바닥에 누르지 말고 머리·어깨만 살짝 들어 10초', basis:'교과', src:'mcgill' },
+    '사이드플랭크':     { for:'옆구리·골반 안정 (오른쪽 허리)', how:'옆으로 누워 팔꿈치로 받치고 몸을 일자로. 무릎 대고 시작해도 돼요', basis:'교과', src:'mcgill' },
+    '버드독':          { for:'등·엉덩이 같이 쓰기 (허리 안 꺾고)', how:'네발 자세에서 반대 팔·다리를 뻗고 허리는 그대로. 배에 물컵이 있다고 생각', basis:'교과', src:'mcgill' },
+    '데드버그':        { for:'깊은 복근 · 골반 전방경사', how:'누워 팔다리를 천장으로. 허리를 바닥에 붙인 채 반대 팔·다리를 천천히 내렸다 올리기', basis:'일반', src:null },
+    '골반기울이기(누워서)': { for:'골반 전방경사 6.5°', how:'무릎 세우고 누워, 허리를 바닥에 꾹 눌러 골반을 뒤로 말기 → 힘 빼기. "들었다 놨다"', basis:'일반', src:null },
+    '턱당기기(친턱)':    { for:'거북목 · 머리 앞으로', how:'턱을 뒤로 당겨 "이중턱" 만들고 5초. 고개를 숙이는 게 아니라 뒤로 미는 것', basis:'연구', src:'chintuck' },
+    '벽천사(월엔젤)':    { for:'둥근어깨 · 굽은등', how:'벽에 등·뒤통수·팔을 붙이고 팔을 W → Y 로 올렸다 내리기. 팔이 벽에서 안 떨어지게', basis:'일반', src:null },
+    '흉추폼롤러신전':    { for:'굽은등 (등 뒤로 젖히기)', how:'폼롤러를 등 가운데 가로로 두고 뒤로 천천히 젖히기. 허리는 젖히지 말고 등만', basis:'일반', src:null },
+    '캣카우':          { for:'척추 하나하나 움직이기', how:'네발 자세에서 등을 둥글게(고양이) → 오목하게(소). 숨과 같이 천천히', basis:'일반', src:null },
+    '발가락수건집기':    { for:'왼발 아치 무너짐', how:'바닥 수건을 발가락으로 끌어 모으기. 선생님이 알려주신 그 동작', basis:'연구', src:'foot' },
+    '숏풋(발아치세우기)': { for:'왼발 아치 · 발목 안으로', how:'발가락은 펴둔 채 발바닥 앞쪽을 뒤꿈치 쪽으로 당겨 아치를 세우기. 어려우면 앉아서', basis:'연구', src:'foot' },
+    '클램쉘':          { for:'중둔근 — 오른 무릎 안쪽 쏠림', how:'옆으로 누워 무릎 굽히고, 발은 붙인 채 위 무릎만 조개처럼 열기. 골반이 뒤로 안 넘어가게', basis:'일반', src:null },
+    '옆으로누워다리들기': { for:'중둔근 · 골반 좌우 높이', how:'옆으로 누워 위 다리를 곧게 펴 천천히 올리기. 발끝은 살짝 아래로', basis:'일반', src:null },
+    '반무릎장요근스트레칭': { for:'오른쪽 장요근 · 골반 전방경사', how:'한 무릎 꿇고, 엉덩이에 힘 준 채 골반을 앞으로 살짝. 허리를 젖히지 말고 30초', basis:'일반', src:null },
+    '이상근스트레칭(4자)': { for:'오른쪽 이상근 (오래 앉으면 저림)', how:'누워 한 발목을 반대 무릎에 올려 4자 → 아래 다리를 가슴으로 당기기 30초', basis:'일반', src:null },
+    '벽종아리스트레칭':   { for:'오른쪽 종아리 뭉침', how:'벽 짚고 뒷다리 뒤꿈치를 바닥에 붙인 채 30초. 무릎 펴고 한 번, 살짝 굽히고 한 번', basis:'일반', src:null },
+    '발목가동(무릎벽닿기)': { for:'발목 움직임 · 쪼그릴 때 무릎 부담', how:'벽 앞에 서서 뒤꿈치 안 들고 무릎을 벽에 닿기. 닿으면 발을 조금 뒤로', basis:'일반', src:null },
+    '한발서기':        { for:'균형 · 무릎 정렬', how:'한 발로 30초. 무릎이 두 번째 발가락 위를 향하게. 쉬우면 눈 감고', basis:'일반', src:null },
+  };
+  const FIX_SRC = {
+    mcgill:   { url:'https://www.health.harvard.edu/pain/three-moves-for-better-spine-health', name:'Harvard Health — 맥길 "빅3" (컬업·사이드 플랭크·버드독)' },
+    chintuck: { url:'https://pubmed.ncbi.nlm.nih.gov/35172275/', name:'2022 임상 평가 — 거북목 교정에 턱 당기기 (무작위 비교 연구 3편)' },
+    foot:     { url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC5140815', name:'발 아치 운동(숏풋·수건 집기) 연구 — 작은 규모, 직접 비교는 약함' },
+  };
+  function fixTip(name){ return FIX[norm(name)] || null; }
+
   // ----- 이름 → 기구 · 쪽 · 결 -----
   const norm = s => String(s || '').replace(/\s+/g, '');
   function toolOf(n, type){
     if(type === 'cardio') return '유산소';
+    if(FIX[n]) return '교정';
     if(/RMT|클럽스윙/.test(n) || /^RMT로프$/.test(n)) return '회전 도구';
     if(/스트레칭|호흡|이완|폼롤러/.test(n)) return '회복';
     if(/케틀벨|커틀벨/.test(n)) return '케틀벨';
@@ -123,6 +155,7 @@
     if(/스플릿|런지/.test(n)) return W('CCT', '공식', '스플릿 스쿼트·런지는 WeckMethod 가 CCT 를 쓰는 예로 직접 든 것');
     if(/^스쿼트$|^벤치프레스$|^데드리프트$/.test(n)) return W('BTT', '공식', '전통 파워리프팅(스쿼트·벤치·데드)은 WeckMethod 가 BTT 예로 직접 든 것');
     if(/플랭크|크런치|싯업|윗몸|레그레이즈|슈퍼맨|월싯/.test(n)) return W('일반', '공식', '버티는 코어 — WeckMethod 는 이걸 셋과 따로 "브레이싱 코어"라고 불러요');
+    if(FIX[n]) return W('일반', '정의', '교정·회복 동작 — 셋에 해당 근거 없음 (무엇을 바로잡는지는 🧩 설명)');
     // ② 이름만으로는 무슨 동작인지 모르는 것 · 선생님만의 동작
     if(/^커틀벨$|^오버헤드$/.test(n)) return W('?', '확인', '이름만으로는 어떤 동작인지 몰라요');
     // 원암 케이블 회전 로우(선생님 이름: 불균형 교정운동) — 사진으로 동작 확인: 한 팔로 당기며 몸통을 꼰다
@@ -277,7 +310,7 @@
     const bar = `<div class="xh-bar"><span class="s1" style="flex:6">준비</span><span class="s2" style="flex:12">워밍업</span><span class="s3" style="flex:42">본 운동</span><span class="s4" style="flex:10">⏱</span></div>
       <div class="xh-bar-key"><span>0분</span><span>60분</span></div>`;
     return `<div class="xh">
-      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요')}
+      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 회복날(월·토)은 <b>저강도 교정 시리즈</b>: 호흡 → 척추 위생(맥길 빅3) → 골반 → 엉덩이 옆 → 고관절 풀기 → 발·발목 → 목·어깨 → 걷기 20분')}
       ${step(2, '🔥', '운동하는 날 맨 앞엔 워밍업', warm, 'PT 날에도 붙여요')}
       ${step(3, '🔄', '이번 주 결 — 3주에 한 바퀴', ring, '운동날·회복날 모두 ① 그 주 결의 기능성 한 자리가 들어가고 ② 다른 자리도 그 결에 맞는 종목을 먼저 골라요' + (th ? ` · 이번 주는 <b>${th}</b>` : ''))}
       ${step(4, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
@@ -355,5 +388,17 @@
     document.head.appendChild(st);
   }
 
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  // "교정운동은 뭘 바로잡나요?"
+  function fixHTML(){
+    const rows = Object.keys(FIX).map(k=>{
+      const f = FIX[k];
+      return `<div class="xi-trow"><span class="xi-ticon">🧩</span><div><b>${esc(f.for)}</b><div>${esc(f.how)} <span class="xi-basis b-${f.basis === '연구' ? '공식' : f.basis === '교과' ? '수정' : '정의'}">${esc(f.basis)}</span>${f.src && FIX_SRC[f.src] ? ` <span class="xi-src">— <a href="${FIX_SRC[f.src].url}" target="_blank" rel="noopener">${esc(FIX_SRC[f.src].name)}</a></span>` : ''}</div></div></div>`;
+    }).join('');
+    return `<div class="xi-tools">${rows}
+      <div class="xi-science"><div class="xi-sci-title">딱지 뜻</div>
+        <div class="xi-sci"><span class="xi-basis b-공식">연구</span> 무작위 비교 연구가 있음 · <span class="xi-basis b-수정">교과</span> 물리치료·재활 교과서/전문가 지침 · <span class="xi-basis b-정의">일반</span> 널리 쓰이지만 직접 비교 연구는 적음</div>
+        <div class="xi-sci">※ 교정운동은 결과지(2022-12-28)의 항목에 맞춰 골랐어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
+      </div></div>`;
+  }
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
