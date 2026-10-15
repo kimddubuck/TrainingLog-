@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=76"></script>
+<script src="exinfo.js?v=77"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -921,7 +921,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v76</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v77</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1272,25 +1272,13 @@ const DEFAULT_MASTER = [
   {id:'innerthigh',  name:'이너타이 머신',     part:'허벅지', type:'strength'},
   // 선생님 이름은 "불균형 교정운동" — 한 팔로 케이블을 당기며, 반대 팔꿈치를 높이 들어 몸통을 꼰다 (번호는 그대로라 지난 기록이 이어진다)
   {id:'balancefix',  name:'원암 케이블 회전 로우 (불균형 교정)', part:'등',  type:'strength'},
-  // ----- 교정운동 시리즈 (회복날 저강도 루틴). 설명·근거는 exinfo.js 의 FIX 에 -----
-  {id:'fx-curlup',   name:'맥길 컬업',            part:'척추 위생', type:'bodyweight'},
-  {id:'fx-sideplk',  name:'사이드 플랭크',         part:'척추 위생', type:'bodyweight'},
-  {id:'fx-birddog',  name:'버드독',               part:'척추 위생', type:'bodyweight'},
-  {id:'fx-deadbug',  name:'데드버그',             part:'깊은 복근', type:'bodyweight'},
-  {id:'fx-pelvtilt', name:'골반 기울이기 (누워서)', part:'골반',     type:'bodyweight'},
-  {id:'fx-chintuck', name:'턱 당기기 (친턱)',       part:'목',       type:'bodyweight'},
-  {id:'fx-wallangel',name:'벽 천사 (월 엔젤)',      part:'어깨·등',  type:'bodyweight'},
-  {id:'fx-tspine',   name:'흉추 폼롤러 신전',       part:'등',       type:'bodyweight'},
-  {id:'fx-catcow',   name:'캣카우',               part:'척추 가동', type:'bodyweight'},
-  {id:'fx-towel',    name:'발가락 수건 집기',       part:'발',       type:'bodyweight'},
-  {id:'fx-shortfoot',name:'숏풋 (발 아치 세우기)',  part:'발',       type:'bodyweight'},
-  {id:'fx-clam',     name:'클램쉘',               part:'엉덩이 옆', type:'bodyweight'},
-  {id:'fx-sideleg',  name:'옆으로 누워 다리 들기',  part:'엉덩이 옆', type:'bodyweight'},
-  {id:'fx-hipflex',  name:'반무릎 장요근 스트레칭', part:'고관절 앞', type:'bodyweight'},
-  {id:'fx-piri',     name:'이상근 스트레칭 (4자)',  part:'엉덩이',   type:'bodyweight'},
-  {id:'fx-calf',     name:'벽 종아리 스트레칭',     part:'종아리',   type:'bodyweight'},
-  {id:'fx-ankle',    name:'발목 가동 (무릎 벽 닿기)', part:'발목',   type:'bodyweight'},
-  {id:'fx-balance',  name:'한 발 서기',            part:'균형',     type:'bodyweight'},
+  // ----- 교정운동 시리즈 (상필님이 고른 것만). 설명·근거는 exinfo.js 의 FIX 에 -----
+  {id:'fx-towel',    name:'발가락 수건 잡기',          part:'발',      type:'bodyweight'},
+  {id:'fx-footmsg',  name:'발바닥 마사지',             part:'발',      type:'bodyweight'},
+  {id:'fx-baeknyeon',name:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', part:'허리·목', type:'bodyweight'},
+  {id:'fx-traise',   name:'T 레이즈',                 part:'등·어깨 뒤', type:'bodyweight'},
+  {id:'fx-wraise',   name:'W 레이즈',                 part:'등·어깨 뒤', type:'bodyweight'},
+  {id:'fx-yraise',   name:'Y 레이즈',                 part:'등·어깨 뒤', type:'bodyweight'},
   {id:'getup',       name:'겟업동작',        part:'전신', type:'bodyweight'},
   {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
   {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
@@ -1546,7 +1534,12 @@ async function loadAllData(){
     if(o.type) e.type = o.type;
   });
   // 잘못 넣었다가 뺀 종목은 저장본에 남아 있어도 되살리지 않는다
-  const RETIRED = ['코일링 코어 (CCT)'].map(n=>n.replace(/\s+/g,''));
+  const RETIRED = ['코일링 코어 (CCT)',
+    // v76 에 잠깐 넣었다가 뺀 교정 종목들 (상필님이 고른 6개만 남김)
+    '맥길 컬업','사이드 플랭크','버드독','데드버그','골반 기울이기 (누워서)','턱 당기기 (친턱)','벽 천사 (월 엔젤)',
+    '흉추 폼롤러 신전','캣카우','발가락 수건 집기','숏풋 (발 아치 세우기)','클램쉘','옆으로 누워 다리 들기',
+    '반무릎 장요근 스트레칭','이상근 스트레칭 (4자)','벽 종아리 스트레칭','발목 가동 (무릎 벽 닿기)','한 발 서기',
+  ].map(n=>n.replace(/\s+/g,''));
   masterExercises = masterExercises.filter(e => !RETIRED.includes(e.name.replace(/\s+/g,'')));
   const seen = new Set(masterExercises.map(e=>e.id));
   const seenNames = new Set(masterExercises.map(e=>e.name.replace(/\s+/g,'').toLowerCase()));
@@ -1968,29 +1961,27 @@ function themeOf(ds){
 }
 
 // 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
-// 회복날 = 저강도 교정 시리즈. 무게 없이, 숨이 안 찰 만큼. 자리마다 종목이 돌아가며 나온다.
-// 자리 순서: 호흡 → 척추 위생(맥길 빅3) → 골반 → 엉덩이 옆 → 고관절 풀기 → 발·발목 → 목·어깨 → 선생님 동작 → 이번 주 결 → 걷기
+// 회복날 = 저강도 교정 시리즈 (상필님이 고른 것). 무게 없이, 숨이 안 찰 만큼.
+// 자리 순서: 호흡 → 백년척추(허리·목 뒤로) → T·W·Y 레이즈 → 발 → 선생님 동작 → 고관절 풀기 → 이번 주 결 → 걷기
 const RECOVERY_ROUTINE = [
   { why:'호흡 — 배로 천천히', sets:1, reps:'5분', label:'5분',
     options:['악어호흡'] },
-  { why:'척추 위생 ① 앞 (허리 안 꺾고 버티기)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['맥길 컬업','데드버그'] },
-  { why:'척추 위생 ② 옆 (옆구리·골반 잡기)', sets:3, reps:'좌우 10초', label:'좌우 10초 × 3세트',
-    options:['사이드 플랭크'] },
-  { why:'척추 위생 ③ 뒤 (등·엉덩이 같이)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
-    options:['버드독','캣카우'] },
-  { why:'골반 세우기 — 앞으로 기운 골반을 뒤로', sets:2, reps:'15회', label:'15회 × 2세트',
-    options:['골반 기울이기 (누워서)','글루트 브릿지'] },
-  { why:'엉덩이 옆 (중둔근) — 무릎이 안으로 안 쏠리게', sets:2, reps:'좌우 15회', label:'좌우 15회 × 2세트',
-    options:['클램쉘','옆으로 누워 다리 들기'] },
-  { why:'고관절 풀기 — 오른쪽 장요근·이상근·내전근', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
-    options:['반무릎 장요근 스트레칭','이상근 스트레칭 (4자)','내전근 스트레칭','벽 종아리 스트레칭'] },
-  { why:'발·발목 — 왼발 아치, 오른발 끝 바깥', sets:2, reps:'15회', label:'15회 × 2세트',
-    options:['발가락 수건 집기','숏풋 (발 아치 세우기)','발목 가동 (무릎 벽 닿기)','한 발 서기'] },
-  { why:'목·어깨 — 거북목·둥근어깨', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['턱 당기기 (친턱)','벽 천사 (월 엔젤)','흉추 폼롤러 신전'] },
+  { why:'디스크 예방 — 허리·목을 뒤로 젖혀 앞으로 굽은 하루를 되돌리기', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
+  { why:'어깨 뒤·등 — T (양팔 옆으로)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['T 레이즈'] },
+  { why:'어깨 뒤·등 — W (팔꿈치 접고 당기기)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['W 레이즈'] },
+  { why:'어깨 뒤·등 — Y (양팔 위로 비스듬히)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['Y 레이즈'] },
+  { why:'발 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
+    options:['발가락 수건 잡기'] },
+  { why:'발 — 발바닥 풀기 (공 굴리기)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+    options:['발바닥 마사지'] },
   { why:'선생님 동작 — 움직임 깨우기', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
     options:['겟업동작','그라운드 소통','크랩워킹','케틀벨 암바','고관절 힌지 보조운동','고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
+  { why:'허벅지 안쪽 늘이기 — 선생님 스트레칭', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['내전근 스트레칭'] },
   { theme:true },
   { why:'저강도 유산소 — 코로 숨 쉬며 대화할 수 있는 속도', sets:1, reps:'20분', label:'20분',
     // 무릎 붓기 중에는 충격 없는 것으로. 슬로우 조깅은 괜찮은 날만
@@ -2444,12 +2435,13 @@ function buildWeekProgram(W){
     const isWorkout = (key === 'legs' || key === 'chestback' || key === 'shoulderarm' || key === 'pt');
     const warm = isWorkout
       ? orderedRoutine(WARMUP, W, { extraLast, asOf: ds }).map(r=>{
-          if(r.id) extraLast[r.id] = ds;
+          // 기록 없이 지나간 날의 '계획'은 한 것이 아니므로 세지 않는다 (오늘부터만)
+          if(r.id && ds >= W.today) extraLast[r.id] = ds;
           return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:r.why, warm:true };
         })
       : [];
     const rows = warm.concat(orderedRoutine(base, W, { extraLast, asOf: ds }).map(r=>{
-      if(r.id) extraLast[r.id] = ds;
+      if(r.id && ds >= W.today) extraLast[r.id] = ds;
       const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
       return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)),
                why:(r.care ? '⚠ ' + r.care : r.why + ' · 지난번 ' + when),
