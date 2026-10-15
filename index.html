@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=77"></script>
+<script src="exinfo.js?v=78"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -921,7 +921,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v77</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v78</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1943,7 +1943,7 @@ const THEMES = [
   // 종목은 exinfo.js 에서 그 결로 나온 것 중, 무릎 부담 없고 회복날에 맞는 가벼운 것만
   { key:'BTT', name:'BTT 주간', sub:'양쪽 같이 비틀기 (양손·양발이 같이)',
     why:'BTT — 양쪽 같이 (골반 세우는 힘)', sets:3, reps:'15회', label:'15회 × 3세트',
-    options:['케틀벨 굿모닝','글루트 브릿지','굿모닝 운동'] },
+    options:['케틀벨 굿모닝','글루트 브릿지','굿모닝 운동','Y 레이즈','T 레이즈','W 레이즈','백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
   { key:'CCT', name:'CCT 주간', sub:'한쪽으로 꼬아 버티기 (한 번에 한쪽씩)',
     why:'CCT — 한쪽씩 꼬아 버티기', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
     options:['원암 케이블 회전 로우 (불균형 교정)','겟업동작','케틀벨 암바'],
@@ -2027,6 +2027,9 @@ const PLAN = {
                  options:['런지','프론트런지','토터치'] },
                { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
                  options:['글루트 브릿지','힙 쓰러스트','스티프 데드리프트'] },
+               { why:'발 마무리 — 왼발 아치·발바닥 (교정)', sets:2, reps:'15회', label:'15회 × 2세트',
+                 options:['발가락 수건 잡기','발바닥 마사지'],
+                 labels:{ '발바닥 마사지':'좌우 2분' } },
              ] },
   shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔',
              tip:'공통 워밍업 먼저 · 팔은 마지막에 · 끝나면 바로 우유·바나나',
@@ -2037,7 +2040,8 @@ const PLAN = {
                { why:'덤벨 숄더프레스', sets:3, reps:'15회',
                  options:['덤벨 숄더프레스'] },
                { why:'후면 어깨 (페이스풀)', sets:3, reps:'20회',
-                 options:['페이스풀','후면 리어 델토이드 플라이','업라이트로우'] },
+                 options:['페이스풀','후면 리어 델토이드 플라이','업라이트로우','Y 레이즈','T 레이즈','W 레이즈'],
+                 labels:{ 'Y 레이즈':'15회 × 3세트', 'T 레이즈':'15회 × 3세트', 'W 레이즈':'15회 × 3세트' } },
                { why:'팔 — 이두 (바벨컬)', sets:3, reps:'20회',
                  options:['바벨 컬','덤벨 해머컬','해머 컬'] },
                { why:'팔 — 삼두 (케이블푸쉬다운)', sets:3, reps:'20회',
@@ -2059,6 +2063,10 @@ const PLAN = {
                  options:['데드리프트','스티프 데드리프트','루마니안 데드리프트'] },
                { why:'롱풀로우', sets:3, reps:'15~20회',
                  options:['롱풀로우 머신','덤벨 로우','바벨 로우','인버티드로우'] },
+               { why:'등 마무리 — 날개뼈 모으기 (교정)', sets:2, reps:'10회', label:'10회 × 2세트',
+                 options:['Y 레이즈','T 레이즈','W 레이즈'] },
+               { why:'허리·목 뒤로 젖히기 — 데드리프트 뒤 디스크 예방 (교정)', sets:2, reps:'10회', label:'10회 × 2세트',
+                 options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
              ] },
   B_old:   { tag:'하체팔', kind:'B', title:'하체·어깨·팔 (예전 합본)',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
