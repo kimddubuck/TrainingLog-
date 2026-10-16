@@ -106,11 +106,16 @@
     'T레이즈':         { for:'어깨 뒤 · 날개뼈 모으기 (둥근어깨)', how:'엎드리거나 상체 숙여서, 양팔을 옆으로 벌려 T 모양. 엄지는 하늘, 날개뼈를 등 가운데로 모으며 들기', basis:'일반', src:'ytw' },
     'W레이즈':         { for:'어깨 뒤 · 날개뼈 아래로 당기기', how:'팔꿈치를 접어 W 모양. 팔꿈치를 뒤로 당기며 날개뼈를 아래·안쪽으로', basis:'일반', src:'ytw' },
     'Y레이즈':         { for:'아래 승모근 · 어깨 올라감 잡기 (왼쪽 4° 오른쪽 2°)', how:'양팔을 비스듬히 위로 뻗어 Y 모양. 어깨가 귀 쪽으로 올라가지 않게, 엄지는 하늘', basis:'일반', src:'ytw' },
+    '마사지볼풀기—골반옆·허벅지앞·엉덩이': { for:'① 풀기 — 허리 통증의 앞쪽 원인 (골반 옆·허벅지 앞·이상근)', how:'공을 골반 옆(바지 주머니 자리) → 허벅지 앞 → 엉덩이 깊은 곳 순서로 두고 체중을 실어 천천히. 아픈 곳은 10초 머물기. 골프공은 쓰지 않기', basis:'강의', src:'lecture' },
+    '마사지볼풀기—쇄골아래·겨드랑이·어깨뒤': { for:'① 풀기 — 둥근어깨의 앞쪽 원인', how:'벽에 등을 대고 공을 쇄골 아래 오목한 곳(고개는 반대로) → 겨드랑이 앞 접히는 곳 → 어깨 뒤 관절 아래에 두고 천천히', basis:'강의', src:'lecture' },
+    '의자햄스트링스트레칭': { for:'② 늘리기 — 뒷벅지 (내일 안 뻐근하게)', how:'의자에 뒤꿈치 올리고 ① 그쪽 골반을 아래로 ② 발목 젖히기 ③ 허벅지와 배를 붙이기(가장 중요, 무릎 굽혀도 됨) ④ 엉덩이 빼며 무릎 펴기 5초 ⑤ 뒤꿈치로 의자 누르기 ⑥ 상체만 돌리기 10번', basis:'강의', src:'lecture' },
+    '책위밸런스(한발·일자서기)': { for:'④ 통합 — 좌우 차이 느끼기 (왼발목·오른 무릎)', how:'책 위에서 일자 서기(앞발 뒤꿈치에 뒷발 앞꿈치) 눈 뜨고 10초 → 눈 감고 20초 → 한 발 서기. 새끼발가락·골반·시선 정면, 무릎 안 굽히기. 흔들리면 잡는 연습', basis:'강의', src:'lecture' },
   };
   const FIX_SRC = {
     foot:      { url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC5140815', name:'발 아치 운동(수건 집기 등) 연구 — 작은 규모, 직접 비교는 약함' },
     baeknyeon: { url:null, name:'정선근 《백년허리》·《백년목》 — 허리·목을 뒤로 젖히는 신전 원리 (맥켄지 방식 계열)' },
     ytw:       { url:null, name:'Y·T·W 레이즈 — 날개뼈 안정화 운동으로 재활·트레이닝에서 널리 씀 (직접 비교 연구는 적음)' },
+    lecture:   { url:null, name:'웰니스데이 신체지도 강의 (2026-10-16) — 재활 4단계: 풀기 → 늘리기 → 깨우기 → 통합' },
   };
   function fixTip(name){ return FIX[norm(name)] || null; }
 
@@ -302,7 +307,7 @@
     const bar = `<div class="xh-bar"><span class="s1" style="flex:6">준비</span><span class="s2" style="flex:12">워밍업</span><span class="s3" style="flex:42">본 운동</span><span class="s4" style="flex:10">⏱</span></div>
       <div class="xh-bar-key"><span>0분</span><span>60분</span></div>`;
     return `<div class="xh">
-      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 회복날(월·토)은 <b>저강도 교정 시리즈</b>: 호흡 → 백년척추(허리·목 뒤로) → T·W·Y 레이즈 → 발(수건·마사지) → 선생님 동작 → 걷기 20분')}
+      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 회복날(월·토)은 <b>재활 4단계</b> 순서: ① 풀기(발바닥·마사지볼) → ② 늘리기(스트레칭·백년척추) → ③ 깨우기(T·W·Y·수건 잡기) → ④ 통합(선생님 동작·결·밸런스) → 심폐 20분. 마사지에서 멈추지 않고 통합까지')}
       ${step(2, '🔥', '운동하는 날 맨 앞엔 워밍업', warm, 'PT 날에도 붙여요')}
       ${step(3, '🔄', '이번 주 결 — 3주에 한 바퀴', ring, '운동날·회복날 모두 ① 그 주 결의 기능성 한 자리가 들어가고 ② 다른 자리도 그 결에 맞는 종목을 먼저 골라요' + (th ? ` · 이번 주는 <b>${th}</b>` : ''))}
       ${step(4, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
@@ -384,11 +389,11 @@
   function fixHTML(){
     const rows = Object.keys(FIX).map(k=>{
       const f = FIX[k];
-      return `<div class="xi-trow"><span class="xi-ticon">🧩</span><div><b>${esc(f.for)}</b><div>${esc(f.how)} <span class="xi-basis b-${f.basis === '연구' ? '공식' : f.basis === '교과' ? '수정' : '정의'}">${esc(f.basis)}</span>${f.src && FIX_SRC[f.src] ? ` <span class="xi-src">— ${FIX_SRC[f.src].url ? `<a href="${FIX_SRC[f.src].url}" target="_blank" rel="noopener">${esc(FIX_SRC[f.src].name)}</a>` : esc(FIX_SRC[f.src].name)}</span>` : ''}</div></div></div>`;
+      return `<div class="xi-trow"><span class="xi-ticon">🧩</span><div><b>${esc(f.for)}</b><div>${esc(f.how)} <span class="xi-basis b-${f.basis === '연구' ? '공식' : (f.basis === '교과' || f.basis === '강의') ? '수정' : '정의'}">${esc(f.basis)}</span>${f.src && FIX_SRC[f.src] ? ` <span class="xi-src">— ${FIX_SRC[f.src].url ? `<a href="${FIX_SRC[f.src].url}" target="_blank" rel="noopener">${esc(FIX_SRC[f.src].name)}</a>` : esc(FIX_SRC[f.src].name)}</span>` : ''}</div></div></div>`;
     }).join('');
     return `<div class="xi-tools">${rows}
       <div class="xi-science"><div class="xi-sci-title">딱지 뜻</div>
-        <div class="xi-sci"><span class="xi-basis b-공식">연구</span> 무작위 비교 연구가 있음 · <span class="xi-basis b-수정">교과</span> 물리치료·재활 교과서/전문가 지침 · <span class="xi-basis b-정의">일반</span> 널리 쓰이지만 직접 비교 연구는 적음</div>
+        <div class="xi-sci"><span class="xi-basis b-공식">연구</span> 무작위 비교 연구가 있음 · <span class="xi-basis b-수정">교과</span> 물리치료·재활 교과서/전문가 지침 · <span class="xi-basis b-수정">강의</span> 직접 들은 웰니스 강의(2026-10-16) · <span class="xi-basis b-정의">일반</span> 널리 쓰이지만 직접 비교 연구는 적음</div>
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }

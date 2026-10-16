@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=78"></script>
+<script src="exinfo.js?v=79"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -921,7 +921,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v78</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v79</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1279,6 +1279,11 @@ const DEFAULT_MASTER = [
   {id:'fx-traise',   name:'T 레이즈',                 part:'등·어깨 뒤', type:'bodyweight'},
   {id:'fx-wraise',   name:'W 레이즈',                 part:'등·어깨 뒤', type:'bodyweight'},
   {id:'fx-yraise',   name:'Y 레이즈',                 part:'등·어깨 뒤', type:'bodyweight'},
+  // 웰니스 강의(2026-10-16) 재활 4단계에서 온 동작
+  {id:'fx-ballhip',  name:'마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이', part:'골반·엉덩이', type:'bodyweight'},
+  {id:'fx-ballsh',   name:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', part:'어깨', type:'bodyweight'},
+  {id:'fx-chairham', name:'의자 햄스트링 스트레칭',      part:'뒷벅지',   type:'bodyweight'},
+  {id:'fx-bookbal',  name:'책 위 밸런스 (한 발·일자 서기)', part:'균형',   type:'bodyweight'},
   {id:'getup',       name:'겟업동작',        part:'전신', type:'bodyweight'},
   {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
   {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
@@ -1961,29 +1966,34 @@ function themeOf(ds){
 }
 
 // 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
-// 회복날 = 저강도 교정 시리즈 (상필님이 고른 것). 무게 없이, 숨이 안 찰 만큼.
-// 자리 순서: 호흡 → 백년척추(허리·목 뒤로) → T·W·Y 레이즈 → 발 → 선생님 동작 → 고관절 풀기 → 이번 주 결 → 걷기
+// 회복날 = 저강도 교정 시리즈를 "재활 4단계" 순서로 (웰니스 강의 2026-10-16):
+//  ① 풀기(억제: 뭉친 곳을 볼·손으로) → ② 늘리기(스트레칭·가동) → ③ 깨우기(약한 근육 활성화) → ④ 통합(동작·밸런스) → 심폐
+//  마사지에서 멈추지 않고 통합까지 간다. 앞쪽은 풀고 뒤쪽은 깨운다. 무게 없이, 숨이 안 찰 만큼.
 const RECOVERY_ROUTINE = [
-  { why:'호흡 — 배로 천천히', sets:1, reps:'5분', label:'5분',
+  { why:'호흡 — 배로 천천히', sets:1, reps:'3분', label:'3분',
     options:['악어호흡'] },
-  { why:'디스크 예방 — 허리·목을 뒤로 젖혀 앞으로 굽은 하루를 되돌리기', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
-  { why:'어깨 뒤·등 — T (양팔 옆으로)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['T 레이즈'] },
-  { why:'어깨 뒤·등 — W (팔꿈치 접고 당기기)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['W 레이즈'] },
-  { why:'어깨 뒤·등 — Y (양팔 위로 비스듬히)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['Y 레이즈'] },
-  { why:'발 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
-    options:['발가락 수건 잡기'] },
-  { why:'발 — 발바닥 풀기 (공 굴리기)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+  { why:'① 풀기 — 발바닥 (공 굴리기)', sets:1, reps:'좌우 2분', label:'좌우 2분',
     options:['발바닥 마사지'] },
-  { why:'선생님 동작 — 움직임 깨우기', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
-    options:['겟업동작','그라운드 소통','크랩워킹','케틀벨 암바','고관절 힌지 보조운동','고관절 운동(폼롤러)','허리이완(다리자극)','리버스 노드릭컬'] },
-  { why:'허벅지 안쪽 늘이기 — 선생님 스트레칭', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
-    options:['내전근 스트레칭'] },
+  { why:'① 풀기 — 앞쪽 뭉친 곳 (골반 옆·허벅지 앞·엉덩이 / 쇄골 아래·어깨 뒤)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+    options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤','고관절 운동(폼롤러)'] },
+  { why:'② 늘리기 — 허벅지 안쪽·뒤', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['내전근 스트레칭','의자 햄스트링 스트레칭'] },
+  { why:'② 늘리기 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
+  { why:'③ 깨우기 — 어깨 뒤·등 T', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['T 레이즈'] },
+  { why:'③ 깨우기 — 어깨 뒤·등 W', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['W 레이즈'] },
+  { why:'③ 깨우기 — 어깨 뒤·등 Y', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['Y 레이즈'] },
+  { why:'③ 깨우기 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
+    options:['발가락 수건 잡기'] },
+  { why:'④ 통합 — 선생님 동작 (움직임으로 연결)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
+    options:['겟업동작','그라운드 소통','크랩워킹','케틀벨 암바','고관절 힌지 보조운동','허리이완(다리자극)','리버스 노드릭컬'] },
   { theme:true },
-  { why:'저강도 유산소 — 코로 숨 쉬며 대화할 수 있는 속도', sets:1, reps:'20분', label:'20분',
+  { why:'④ 통합 — 밸런스 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 20초', label:'좌우 20초 × 2',
+    options:['책 위 밸런스 (한 발·일자 서기)'] },
+  { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도', sets:1, reps:'20분', label:'20분',
     // 무릎 붓기 중에는 충격 없는 것으로. 슬로우 조깅은 괜찮은 날만
     options:['걷기','실내자전거','수영','슬로우 조깅'] },
 ];
@@ -2001,13 +2011,13 @@ const WARMUP = { kind:'free', routine:[
 const PLAN = {
   // 회복날은 "아무것도 안 하는 날"이 아니라 기능성 동작으로 몸을 되돌리는 날.
   // 선생님이 알려주신 움직임·교정·호흡 동작으로 채운다. 무거운 것은 하나도 없다.
-  rest:    { tag:'회복', kind:'free', title:'회복 — 교정 시리즈 (저강도)',
+  rest:    { tag:'회복', kind:'free', title:'회복 — 재활 4단계 (풀기→늘리기→깨우기→통합)',
              tip:'무게는 전혀 쓰지 않아요 · 숨이 안 찰 만큼 · 잠을 충분히 (7시간 이상)',
              routine: RECOVERY_ROUTINE },
-  walk:    { tag:'회복', kind:'free', title:'회복 — 교정 시리즈 (저강도) + 걷기',
+  walk:    { tag:'회복', kind:'free', title:'회복 — 재활 4단계 (풀기→늘리기→깨우기→통합) + 걷기',
              tip:'헬스장이 쉬는 날 · 집에서 매트 하나로 · 걷기는 코로 숨 쉬며 대화할 수 있는 속도로',
              routine: RECOVERY_ROUTINE },
-  recover: { tag:'회복', kind:'free', title:'회복 — 교정 시리즈 (저강도)',
+  recover: { tag:'회복', kind:'free', title:'회복 — 재활 4단계 (풀기→늘리기→깨우기→통합)',
              tip:'이틀 연속 근력을 했어요 · 오늘은 무게 대신 움직임으로',
              routine: RECOVERY_ROUTINE },
   pt:      { tag:'PT', kind:'pt', title:'PT 수업', routine:[],
@@ -2030,6 +2040,8 @@ const PLAN = {
                { why:'발 마무리 — 왼발 아치·발바닥 (교정)', sets:2, reps:'15회', label:'15회 × 2세트',
                  options:['발가락 수건 잡기','발바닥 마사지'],
                  labels:{ '발바닥 마사지':'좌우 2분' } },
+               { why:'마무리 — 뒷벅지 늘리기 (내일 안 뻐근하게)', sets:1, reps:'좌우 30초', label:'좌우 30초',
+                 options:['의자 햄스트링 스트레칭'] },
              ] },
   shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔',
              tip:'공통 워밍업 먼저 · 팔은 마지막에 · 끝나면 바로 우유·바나나',
@@ -2067,6 +2079,8 @@ const PLAN = {
                  options:['Y 레이즈','T 레이즈','W 레이즈'] },
                { why:'허리·목 뒤로 젖히기 — 데드리프트 뒤 디스크 예방 (교정)', sets:2, reps:'10회', label:'10회 × 2세트',
                  options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
+               { why:'마무리 — 뒷벅지 늘리기 (내일 안 뻐근하게)', sets:1, reps:'좌우 30초', label:'좌우 30초',
+                 options:['의자 햄스트링 스트레칭'] },
              ] },
   B_old:   { tag:'하체팔', kind:'B', title:'하체·어깨·팔 (예전 합본)',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 하체 먼저 · 힘들면 맨 아래 팔운동부터 빼기',
