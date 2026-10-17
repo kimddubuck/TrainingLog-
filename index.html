@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=119"></script>
+<script src="exinfo.js?v=120"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -998,7 +998,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v119</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v120</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1036,20 +1036,6 @@ if(!window.EXINFO) window.EXINFO = (function(){
       <input type="date" id="dateInput">
     </div>
 
-    <div class="water-card">
-      <div class="water-top">
-        <span class="wt-label">💧 수분 섭취</span>
-        <span class="wt-ml" id="waterMl">0ml</span>
-      </div>
-      <div class="water-counter">
-        <div class="wbtn" id="waterMinus">−</div>
-        <div>
-          <div class="wcount" id="waterCount">0</div>
-          <div class="wcount-unit">잔 <button id="cupEditBtn" class="cup-edit">컵당 <span id="cupMlLabel">165</span>ml ✎</button></div>
-        </div>
-        <div class="wbtn" id="waterPlus">+</div>
-      </div>
-    </div>
 
     <div id="daytypeBanner"></div>
 
@@ -1204,6 +1190,21 @@ if(!window.EXINFO) window.EXINFO = (function(){
         <button class="meal-nav" id="mealPrev">‹</button>
         <input type="date" id="mealDate">
         <button class="meal-nav" id="mealNext">›</button>
+      </div>
+      <!-- 수분: 식단 탭 날짜 기준 (2026-10-18 오늘 기록에서 옮김) -->
+      <div class="water-card" style="margin-top:12px;">
+        <div class="water-top">
+          <span class="wt-label">💧 수분 섭취</span>
+          <span class="wt-ml" id="waterMl">0ml</span>
+        </div>
+        <div class="water-counter">
+          <div class="wbtn" id="waterMinus">−</div>
+          <div>
+            <div class="wcount" id="waterCount">0</div>
+            <div class="wcount-unit">잔 <button id="cupEditBtn" class="cup-edit">컵당 <span id="cupMlLabel">165</span>ml ✎</button></div>
+          </div>
+          <div class="wbtn" id="waterPlus">+</div>
+        </div>
       </div>
       <!-- 단백질: 끼니마다 g 를 적고 하루 합계를 몸무게(g)와 비교 -->
       <div class="prot-sum" id="protSum"></div>
@@ -1855,7 +1856,7 @@ function cleanupOldMeals(){
   if(removed) persistMeals();
 }
 function renderWaterCounter(){
-  const dateStr = document.getElementById('dateInput').value;
+  const dateStr = mealDateStr();   // 식단 탭 날짜 기준
   const count = water[dateStr] || 0;
   document.getElementById('waterCount').textContent = count;
   document.getElementById('waterMl').textContent = (count*CUP_ML) + 'ml';
@@ -1873,7 +1874,7 @@ async function editCupMl(){
   showToast(`한 컵 ${v}ml로 저장했어요`);
 }
 async function changeWater(delta){
-  const dateStr = document.getElementById('dateInput').value;
+  const dateStr = mealDateStr();
   const next = Math.max(0, (water[dateStr]||0) + delta);
   water[dateStr] = next;
   await persistWater();
@@ -1932,6 +1933,7 @@ function mealDateStr(){
   return (el && el.value) ? el.value : todayStr();
 }
 function renderMeals(){
+  renderWaterCounter();
   const dateStr = mealDateStr();
   const m = mealsForDate(dateStr);
   const grid = document.getElementById('mealGrid');
