@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=80"></script>
+<script src="exinfo.js?v=81"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -934,7 +934,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v80</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v81</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -1162,6 +1162,16 @@ if(!window.EXINFO) window.EXINFO = (function(){
       </div>
       <div id="bodyList"></div>
     </div>
+    <!-- 부위별 재활 4단계 (풀기→늘리기→깨우기→통합). 내용은 exinfo.js 의 REHAB -->
+    <div class="card">
+      <div class="body-head">🩹 부위별 재활 4단계 <span class="body-src">풀기 → 늘리기 → 깨우기 → 통합</span></div>
+      <div class="rh-tabs" id="rhTabs">
+        <button class="rh-tab on" data-rh="shoulder">어깨</button>
+        <button class="rh-tab" data-rh="back">허리</button>
+        <button class="rh-tab" data-rh="knee">무릎</button>
+      </div>
+      <div id="rehabView"></div>
+    </div>
   </div>
 
 </div>
@@ -1312,6 +1322,15 @@ const DEFAULT_MASTER = [
   {id:'fx-ballsh',   name:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', part:'어깨', type:'bodyweight'},
   {id:'fx-chairham', name:'의자 햄스트링 스트레칭',      part:'뒷벅지',   type:'bodyweight'},
   {id:'fx-bookbal',  name:'책 위 밸런스 (한 발·일자 서기)', part:'균형',   type:'bodyweight'},
+  // 부위별 재활 4단계(어깨·허리·무릎)에 필요한 동작
+  {id:'fx-chest',    name:'문틀 가슴 스트레칭',         part:'가슴 앞',   type:'bodyweight'},
+  {id:'fx-lowtrap',  name:'승모근 아래 깨우기 (손바닥 뒤로 내리기)', part:'등·어깨 뒤', type:'bodyweight'},
+  {id:'fx-cobra',    name:'엎드려 코브라',             part:'등',       type:'bodyweight'},
+  {id:'fx-hipflex',  name:'반무릎 장요근 스트레칭',     part:'고관절 앞', type:'bodyweight'},
+  {id:'fx-clam',     name:'클램쉘',                   part:'엉덩이 옆', type:'bodyweight'},
+  {id:'fx-calf',     name:'벽 종아리 스트레칭',         part:'종아리',   type:'bodyweight'},
+  {id:'fx-ballcalf', name:'마사지볼 풀기 — 종아리·정강이 앞', part:'종아리', type:'bodyweight'},
+  {id:'fx-reach',    name:'밸런스 리치 (한 발 서서 앞·뒤 터치)', part:'균형', type:'bodyweight'},
   {id:'getup',       name:'겟업동작',        part:'전신', type:'bodyweight'},
   {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
   {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
@@ -1570,8 +1589,8 @@ async function loadAllData(){
   const RETIRED = ['코일링 코어 (CCT)',
     // v76 에 잠깐 넣었다가 뺀 교정 종목들 (상필님이 고른 6개만 남김)
     '맥길 컬업','사이드 플랭크','버드독','데드버그','골반 기울이기 (누워서)','턱 당기기 (친턱)','벽 천사 (월 엔젤)',
-    '흉추 폼롤러 신전','캣카우','발가락 수건 집기','숏풋 (발 아치 세우기)','클램쉘','옆으로 누워 다리 들기',
-    '반무릎 장요근 스트레칭','이상근 스트레칭 (4자)','벽 종아리 스트레칭','발목 가동 (무릎 벽 닿기)','한 발 서기',
+    '흉추 폼롤러 신전','캣카우','발가락 수건 집기','숏풋 (발 아치 세우기)','옆으로 누워 다리 들기',
+    '이상근 스트레칭 (4자)','발목 가동 (무릎 벽 닿기)','한 발 서기',
   ].map(n=>n.replace(/\s+/g,''));
   masterExercises = masterExercises.filter(e => !RETIRED.includes(e.name.replace(/\s+/g,'')));
   const seen = new Set(masterExercises.map(e=>e.id));
@@ -2671,6 +2690,26 @@ function renderTodayPlan(W){
 
 // ---------- Tabs ----------
 if(window.EXINFO) EXINFO.injectCSS();
+// ---------- 부위별 재활 4단계 (내 몸 탭) ----------
+let rehabPart = 'shoulder';
+function renderRehab(){
+  const v = document.getElementById('rehabView'); if(!v || !window.EXINFO) return;
+  v.innerHTML = EXINFO.rehabHTML({ part: rehabPart, addBtn: true });
+  document.querySelectorAll('#rhTabs .rh-tab').forEach(b => b.classList.toggle('on', b.dataset.rh === rehabPart));
+  v.querySelectorAll('.rh-add').forEach(b => b.onclick = ()=> addRehabToToday(b.dataset.rhadd));
+}
+document.querySelectorAll('#rhTabs .rh-tab').forEach(b => b.addEventListener('click', ()=>{ rehabPart = b.dataset.rh; renderRehab(); }));
+// 그 부위 4단계 종목을 오늘 기록에 넣는다 (무릎 부담 종목은 프로그램과 같은 규칙으로 뺀다)
+function addRehabToToday(part){
+  const r = EXINFO.REHAB[part]; if(!r) return;
+  const rows = [];
+  r.stages.forEach(st => st.items.forEach(it=>{
+    const ex = findExByName(it.n); if(!ex) return;
+    rows.push({ id: ex.id, name: ex.name, sets: it.sets, care: kneeRisky(ex) ? '무릎' : '', skip:'' });
+  }));
+  addRoutineToToday(rows);
+}
+renderRehab();
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));

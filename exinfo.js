@@ -109,6 +109,14 @@
     '마사지볼풀기—골반옆·허벅지앞·엉덩이': { for:'① 풀기 — 허리 통증의 앞쪽 원인 (골반 옆·허벅지 앞·이상근)', how:'공을 골반 옆(바지 주머니 자리) → 허벅지 앞 → 엉덩이 깊은 곳 순서로 두고 체중을 실어 천천히. 아픈 곳은 10초 머물기. 골프공은 쓰지 않기', basis:'강의', src:'lecture' },
     '마사지볼풀기—쇄골아래·겨드랑이·어깨뒤': { for:'① 풀기 — 둥근어깨의 앞쪽 원인', how:'벽에 등을 대고 공을 쇄골 아래 오목한 곳(고개는 반대로) → 겨드랑이 앞 접히는 곳 → 어깨 뒤 관절 아래에 두고 천천히', basis:'강의', src:'lecture' },
     '의자햄스트링스트레칭': { for:'② 늘리기 — 뒷벅지 (내일 안 뻐근하게)', how:'의자에 뒤꿈치 올리고 ① 그쪽 골반을 아래로 ② 발목 젖히기 ③ 허벅지와 배를 붙이기(가장 중요, 무릎 굽혀도 됨) ④ 엉덩이 빼며 무릎 펴기 5초 ⑤ 뒤꿈치로 의자 누르기 ⑥ 상체만 돌리기 10번', basis:'강의', src:'lecture' },
+    '문틀가슴스트레칭':   { for:'② 늘리기 — 가슴 앞 (둥근어깨의 당기는 쪽)', how:'문틀에 팔꿈치를 어깨 높이로 대고 한 발 앞으로 → 가슴 앞이 늘어나는 곳에서 30초. 허리는 젖히지 않기', basis:'강의', src:'lecture' },
+    '승모근아래깨우기(손바닥뒤로내리기)': { for:'③ 깨우기 — 중·하부 승모근 (어깨 올라감 잡기)', how:'서서 손바닥을 뒤로 향하게 하고 팔을 아래로 길게 내리기. 꼬리뼈는 아래로, 날개뼈는 아래·안쪽으로 모으기', basis:'강의', src:'lecture' },
+    '엎드려코브라':       { for:'③ 깨우기 — 등 뒤 전체 (둥근어깨·굽은등)', how:'엎드려 손바닥 뒤로 향하게 하고 가슴·팔을 바닥에서 살짝 들기. 엄지는 하늘, 턱은 당긴 채 10초', basis:'강의', src:'lecture' },
+    '반무릎장요근스트레칭': { for:'② 늘리기 — 오른쪽 장요근·허벅지 앞 (골반 앞기울기)', how:'한 무릎 꿇고, 엉덩이에 힘 준 채 골반을 앞으로 살짝. 허리를 젖히지 말고 30초', basis:'일반', src:null },
+    '클램쉘':            { for:'③ 깨우기 — 중둔근 (오른 무릎 안쪽 쏠림)', how:'옆으로 누워 무릎 굽히고, 발은 붙인 채 위 무릎만 조개처럼 열기. 골반이 뒤로 안 넘어가게', basis:'일반', src:null },
+    '벽종아리스트레칭':   { for:'② 늘리기 — 오른쪽 종아리 (발목 가동성 → 무릎 부담 줄이기)', how:'벽 짚고 뒷다리 뒤꿈치를 바닥에 붙인 채 30초. 무릎 펴고 한 번, 살짝 굽히고 한 번', basis:'일반', src:null },
+    '마사지볼풀기—종아리·정강이앞': { for:'① 풀기 — 종아리(비복근)·정강이 앞(전경골근)', how:'공 위에 종아리를 올려 천천히 굴리고, 정강이 바깥 근육도 손이나 공으로. 아픈 곳은 10초 머물기', basis:'강의', src:'lecture' },
+    '밸런스리치(한발서서앞·뒤터치)': { for:'④ 통합 — 발목·무릎·엉덩이가 같이 균형 잡기', how:'한 발로 서서 엉덩이를 뒤로 빼며 다른 발로 앞·뒤를 최대한 멀리 터치. 서 있는 무릎은 두 번째 발가락 방향, 흔들리면 잡기', basis:'강의', src:'lecture' },
     '책위밸런스(한발·일자서기)': { for:'④ 통합 — 좌우 차이 느끼기 (왼발목·오른 무릎)', how:'책 위에서 일자 서기(앞발 뒤꿈치에 뒷발 앞꿈치) 눈 뜨고 10초 → 눈 감고 20초 → 한 발 서기. 새끼발가락·골반·시선 정면, 무릎 안 굽히기. 흔들리면 잡는 연습', basis:'강의', src:'lecture' },
   };
   const FIX_SRC = {
@@ -118,6 +126,60 @@
     lecture:   { url:null, name:'웰니스데이 신체지도 강의 (2026-10-16) — 재활 4단계: 풀기 → 늘리기 → 깨우기 → 통합' },
   };
   function fixTip(name){ return FIX[norm(name)] || null; }
+
+  // ----- 부위별 재활 4단계 (어깨 · 허리 · 무릎) -----
+  // 뼈대: NASM 교정운동 연속체(Inhibit → Lengthen → Activate → Integrate) = 웰니스 강의(2026-10-16)의 "풀기 → 늘리기 → 깨우기 → 통합".
+  // 부위별 순서는 강의에서 든 예시(어깨·발목·허리)를 그대로 따르고, 결과지(2022-12-28)의 상필님 항목에 맞춰 종목을 골랐다.
+  // 강의 핵심: 마사지(풀기)에서 멈추지 말고 통합(움직임)까지 가야 진짜 재활. 앞쪽은 풀고 뒤쪽은 깨운다.
+  const REHAB = {
+    shoulder: { name:'어깨', icon:'🫱', why:'둥근어깨 · 왼쪽 어깨 4° 올라감 · 거북목',
+      note:'강의 순서: 쇄골 아래·광배·견갑거근 풀기 → 가슴 스트레칭 → 중·하부 승모근 깨우기 → 코브라 → 당기기로 통합',
+      stages: [
+        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', set:'좌우 2분', sets:1 } ] },
+        { s:'② 늘리기', items:[ { n:'문틀 가슴 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', set:'10회 × 2세트', sets:2 } ] },
+        { s:'③ 깨우기', items:[ { n:'승모근 아래 깨우기 (손바닥 뒤로 내리기)', set:'10회 × 2세트', sets:2 }, { n:'Y 레이즈', set:'10회 × 2세트', sets:2 }, { n:'엎드려 코브라', set:'10초 × 5', sets:5 } ] },
+        { s:'④ 통합', items:[ { n:'덤벨 로우', set:'3세트 × 12회', sets:3 }, { n:'원암 케이블 회전 로우 (불균형 교정)', set:'15회씩 × 3세트', sets:3 } ] },
+      ] },
+    back: { name:'허리', icon:'🧍', why:'골반 앞기울기 6.5° · 오른쪽 허리 아래 욱신 · 오른쪽 장요근 당김',
+      note:'강의 순서: 골반 옆(대퇴근막장근)·허벅지 앞·엉덩이(이상근) 풀기 → 스트레칭 → 엉덩이 운동·스쿼트·런지',
+      stages: [
+        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이', set:'좌우 2분', sets:1 } ] },
+        { s:'② 늘리기', items:[ { n:'반무릎 장요근 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'의자 햄스트링 스트레칭', set:'좌우 30초', sets:1 }, { n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', set:'10회 × 2세트', sets:2 } ] },
+        { s:'③ 깨우기', items:[ { n:'글루트 브릿지', set:'15회 × 2세트', sets:2 }, { n:'클램쉘', set:'좌우 15회 × 2세트', sets:2 } ] },
+        { s:'④ 통합', items:[ { n:'고관절 힌지 보조운동', set:'15회 × 2세트', sets:2 }, { n:'가블릿 스쿼트', set:'10회 × 2세트 (무릎 괜찮은 날만)', sets:2 } ] },
+      ] },
+    knee: { name:'무릎', icon:'🦵', why:'오른 무릎 안쪽 통증·붓기 · 오른 무릎 바깥돌림 · 왼발목 안으로 무너짐',
+      note:'강의: 무릎은 안정성 관절 — 위(고관절)·아래(발목) 가동성이 떨어지면 무릎이 대신 고생. 그래서 발목·엉덩이부터. 붓기 있는 날은 ①②만',
+      stages: [
+        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 종아리·정강이 앞', set:'좌우 2분', sets:1 }, { n:'발바닥 마사지', set:'좌우 2분', sets:1 } ] },
+        { s:'② 늘리기', items:[ { n:'벽 종아리 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'내전근 스트레칭', set:'좌우 30초 × 2', sets:2 } ] },
+        { s:'③ 깨우기', items:[ { n:'클램쉘', set:'좌우 15회 × 2세트', sets:2 }, { n:'발가락 수건 잡기', set:'15회 × 2세트', sets:2 }, { n:'월싯(벽 스쿼트)', set:'20초 × 3 (아프지 않은 각도)', sets:3 } ] },
+        { s:'④ 통합', items:[ { n:'책 위 밸런스 (한 발·일자 서기)', set:'좌우 20초 × 2', sets:2 }, { n:'밸런스 리치 (한 발 서서 앞·뒤 터치)', set:'좌우 5회 × 2세트', sets:2 } ] },
+      ] },
+  };
+  const REHAB_SRC = [
+    { url:'https://www.nasm.org/resource-center/blog/recovery/a-guide-to-nasms-corrective-exercise-continuum', name:'NASM 교정운동 연속체 (Inhibit → Lengthen → Activate → Integrate)' },
+    { url:null, name:'웰니스데이 신체지도 강의 (2026-10-16) — 재활 4단계와 부위별 순서' },
+  ];
+  // opt.addBtn: 담기 단추를 그릴지 (앱만), opt.part: 한 부위만
+  function rehabHTML(opt){
+    opt = opt || {};
+    const parts = opt.part ? [opt.part] : Object.keys(REHAB);
+    const blocks = parts.map(k=>{
+      const r = REHAB[k];
+      const stages = r.stages.map(st => `<div class="rh-stage"><div class="rh-s">${esc(st.s)}</div>
+        <div class="rh-items">${st.items.map(it => `<div class="rh-item"><span class="rh-n">${esc(it.n)}</span><span class="rh-set">${esc(it.set)}</span></div>`).join('')}</div></div>`).join('');
+      return `<div class="rh-part" data-part="${k}">
+        <div class="rh-head"><b>${r.icon} ${esc(r.name)}</b> <span>${esc(r.why)}</span></div>
+        <div class="rh-note">${esc(r.note)}</div>
+        ${stages}
+        ${opt.addBtn ? `<button class="rh-add" data-rhadd="${k}">${esc(r.name)} 4단계 오늘 기록에 담기</button>` : ''}
+      </div>`;
+    }).join('');
+    return `<div class="rh">${blocks}
+      <div class="xi-src">근거: ${REHAB_SRC.map(s => s.url ? `<a href="${s.url}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name)).join(' · ')}<br>
+      ※ 통증이 심하거나 붓기가 있으면 ①②(풀기·늘리기)까지만. 무릎은 정형외과·선생님 말씀이 먼저예요.</div></div>`;
+  }
 
   // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----
   // 출처: 유튜브 '바디해킹트레이너' — 신경계 체조/필수 준비운동/뉴로 웜업, 센서리 웜업 (https://youtu.be/CDY3DKA37cU)
@@ -390,6 +452,19 @@
     .xi-science{margin-top:6px;padding:10px 12px;border-radius:10px;background:rgba(79,168,160,.08);border:1px solid rgba(79,168,160,.25);}
     .xi-sci-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px;}
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
+    .rh{display:flex;flex-direction:column;gap:12px;}
+    .rh-part{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(255,255,255,.02);}
+    .rh-head{font-size:14px;color:var(--ink);} .rh-head b{margin-right:6px;} .rh-head span{font-size:11.5px;color:var(--ink-dim);word-break:keep-all;}
+    .rh-note{font-size:11.5px;color:var(--ink-faint);line-height:1.55;margin:6px 0 8px;word-break:keep-all;}
+    .rh-stage{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:7px 0;border-top:1px dashed var(--border);}
+    .rh-s{font-size:12px;font-weight:700;color:var(--accent-a);padding-top:2px;}
+    .rh-items{display:flex;flex-direction:column;gap:5px;min-width:0;}
+    .rh-item{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;}
+    .rh-n{color:var(--ink);word-break:keep-all;} .rh-set{color:var(--ink-faint);white-space:nowrap;font-size:11.5px;}
+    .rh-add{width:100%;margin-top:10px;padding:10px;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+    .rh-tabs{display:flex;gap:6px;margin-bottom:10px;}
+    .rh-tab{flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-dim);font-size:12.5px;cursor:pointer;font-family:inherit;}
+    .rh-tab.on{border-color:var(--accent-a);color:var(--accent-a);}
     .xh{display:flex;flex-direction:column;gap:2px;}
     .xh-step{display:flex;gap:10px;position:relative;padding-bottom:14px;}
     .xh-step:not(:last-of-type)::before{content:'';position:absolute;left:13px;top:30px;bottom:0;width:2px;background:var(--border);}
@@ -435,5 +510,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
