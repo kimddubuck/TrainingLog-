@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=93"></script>
+<script src="exinfo.js?v=94"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v93</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v94</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -2110,10 +2110,11 @@ const PLAN = {
                  options:['런지','프론트런지'] },
                { why:'머신 (레그프레스 — 손잡이 잡고 코어)', sets:3, reps:'15회',
                  options:['레그프레스','이너타이 머신'] },
-               { why:'워킹런지', sets:3, reps:'좌우 12회',
-                 options:['프론트런지','토터치'] },
-               { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
-                 options:['스티프 데드리프트'] },
+               // 엉덩이 두 자리 — 선생님 엉덩이 운동들이 돌아가며 나온다
+               { why:'엉덩이 ① 옆·대각선 (무릎 안쪽 쏠림 잡기)', sets:3, reps:'좌우 12회',
+                 options:['토터치','크랩워킹'] },
+               { why:'엉덩이 ② 접기·힌지 (골반 세우는 힘 · 허리 대신 엉덩이)', sets:3, reps:'15회',
+                 options:['고관절 운동(폼롤러)','스티프 데드리프트','케틀벨 굿모닝','굿모닝 운동'] },
                { why:'발 마무리 — 왼발 아치·발바닥 (교정)', sets:2, reps:'15회', label:'15회 × 2세트',
                  options:['발가락 수건 잡기','발바닥 마사지'],
                  labels:{ '발바닥 마사지':'좌우 2분' } },
