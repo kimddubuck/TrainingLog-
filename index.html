@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=108"></script>
+<script src="exinfo.js?v=109"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -702,6 +702,20 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .setchk.on{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
 
   /* Water tracker */
+  .card.mission{border:1px solid rgba(232,163,61,.35);}
+  .ms-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .ms-title{font-size:14px;font-weight:700;color:var(--accent-a);} .ms-done{font-size:11px;color:var(--ink-dim);flex:1;}
+  .ms-alarm{padding:4px 10px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-dim);font-size:11.5px;cursor:pointer;font-family:inherit;}
+  .ms-alarm.on{border-color:var(--accent-a);color:var(--accent-a);background:var(--accent-a-dim);}
+  .ms-body{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:center;margin-top:10px;}
+  .ms-pic .xi-img{margin:0;gap:2px;} .ms-pic .xi-vid{font-size:10px;margin:0;}
+  .ms-p{font-size:10.5px;color:var(--accent-b);font-weight:700;} .ms-n{font-size:15px;font-weight:700;color:var(--ink);margin:2px 0;word-break:keep-all;line-height:1.3;}
+  .ms-set{font-size:12.5px;color:var(--ink);} .ms-why{font-size:11px;color:var(--ink-dim);margin-top:2px;word-break:keep-all;}
+  .ms-txt .rh-vid{margin-top:5px;}
+  .ms-btns{display:flex;gap:8px;margin-top:10px;}
+  .ms-btns button{flex:1;padding:10px;border-radius:9px;border:1px solid var(--accent-a);background:var(--accent-a);color:var(--bg);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .ms-btns button.ghost{background:transparent;color:var(--ink-dim);border-color:var(--border-strong);font-weight:600;}
+  .ms-note{font-size:10.5px;color:var(--ink-faint);margin-top:8px;line-height:1.5;word-break:keep-all;}
   .water-card{
     background:var(--surface);border:1px solid var(--border);border-radius:14px;
     padding:16px;margin-bottom:14px;
@@ -946,7 +960,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v108</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v109</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -969,6 +983,15 @@ if(!window.EXINFO) window.EXINFO = (function(){
 
   <!-- LOG PANEL -->
   <div class="panel active" id="panel-log">
+
+    <!-- 스트레칭 미션: 1시간마다 하나. 알림은 앱이 열려 있을 때만 온다 (서버가 없어서) -->
+    <div class="card mission" id="missionCard">
+      <div class="ms-head"><span class="ms-title">⏰ 스트레칭 미션</span><span class="ms-done" id="msDone"></span>
+        <button class="ms-alarm" id="msAlarm">🔔 1시간마다 알림</button></div>
+      <div class="ms-body" id="msBody"></div>
+      <div class="ms-btns"><button id="msOk">했어요 ✅</button><button class="ghost" id="msNext">🎲 다른 미션</button></div>
+      <div class="ms-note" id="msNote"></div>
+    </div>
 
     <div class="card">
       <label class="field-label">날짜</label>
@@ -2796,6 +2819,85 @@ function renderPhilo(){
   if(wasOpen){ const d = h.querySelector('details'); if(d) d.open = true; }
 }
 renderPhilo();
+// ---------- 스트레칭 미션 · 1시간마다 알림 ----------
+// 알림은 앱(탭)이 열려 있을 때만 온다. 완전히 닫으면 알림을 보낼 서버가 없다 → 폰 달력·알람과 같이 쓰기
+let missionsDone = [];          // 오늘 한 미션 [{t:'HH:MM', n:이름}] — 그날 기록에 저장
+let curMission = null;
+const MS_HOURS = [8, 22];       // 알림 시간대
+const MS_GAP = 60 * 60 * 1000;  // 1시간
+function msRecent(){ try{ return JSON.parse(localStorage.getItem('missionRecent') || '[]'); }catch(e){ return []; } }
+function renderMission(m){
+  curMission = m;
+  const b = document.getElementById('msBody'); if(!b || !m) return;
+  b.innerHTML = `<div class="ms-pic">${EXINFO.imgHTML(m.n, 42)}</div>
+    <div class="ms-txt"><div class="ms-p">${m.p}</div><div class="ms-n">${m.n.replace(/\s*\(.*?\)\s*$/, '')}</div>
+      <div class="ms-set">${m.set}</div><div class="ms-why">${m.why}</div>${EXINFO.vidHTML ? EXINFO.vidHTML(m.n) : ''}</div>`;
+}
+function newMission(){
+  const recent = msRecent();
+  const m = EXINFO.pickMission(recent);
+  const next = [m.n, ...recent].slice(0, 6);
+  try{ localStorage.setItem('missionRecent', JSON.stringify(next)); }catch(e){}
+  renderMission(m);
+  return m;
+}
+function updateMissionDone(){
+  const el = document.getElementById('msDone'); if(!el) return;
+  el.textContent = missionsDone.length ? `오늘 ${missionsDone.length}개 했어요 · 마지막 ${missionsDone[missionsDone.length-1].t}` : '오늘 아직 0개';
+}
+document.getElementById('msOk').addEventListener('click', ()=>{
+  if(!curMission) return;
+  missionsDone.push({ t: nowHHMM(), n: curMission.n });
+  updateMissionDone(); autoSave(); showToast('미션 완료 ✅ 다음 미션으로');
+  newMission();
+});
+document.getElementById('msNext').addEventListener('click', newMission);
+// 알림
+function msAlarmOn(){ try{ return localStorage.getItem('missionAlarm') === '1'; }catch(e){ return false; } }
+function msSetAlarm(on){ try{ localStorage.setItem('missionAlarm', on ? '1' : '0'); }catch(e){} renderMsAlarm(); }
+function renderMsAlarm(){
+  const b = document.getElementById('msAlarm'), note = document.getElementById('msNote'); if(!b) return;
+  const on = msAlarmOn() && ('Notification' in window) && Notification.permission === 'granted';
+  b.classList.toggle('on', on);
+  b.textContent = on ? '🔔 1시간마다 알림 켜짐' : '🔕 1시간마다 알림';
+  note.textContent = on
+    ? `${MS_HOURS[0]}시~${MS_HOURS[1]}시, 앱이 열려 있을 때 1시간마다 미션 알림이 와요. 앱을 완전히 닫으면 알림이 안 와요 — 폰 알람·달력에 "스트레칭"을 같이 걸어 두세요`
+    : '누르면 1시간마다 미션 알림. 앱이 열려 있을 때만 와요 (홈 화면에 추가해 두면 좋아요)';
+}
+async function msShow(m){
+  const title = '⏰ 스트레칭 미션 — ' + m.p;
+  const body = m.n.replace(/\s*\(.*?\)\s*$/, '') + ' · ' + m.set;
+  try{
+    const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
+    if(reg && reg.showNotification){ await reg.showNotification(title, { body, icon:'icon-192.png', badge:'icon-192.png', tag:'mission', renotify:true, data:{ url:'./?mission=1' } }); return; }
+    new Notification(title, { body, icon:'icon-192.png', tag:'mission' });
+  }catch(e){ console.warn('notification failed', e); }
+}
+function msTick(){
+  if(!msAlarmOn() || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const h = new Date().getHours(); if(h < MS_HOURS[0] || h >= MS_HOURS[1]) return;
+  let last = 0; try{ last = Number(localStorage.getItem('missionLast') || 0); }catch(e){}
+  if(Date.now() - last < MS_GAP) return;
+  try{ localStorage.setItem('missionLast', String(Date.now())); }catch(e){}
+  const m = newMission(); msShow(m);
+}
+document.getElementById('msAlarm').addEventListener('click', async ()=>{
+  if(!('Notification' in window)){ showToast('이 브라우저는 알림이 안 돼요'); return; }
+  if(msAlarmOn() && Notification.permission === 'granted'){ msSetAlarm(false); showToast('알림을 껐어요'); return; }
+  let perm = Notification.permission;
+  if(perm !== 'granted') perm = await Notification.requestPermission();
+  if(perm !== 'granted'){ showToast('알림 권한이 꺼져 있어요 — 폰 설정에서 켜 주세요'); renderMsAlarm(); return; }
+  try{ localStorage.setItem('missionLast', String(Date.now())); }catch(e){}   // 지금부터 1시간 뒤 첫 알림
+  msSetAlarm(true); showToast('1시간마다 스트레칭 미션 알림이 와요');
+});
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(e => console.warn('sw', e)); }
+setInterval(msTick, 60 * 1000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') msTick(); });
+renderMsAlarm();
+newMission();
+if(new URLSearchParams(location.search).get('mission')){
+  setTimeout(()=>{ document.querySelector('.tab[data-tab="log"]').click(); document.getElementById('missionCard').scrollIntoView({ behavior:'smooth', block:'start' }); }, 300);
+}
 // ---------- 부위별 재활 4단계 (내 몸 탭) ----------
 let rehabPart = 'shoulder';
 function renderRehab(){
@@ -2948,6 +3050,8 @@ function renderDayTypeAndForm(){
   setTimes = {}; dailyTimes = {};
   renderDaily(existing);
   renderMorning(existing);
+  missionsDone = (existing && Array.isArray(existing.missions)) ? existing.missions.slice() : [];
+  updateMissionDone();
 
   if(pt){
     banner.innerHTML = `<div class="daytype-banner pt"><div><div class="big">PT 받는 날</div><p>선생님과 세션 진행 · 배운 운동을 검색해서 기록해두세요</p></div></div>`;
@@ -3788,6 +3892,7 @@ function buildEntryFromForm(){
     exercises: exData,
     daily: daily,
     morning: collectMorning(),
+    missions: missionsDone.length ? missionsDone.slice() : undefined,
     note: note
   };
 }

@@ -431,6 +431,40 @@
     </div>`;
   }
 
+  // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
+  // n = 앱 종목 이름 (그림·영상 찾기용). 부위를 먼저 고르고 그 안에서 하나 → 부위가 골고루 나온다
+  const MISSIONS = [
+    { p:'목 · 거북목', n:'턱 당기기 (깊은 목 근육)', set:'5초 × 10번', why:'앞으로 나온 머리를 뒤로' },
+    { p:'목 · 거북목', n:'위 승모근 스트레칭 (목 옆 늘리기)', set:'좌우 30초', why:'올라간 왼쪽 어깨 내리기' },
+    { p:'어깨 · 둥근어깨', n:'문틀 가슴 스트레칭', set:'좌우 30초', why:'앞으로 말린 가슴 열기' },
+    { p:'어깨 · 둥근어깨', n:'월 슬라이드', set:'10회', why:'날개뼈 위로 돌리기 — 팔 올리기' },
+    { p:'어깨 · 둥근어깨', n:'승모근 아래 깨우기 (손바닥 뒤로 내리기)', set:'10회', why:'날개뼈 아래로' },
+    { p:'어깨 · 둥근어깨', n:'T 레이즈', set:'맨몸 10회 (서서 상체 숙이고)', why:'날개뼈 모으기' },
+    { p:'어깨 · 둥근어깨', n:'광배근 스트레칭 (짐볼·벤치)', set:'책상 짚고 좌우 30초', why:'팔 올리기 가동성' },
+    { p:'등 · 굽은등', n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', set:'일어나서 10회', why:'앉아 있던 등 되돌리기' },
+    { p:'등 · 굽은등', n:'Y 레이즈', set:'맨몸 10회 (벽에 등 대고)', why:'아래 승모근 깨우기' },
+    { p:'허리 · 골반', n:'반무릎 장요근 스트레칭', set:'좌우 30초 (골반 말고 엉덩이 조이기)', why:'골반 앞기울기 — 앞쪽 풀기' },
+    { p:'허리 · 골반', n:'고관절 힌지 보조운동', set:'10회', why:'허리 대신 엉덩이 쓰기' },
+    { p:'허리 · 골반', n:'플랭크', set:'8초 버티고 2초 쉬기 × 5', why:'깊은 코어 깨우기' },
+    { p:'고관절', n:'내전근 스트레칭', set:'좌우 30초', why:'고관절 가동성' },
+    { p:'고관절', n:'클램쉘', set:'좌우 15회', why:'엉덩이 옆 깨우기 — 무릎 지키기' },
+    { p:'무릎 · 발목', n:'벽 종아리 스트레칭', set:'좌우 30초', why:'발목이 풀려야 무릎이 편해요' },
+    { p:'무릎 · 발목', n:'카프 레이즈', set:'15회 (끝까지 내려 2초)', why:'종아리 · 발목 끝범위' },
+    { p:'무릎 · 발목', n:'책 위 밸런스 (한 발·일자 서기)', set:'한 발 좌우 20초', why:'흔들릴 때 잡기' },
+    { p:'발', n:'발가락 수건 잡기', set:'15회 (수건 없으면 발가락 오므리기)', why:'왼발 아치 세우기' },
+    { p:'순환', n:'내 몸풀기 (하체부터 · WGS · 점프)', set:'제자리 걷기 1분 → 기마자세 콩콩 10 → 점프 10', why:'순환 — 모든 운동의 1순위' },
+  ];
+  // 최근 한 것(avoid: 이름 배열)은 피하고, 부위를 먼저 뽑아서 골고루
+  function pickMission(avoid){
+    const av = new Set(avoid || []);
+    const pool = MISSIONS.filter(m => !av.has(m.n));
+    const list = pool.length ? pool : MISSIONS;
+    const parts = [...new Set(list.map(m => m.p))];
+    const p = parts[Math.floor(Math.random() * parts.length)];
+    const inPart = list.filter(m => m.p === p);
+    return inPart[Math.floor(Math.random() * inPart.length)];
+  }
+
   // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----
   // 출처: 유튜브 '바디해킹트레이너' — 신경계 체조/필수 준비운동/뉴로 웜업, 센서리 웜업 (https://youtu.be/CDY3DKA37cU)
   // 순서·이름은 영상 화면 목록 그대로. 요령은 영상 자막에서 들리는 만큼만 적었다 (자세한 건 영상).
@@ -1097,5 +1131,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
