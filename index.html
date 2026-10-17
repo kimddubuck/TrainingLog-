@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=127"></script>
+<script src="exinfo.js?v=128"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1006,7 +1006,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v127</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v128</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -2138,6 +2138,10 @@ const PROTEIN_GENERAL = [
   ['소고기 100g', 20], ['돼지고기 100g', 20], ['삼겹살 100g', 17], ['연어·고등어 100g', 20], ['참치캔 1캔 (100g)', 20], ['새우 100g', 20],
   ['우유 200ml', 6], ['그릭요거트 100g', 9], ['치즈 1장', 4], ['검은콩 30g', 10], ['아몬드 10알', 2], ['식빵 1장', 3], ['라면 1봉', 9],
 ];
+// 상필님이 채팅으로 알려 준 자주 먹는 것 (제품 포장의 g). 내 목록 맨 앞에 늘 보인다 — 바꾸려면 여기를 고친다
+const PROTEIN_SEED = [
+  ['낫또 1팩', 11],   // 2026-10-18 상필님
+];
 function latestWeight(){
   const rows = (inbody || []).filter(r => typeof r.weight === 'number' && r.weight > 0).sort((a, b) => b.date.localeCompare(a.date));
   return rows.length ? rows[0].weight : null;
@@ -2167,7 +2171,8 @@ function ptRender(){
   document.getElementById('ptTotal').textContent = Math.round(ptSum() * 10) / 10;
   document.getElementById('ptList').innerHTML = ptItems.map(x => `<span>${x.n} ${x.g}g</span>`).join('');
   const chip = (n, g, mine, i) => `<button data-n="${n.replace(/"/g, '&quot;')}" data-g="${g}">${n}<b>${g}g</b>${mine ? `<i data-del="${i}">×</i>` : ''}</button>`;
-  document.getElementById('ptMine').innerHTML = proteinFoods.length ? proteinFoods.map((f, i) => chip(f.n, f.g, true, i)).join('') : '<span class="empty">아직 없어요 — 아래에 이름과 g 를 넣고 "목록에 추가"</span>';
+  const seed = PROTEIN_SEED.filter(([n]) => !proteinFoods.some(f => f.n === n)).map(([n, g]) => chip(n, g, false)).join('');
+  document.getElementById('ptMine').innerHTML = (seed + proteinFoods.map((f, i) => chip(f.n, f.g, true, i)).join('')) || '<span class="empty">아직 없어요 — 아래에 이름과 g 를 넣고 "목록에 추가"</span>';
   document.getElementById('ptGeneral').innerHTML = PROTEIN_GENERAL.map(([n, g]) => chip(n, g, false)).join('');
   document.querySelectorAll('#ptMine button, #ptGeneral button').forEach(b => b.onclick = async e => {
     const del = e.target.dataset && e.target.dataset.del;
