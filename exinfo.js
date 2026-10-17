@@ -556,6 +556,54 @@
       </div></details>`;
   }
 
+  // ----- 휴먼밸런스TV (신체지도 강의를 한 곳의 유튜브 채널) — 내 문제 부위별로 골라 둔 영상 -----
+  // 제목·재생목록으로 골랐고 영상을 전부 본 건 아니에요. gear: 'bw' = 맨몸으로도 가능(제 판단), 'cable' = 필라케이블·코어케이블(그 회사 기구) 필요
+  const HB = {
+    channel:'https://www.youtube.com/@HUMANBALANCE_TV', name:'휴먼밸런스TV',
+    groups:[
+      { t:'🫱 어깨 · 거북목 · 굽은등', items:[
+        { id:'harTIZ8JMNg', n:'숄더 풀다운 — 라운드숄더·굽은등 교정', len:'', gear:'cable' },
+        { id:'QAKFxXsNmtU', n:'숄더 익스텐션 — 어깨 교정', gear:'cable' },
+        { id:'-mfsp5J4nHc', n:'컬업 플라이 — 거북목 교정', gear:'cable' },
+        { id:'zQH_78wNBIc', n:'어깨가 말린 사람들을 위한 스트레칭 4분 타바타', gear:'cable' },
+        { id:'TQLowdplsvc', n:'목통증 스트레칭 대신 이거 하나', gear:'cable' },
+        { id:'QjtX9qWHNjA', n:'스마트폰 세상에서 등근육을 키워야 하는 이유 (짧은 영상)', gear:'bw' },
+      ] },
+      { t:'🧍 등 · 허리', items:[
+        { id:'k0JNOQrsE0c', n:'스탠딩 롤다운 — 굽은등 스트레칭', gear:'bw', note:'핸들 없이 팔만 내려도 돼요' },
+        { id:'Zxz_wTYJbyk', n:'캣 스트레치 — 척추 유연성', gear:'bw' },
+        { id:'DupZZ8XbGFY', n:'스파인 스트레치 — 척추 스트레칭', gear:'cable' },
+        { id:'TJKc2HcPt-g', n:'케이블 브릿지 — 허리 통증 없이 힙업', gear:'cable' },
+        { id:'PUZx2jNkxUU', n:'케이블 롤오버 — 코어·허리 강화', gear:'cable' },
+      ] },
+      { t:'🍑 골반 · 고관절 · 하체', items:[
+        { id:'h0-wfLOVWtQ', n:'원 레그 서클 — 골반 통증 개선', gear:'cable' },
+        { id:'BL1F080gzc0', n:'원 레그 플라이 — 힙업과 균형감각', gear:'cable' },
+        { id:'MmYVXDIx-kU', n:'런지 플라이 — 힙 강화', gear:'cable' },
+        { id:'w4pr9HllpNg', n:'2025 웰니스 다이브 골반운동 (짧은 영상)', gear:'bw' },
+        { id:'hr2kAA9Q5KE', n:'무게 중심이 앞으로 치우친 직장인이 해야 할 운동 (짧은 영상)', gear:'bw' },
+      ] },
+      { t:'🧱 코어 · 전신 흐름', items:[
+        { id:'NVQwOXqupi8', n:'매일 하면 좋은 4분 플랭크 타바타', gear:'bw', note:'강의 원칙대로 8~10초씩 끊어서' },
+        { id:'HhPQyRbcuvc', n:'맨몸운동 1분 플로우', gear:'bw' },
+        { id:'28DORKDR0ps', n:'바디 플로우 타바타 — 자유로운 움직임', gear:'bw' },
+        { id:'7lAgzztkF6k', n:'10분 요가 플로우', gear:'bw' },
+        { id:'KP3TEt6mxKM', n:'컨트롤 밸런스 — 코어 밸런스 강화', gear:'cable' },
+        { id:'ss4poKZMDk4', n:'레시프로컬 패턴 — 좌우 교대 움직임의 중요성 (짧은 영상)', gear:'bw' },
+      ] },
+    ],
+  };
+  function hbHTML(){
+    const g = HB.groups.map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.map(it => `
+      <a class="hb-i" href="https://www.youtube.com/watch?v=${it.id}" target="_blank" rel="noopener">
+        <img src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" loading="lazy" alt="">
+        <span class="hb-x"><span class="hb-n">${esc(it.n)}</span><span class="hb-gear ${it.gear}">${it.gear === 'bw' ? '맨몸으로도 가능' : '필라케이블·코어케이블 필요'}</span>${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
+    return `<div class="hb">
+      <div class="hb-head">📺 <b>${esc(HB.name)}</b> 따라하기 <a href="${HB.channel}" target="_blank" rel="noopener">채널 열기</a></div>
+      <div class="hb-tip">신체지도 강의를 한 곳의 채널이에요.<br>내 문제 부위에 맞는 영상만 골랐어요.<br>제목으로 고른 거라 영상을 다 본 건 아니에요.<br>대부분 그 회사 기구를 써요. 맨몸으로 되는 건 표시했어요.</div>
+      ${g}</div>`;
+  }
+
   // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
   // n = 앱 종목 이름 (그림·영상 찾기용). 부위를 먼저 고르고 그 안에서 하나 → 부위가 골고루 나온다
   // 오래 앉기·스마트폰 볼 때 굳는 근육을 "푸는" 스트레칭만 (2026-10-18 상필님). n = 사진용 앱 종목, label = 보여 줄 이름
@@ -1084,6 +1132,15 @@
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
     .pm{margin:6px 0 2px;}
+    .hb{display:flex;flex-direction:column;gap:10px;}
+    .hb-head{font-size:14px;color:var(--ink);} .hb-head a{font-size:11px;color:var(--accent-b);margin-left:6px;}
+    .hb-tip{font-size:11.5px;color:var(--ink-dim);line-height:1.55;word-break:keep-all;}
+    .hb-g{display:flex;flex-direction:column;gap:6px;} .hb-t{font-size:12.5px;font-weight:800;color:var(--ink);margin-top:4px;}
+    .hb-i{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;text-decoration:none;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:6px;}
+    .hb-i img{width:96px;height:54px;object-fit:cover;border-radius:6px;background:#000;}
+    .hb-x{display:flex;flex-direction:column;gap:2px;min-width:0;} .hb-n{font-size:12px;color:var(--ink);font-weight:600;line-height:1.35;word-break:keep-all;}
+    .hb-gear{font-size:10px;border-radius:999px;padding:1px 7px;align-self:flex-start;} .hb-gear.bw{color:#7FC08A;border:1px solid rgba(127,192,138,.45);} .hb-gear.cable{color:var(--ink-faint);border:1px solid var(--border);}
+    .hb-note{font-size:10.5px;color:var(--ink-dim);}
     .an{margin:0 0 10px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);}
     .an>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:10px 12px;-webkit-tap-highlight-color:transparent;}
     .an>summary::-webkit-details-marker{display:none;}
@@ -1294,5 +1351,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, hbHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

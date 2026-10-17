@@ -36,7 +36,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (앱과 같은 파일) -->
-<script src="exinfo.js?v=122"></script>
+<script src="exinfo.js?v=123"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{
@@ -234,7 +234,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v122</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v123</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -320,6 +320,7 @@ window.__chartReady = false;
     <div class="r-card">
       <div class="body-head">🩹 부위별 재활 4단계 <span class="body-src">풀기 → 늘리기 → 깨우기 → 통합 (읽기 전용)</span></div>
       <div id="rehabView"></div>
+      <div id="hbView" style="margin-top:14px;"></div>
     </div>
   </div>
 
@@ -516,7 +517,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 
 // ---------- 종목 사전 (앱과 같은 기준) ----------
-if(window.EXINFO){ EXINFO.injectCSS(); const rv = document.getElementById('rehabView'); if(rv) rv.innerHTML = EXINFO.rehabHTML({}); }
+if(window.EXINFO){ EXINFO.injectCSS(); const rv = document.getElementById('rehabView'); if(rv) rv.innerHTML = EXINFO.rehabHTML({}); const hv = document.getElementById('hbView'); if(hv && EXINFO.hbHTML) hv.innerHTML = EXINFO.hbHTML(); }
 function exInfoOf(ex){
   const o = ex && ex.id && exOverrides[ex.id];
   const m = ex && ex.id && masterExercises.find(x => x.id === ex.id);

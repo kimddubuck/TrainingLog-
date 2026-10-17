@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=122"></script>
+<script src="exinfo.js?v=123"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -999,7 +999,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v122</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v123</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1269,6 +1269,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
       </div>
       <div id="rehabView"></div>
     </div>
+    <!-- 휴먼밸런스TV — 강의한 곳의 유튜브 영상 (exinfo.js HB) -->
+    <div class="card"><div id="hbView"></div></div>
   </div>
 
 </div>
@@ -3053,6 +3055,7 @@ if(new URLSearchParams(location.search).get('mission')){
 // ---------- 부위별 재활 4단계 (내 몸 탭) ----------
 let rehabPart = 'shoulder';
 function renderRehab(){
+  const hv = document.getElementById('hbView'); if(hv && window.EXINFO && EXINFO.hbHTML && !hv.innerHTML) hv.innerHTML = EXINFO.hbHTML();
   const v = document.getElementById('rehabView'); if(!v || !window.EXINFO) return;
   v.innerHTML = EXINFO.rehabHTML({ part: rehabPart, addBtn: true });
   document.querySelectorAll('#rhTabs .rh-tab').forEach(b => b.classList.toggle('on', b.dataset.rh === rehabPart));
