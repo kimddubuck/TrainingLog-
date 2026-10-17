@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=90"></script>
+<script src="exinfo.js?v=91"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v90</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v91</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -1605,6 +1605,7 @@ async function loadAllData(){
   // 잘못 넣었다가 뺀 종목은 저장본에 남아 있어도 되살리지 않는다
   const RETIRED = ['코일링 코어 (CCT)',
     '허리이완(다리자극)',   // 상필님: 빼도 됨 (2026-10-17)
+    '오버헤드',             // 상필님: 빼라 (오버헤드프레스와 중복)
     // v76 에 잠깐 넣었다가 뺀 교정 종목들 (상필님이 고른 6개만 남김)
     '맥길 컬업','사이드 플랭크','버드독','데드버그','골반 기울이기 (누워서)','턱 당기기 (친턱)','벽 천사 (월 엔젤)',
     '흉추 폼롤러 신전','캣카우','발가락 수건 집기','숏풋 (발 아치 세우기)','옆으로 누워 다리 들기',
@@ -1616,7 +1617,11 @@ async function loadAllData(){
   // 이전 버전에서 사용자가 저장한 커스텀 종목 흡수 (중복 이름은 스킵)
   // 주의: 기본 종목(id가 겹치는 것)은 일부러 건너뛴다. 저장된 목록은 과거 스냅샷이라
   //       이걸 덮어쓰면 기본 라이브러리를 고쳐도 앱에 반영되지 않는다.
+  // 선생님 이름이 헷갈리는 것은 여기서 바로잡는다 (번호는 그대로)
+  const RENAME = { '커틀벨': { name:'케틀벨 스윙', part:'엉덩이·뒷벅지' } };
   (Array.isArray(data.masterExercises)?data.masterExercises:[]).forEach(e=>{
+    const rn = RENAME[(e.name||'').replace(/\s+/g,'')];
+    if(rn){ e = { ...e, ...rn }; }
     const nm = (e.name||'').replace(/\s+/g,'').toLowerCase();
     if(RETIRED.includes((e.name||'').replace(/\s+/g,''))) return;
     if(!seen.has(e.id) && !seenNames.has(nm)){
@@ -2060,7 +2065,7 @@ const RECOVERY_ROUTINE = [
   { theme:true },
   { why:'④ 통합 — 밸런스 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 20초', label:'좌우 20초 × 2',
     options:['책 위 밸런스 (한 발·일자 서기)'] },
-  { why:'④ 통합 — 코어 안티 모션 (움직임을 막는 힘, 짧게 끊어서)', sets:1, reps:'10초 × 8', label:'10초 × 8 (2초 쉬고)',
+  { why:'④ 통합 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
     options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
     labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
@@ -2110,7 +2115,7 @@ const PLAN = {
                { why:'발 마무리 — 왼발 아치·발바닥 (교정)', sets:2, reps:'15회', label:'15회 × 2세트',
                  options:['발가락 수건 잡기','발바닥 마사지'],
                  labels:{ '발바닥 마사지':'좌우 2분' } },
-               { why:'코어 — 안티 모션 (움직임을 막는 힘, 짧게 끊어서)', sets:1, reps:'10초 × 8', label:'10초 × 8 (2초 쉬고)',
+               { why:'코어 — 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
                  options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
                  labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
                { why:'마무리 — 뒷벅지 늘리기 (내일 안 뻐근하게)', sets:1, reps:'좌우 30초', label:'좌우 30초',
@@ -2131,7 +2136,7 @@ const PLAN = {
                  options:['바벨 컬','덤벨 해머컬','해머 컬'] },
                { why:'팔 — 삼두 (케이블푸쉬다운)', sets:3, reps:'20회',
                  options:['케이블 푸쉬다운','케이블 로프푸쉬다운','라잉 트라이셉스 익스텐션'] },
-               { why:'코어 — 안티 모션 (움직임을 막는 힘, 짧게 끊어서)', sets:1, reps:'10초 × 8', label:'10초 × 8 (2초 쉬고)',
+               { why:'코어 — 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
                  options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
                  labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
              ] },
@@ -3034,7 +3039,8 @@ const PT_TIPS = {
   '악어호흡':'복부 뒤쪽으로 호흡 넣기 · 코로 들이마시고 입으로 뱉기',
   '고관절운동(폼롤러)':'허리 통증 예방 · 폼롤러를 무릎 뒤에 끼우고 한 다리로 천천히 숙이기 — 동전 줍듯, 엉덩이 자극',
   '스핀롤':'10번씩 3세트 · 몸을 말아주는 움직임 회복 — 고관절을 잘 움직이게',
-  '리버스노드릭컬':'엉덩이에 힘 준 상태로 10번씩',
+  '리버스노드릭컬':'엉덩이에 힘 준 상태로 10번씩 · 고관절 굴곡근 강화',
+  '케틀벨스윙':'케틀벨을 다리 사이로 보냈다가 엉덩이로 튕겨 올리기 (팔로 들지 않기)',
 };
 function ptTip(ex){
   const key = (ex && ex.name || '').replace(/\s+/g, '');
