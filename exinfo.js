@@ -261,6 +261,111 @@
     return `<b>🌅 기상 루틴</b> ${done}/${MORNING.steps.length}${done === MORNING.steps.length ? ' ✓' : ''}${m.t ? ` <span class="mslot-time">${esc(m.t)}</span>` : ''}`;
   }
 
+  // ----- 종목 그림: free-exercise-db (퍼블릭 도메인, https://github.com/yuhonas/free-exercise-db) -----
+  // 값: [그림 번호, 1이면 "비슷한 동작" 그림]. 그림 두 장(시작/끝)은 raw.githubusercontent 에서 바로 불러온다.
+  const IMG_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+  const IMG = {
+    '벤치프레스':['Barbell_Bench_Press_-_Medium_Grip'],
+    '인클라인 벤치프레스':['Barbell_Incline_Bench_Press_-_Medium_Grip'],
+    '덤벨 벤치프레스':['Dumbbell_Bench_Press'],
+    '인클라인 덤벨프레스':['Incline_Dumbbell_Press'],
+    '체스트프레스':['Leverage_Chest_Press'],
+    '케이블 플라이':['Flat_Bench_Cable_Flyes'],
+    '체스트 플라이':['Dumbbell_Flyes'],
+    '펙덱 플라이':['Butterfly'],
+    '케이블 크로스오버':['Cable_Crossover'],
+    '딥스':['Dips_-_Chest_Version'],
+    '딥스(맨몸)':['Bench_Dips',1],
+    '푸쉬업(팔굽혀펴기)':['Pushups'],
+    '오버헤드프레스':['Barbell_Shoulder_Press'],
+    '밀리터리 프레스':['Standing_Military_Press'],
+    '덤벨 숄더프레스':['Dumbbell_Shoulder_Press'],
+    '사이드 레터럴 레이즈':['Side_Lateral_Raise'],
+    '프론트 레이즈':['Front_Dumbbell_Raise'],
+    '리어 델트 플라이':['Seated_Bent-Over_Rear_Delt_Raise'],
+    '후면 리어 델토이드 플라이':['Seated_Bent-Over_Rear_Delt_Raise'],
+    '페이스풀':['Face_Pull'],
+    '업라이트로우':['Upright_Barbell_Row'],
+    '랫풀다운':['Wide-Grip_Lat_Pulldown'],
+    '비하인드 렛풀다운':['Wide-Grip_Pulldown_Behind_The_Neck'],
+    '암풀다운':['Straight-Arm_Pulldown'],
+    '어시스턴트 풀업':['Band_Assisted_Pull-Up'],
+    '풀업(턱걸이)':['Pullups'],
+    '턱걸이(맨몸)':['Pullups'],
+    '바벨 로우':['Bent_Over_Barbell_Row'],
+    '덤벨 로우':['One-Arm_Dumbbell_Row'],
+    '롱풀로우 머신':['Seated_Cable_Rows'],
+    '시티드 케이블 로우':['Seated_Cable_Rows'],
+    '인버티드로우':['Inverted_Row'],
+    '원암 케이블 회전 로우 (불균형 교정)':['Seated_One-arm_Cable_Pulley_Rows',1],
+    '데드리프트':['Barbell_Deadlift'],
+    '스티프 데드리프트':['Stiff-Legged_Barbell_Deadlift'],
+    '루마니안 데드리프트':['Romanian_Deadlift'],
+    '바벨 컬':['Barbell_Curl'],
+    '덤벨 컬':['Dumbbell_Bicep_Curl'],
+    '해머 컬':['Hammer_Curls'],
+    '덤벨 해머컬':['Hammer_Curls'],
+    '케이블 푸쉬다운':['Triceps_Pushdown'],
+    '케이블 로프푸쉬다운':['Triceps_Pushdown_-_Rope_Attachment'],
+    '오버헤드 익스텐션':['Cable_Rope_Overhead_Triceps_Extension'],
+    '라잉 트라이셉스 익스텐션':['Lying_Triceps_Press'],
+    '스쿼트':['Barbell_Squat'],
+    '가블릿 스쿼트':['Goblet_Squat'],
+    '맨몸 스쿼트':['Bodyweight_Squat'],
+    '레그프레스':['Leg_Press'],
+    '레그 익스텐션':['Leg_Extensions'],
+    '레그 컬':['Lying_Leg_Curls'],
+    '런지':['Dumbbell_Lunges'],
+    '프론트런지':['Dumbbell_Lunges',1],
+    '맨몸 런지':['Bodyweight_Walking_Lunge'],
+    '불가리안 스플릿 스쿼트':['Split_Squat_with_Dumbbells'],
+    '카프 레이즈':['Standing_Calf_Raises'],
+    '힙 쓰러스트':['Barbell_Hip_Thrust'],
+    '글루트 브릿지':['Butt_Lift_Bridge'],
+    '이너타이 머신':['Thigh_Adductor'],
+    '힙어드덕션':['Thigh_Abductor'],
+    '굿모닝 운동':['Good_Morning'],
+    '케틀벨 굿모닝':['Good_Morning',1],
+    '토터치':['Standing_Toe_Touches',1],
+    '러닝머신':['Running_Treadmill'],
+    '실내자전거':['Bicycling_Stationary'],
+    '일립티컬':['Elliptical_Trainer'],
+    '스텝밀(천국의계단)':['Stairmaster'],
+    '로잉머신':['Rowing_Stationary'],
+    '걷기':['Walking_Treadmill',1],
+    '슬로우 조깅':['Jogging_Treadmill',1],
+    '야외 러닝':['Trail_Running_Walking',1],
+    '자전거(야외)':['Bicycling'],
+    '등산':['Trail_Running_Walking',1],
+    '플랭크':['Plank'],
+    '크런치':['Crunches'],
+    '싯업(윗몸)':['Sit-Up'],
+    '레그 레이즈':['Flat_Bench_Lying_Leg_Raise'],
+    '마운틴 클라이머':['Mountain_Climbers'],
+    '슈퍼맨':['Superman'],
+    '겟업동작':['Kettlebell_Turkish_Get-Up_Lunge_style',1],
+    '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':['Farmers_Walk',1],
+    '케틀벨 암바':['Kettlebell_Windmill',1],
+    '반무릎 장요근 스트레칭':['Kneeling_Hip_Flexor'],
+    '벽 종아리 스트레칭':['Calf_Stretch_Hands_Against_Wall'],
+    '의자 햄스트링 스트레칭':['Hamstring_Stretch',1],
+    '내전근 스트레칭':['Side_Lying_Groin_Stretch',1],
+    '문틀 가슴 스트레칭':['Dynamic_Chest_Stretch',1],
+    '엎드려 코브라':['Superman',1],
+  };
+  function imgOf(name){
+    const v = IMG[String(name || '').trim()]; if(!v) return null;
+    return { a: IMG_BASE + v[0] + '/0.jpg', b: IMG_BASE + v[0] + '/1.jpg', approx: !!v[1] };
+  }
+  // 그림이 없으면 유튜브에서 자세 영상을 찾는 링크
+  function videoUrl(name){ return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(String(name || '').replace(/\s*\(.*?\)\s*/g, ' ').trim() + ' 운동 자세'); }
+  // 작은 그림 두 장 (없으면 영상 찾기 링크)
+  function imgHTML(name, size){
+    const im = imgOf(name); const s = size || 64;
+    if(!im) return `<a class="xi-vid" href="${videoUrl(name)}" target="_blank" rel="noopener">▶ 영상 찾기</a>`;
+    return `<span class="xi-img" style="--s:${s}px"><img src="${im.a}" loading="lazy" alt=""><img src="${im.b}" loading="lazy" alt="">${im.approx ? '<em>비슷한 그림</em>' : ''}</span>`;
+  }
+
   // ----- 이름 → 기구 · 쪽 · 결 -----
   const norm = s => String(s || '').replace(/\s+/g, '');
   function toolOf(n, type){
@@ -343,6 +448,7 @@
   // 펼쳐 보는 설명 한 덩어리
   function detailHTML(info){
     return `<div class="xi-detail">
+      <div class="xi-detail-img">${imgHTML(info.name, 72)}</div>
       <div><b>${esc(info.icon)} ${esc(info.tool)}</b> — ${info.toolKid}</div>
       <div><b>${esc(info.side)}</b> — ${esc(info.sideText)}</div>
       <div><b>${esc(info.weck.key === '?' ? '선생님 확인' : info.weck.key)}</b> — ${esc(info.weck.why)}
@@ -468,6 +574,11 @@
     .xi-wk{display:inline-block;font-size:10.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:6px;margin-right:4px;letter-spacing:.02em;vertical-align:1px;color:#fff;}
     .xi-BTT{background:#5B9BD5;} .xi-CCT{background:#C98420;} .xi-RMT{background:#3E8F88;} .xi-일반{background:#55606A;} .xi-Q{background:#A9545A;}
     .xi-tl{font-size:11px;color:var(--ink-faint);margin-right:6px;}
+    .xi-img{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0;}
+    .xi-img img{width:var(--s,64px);height:var(--s,64px);object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--border);}
+    .xi-img em{font-style:normal;font-size:10px;color:var(--ink-faint);}
+    .xi-vid{display:inline-block;font-size:11px;color:var(--accent-b);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:3px 8px;margin:4px 0;}
+    .xi-detail-img{margin-bottom:6px;}
     .xi-detail{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04);font-size:12px;line-height:1.6;color:var(--ink-dim);word-break:keep-all;}
     .xi-detail b{color:var(--ink);}
     .xi-basis{display:inline-block;font-size:10px;padding:1px 6px;border-radius:999px;border:1px solid currentColor;margin-left:4px;vertical-align:1px;}
@@ -571,5 +682,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

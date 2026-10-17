@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=83"></script>
+<script src="exinfo.js?v=84"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -645,6 +645,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .today-ex-head .tex-name .tex-type{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);margin-left:6px;font-weight:400;}
   .today-ex-head .tex-name .tex-type.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
   .today-ex-head .tex-name .tex-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
+  .tex-img{margin:-2px 0 6px;}
   .today-ex-head .tex-btns{display:flex;align-items:center;gap:2px;flex:none;}
   .today-ex-head .tex-swap{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);font-size:15px;line-height:1;cursor:pointer;width:32px;height:28px;border-radius:8px;}
   .today-ex-head .tex-swap:active{color:var(--accent-b);border-color:var(--accent-b);}
@@ -934,7 +935,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v83</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v84</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -3106,6 +3107,7 @@ function renderTodayExercises(existing){
         <span class="tex-name">${ex.name}<span class="tex-type ${t}">${tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
         <span class="tex-btns">${swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : ''}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
+      <div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}</div>
       ${ptTipHtml(ex)}
       ${pastPanelHtml(ex.id)}
       <div class="sets" style="${cols}">${setsHtml}</div>
@@ -3389,7 +3391,7 @@ function renderManageMaster(msg){
         <span class="mtype ${t}">${typeLabel(t)}</span>
         <button class="medit" data-exedit="${ex.id}">✏️</button>
         <button class="mdel${armed?' armed':''}" data-exdel="${ex.id}">${armed?'정말 삭제?':'×'}</button>
-        <div class="mx-info">${EXINFO.chipsHTML(info)}<span class="xi-basis b-${info.weck.basis}">${info.weck.basis}</span>
+        <div class="mx-info">${EXINFO.imgHTML(ex.name, 48)}<br>${EXINFO.chipsHTML(info)}<span class="xi-basis b-${info.weck.basis}">${info.weck.basis}</span>
           <div class="mx-why">${info.icon} ${info.toolText} · ${info.weck.why}</div></div>
         <div class="gpick">${picks}</div>
       </div>`;
