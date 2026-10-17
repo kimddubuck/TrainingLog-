@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=118"></script>
+<script src="exinfo.js?v=119"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -348,14 +348,14 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .body-reg .body-btn{font-size:11.5px;padding:7px 2px;white-space:nowrap;}
   .body-zoom{align-items:center;} .body-zoom .body-btn{flex:0 0 auto;padding:6px 10px;}
   .body-legend{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:3px 12px;font-size:11px;color:var(--ink-dim);text-align:left;margin-top:4px;}
-  .body-legend>span{white-space:nowrap;} .body-legend .lg-note{color:var(--ink-faint);}
+  .body-legend>span{white-space:nowrap;} .body-legend .lg-note{color:var(--ink-faint);white-space:normal;word-break:keep-all;}
   .body-zoom{flex-wrap:wrap;}
   .body-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 5px 0 0;vertical-align:-1px;}
   .body-legend i.r{background:#D9534F;} .body-legend i.g{background:#3FA35B;} .body-legend i.p{background:#E8A33D;} .body-legend i.n{background:#FFD54A;}
   .body-legend i.pain{background:#E05A4F;} .body-legend i.rel{background:#E8A33D;} .body-legend i.str{background:#4FA8A0;}
   .body-nerve{align-items:center;} .body-nerve .body-btn{flex:0 0 auto;padding:6px 10px;} .body-nerve .body-btn.on{border-color:#FFD54A;color:#FFD54A;}
   .body-pick{margin-top:8px;padding:9px 11px;border-radius:9px;background:var(--surface-2);border:1px solid var(--border);font-size:12.5px;color:var(--ink-dim);line-height:1.6;word-break:keep-all;}
-  .body-pick b{color:var(--ink);font-size:12.5px;} .body-pick .an-plan{margin-top:6px;} .body-pick .an-step b{font-size:11.5px;} .body-pick .pk-fix{color:var(--accent-b);} .body-pick .pk-k{display:inline-flex;width:18px;height:18px;border-radius:50%;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px;}
+  .body-pick b{color:var(--ink);font-size:12.5px;} .body-pick::after{content:"";display:block;clear:both;} .body-pick .an-plan{margin-top:6px;} .body-pick .an-step b{font-size:11.5px;} .body-pick .pk-fix{color:var(--accent-b);} .body-pick .pk-k{display:inline-flex;width:18px;height:18px;border-radius:50%;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px;}
   .body-pick .pk-k.r{background:#D9534F;} .body-pick .pk-k.g{background:#3FA35B;} .body-pick .pk-k.p{background:#E8A33D;color:#1B1F23;} .body-pick .pk-k.n{background:#FFD54A;color:#1B1F23;}
   .body-note{font-size:11.5px;color:var(--ink-faint);line-height:1.6;margin:10px 0 0;word-break:keep-all;}
   ul.body-note{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--ink-dim);line-height:1.45;}
@@ -998,7 +998,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v118</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v119</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -3161,7 +3161,7 @@ function showBodyPick(hit){
   const m = a && a.muscles.find(x => x.k === hit.k);
   if(!m){ box.textContent = hit.orig || ''; return; }
   const br = t => String(t || '').replace(/\n/g, '<br>');
-  box.innerHTML = `<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${br(m.where)}<br>${br(m.does)}${EXINFO.anatPlanHTML ? EXINFO.anatPlanHTML(m) : ''}`;
+  box.innerHTML = `${EXINFO.anatThumbHTML ? EXINFO.anatThumbHTML(hit.part, m, 84) : ''}<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${br(m.where)}<br>${br(m.does)}${EXINFO.anatPlanHTML ? EXINFO.anatPlanHTML(m) : ''}`;
 }
 let bodyRegion = 'all';
 document.querySelectorAll('.body-btn[data-reg]').forEach(b=> b.addEventListener('click', ()=>{

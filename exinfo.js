@@ -481,6 +481,18 @@
     if(!L.length && m.fix) L.push(`<div class="an-fix">${esc(m.fix)}</div>`);
     return `<div class="an-plan">${L.join('')}</div>`;
   }
+  // 근육 하나의 그림 조각 — 해부도(ANAT[part].imgs)에서 그 근육 핀 자리를 확대해 보여 준다
+  function anatThumbHTML(part, m, size){
+    const a = ANAT[part]; if(!a) return '';
+    let pick = null;
+    (a.imgs || []).some(im => { const p = (im.pins || []).find(x => x.m === m.k); if(p){ pick = { im, p }; return true; } return false; });
+    if(!pick) return '';
+    const S = 2.6, px = pick.p.x / 100, py = pick.p.y / 100;
+    // 그림의 (px,py) 점이 조각 한가운데 오게: background-position P = (0.5 − p·S) / (1 − S)
+    const bx = (0.5 - px * S) / (1 - S) * 100, by = (0.5 - py * S) / (1 - S) * 100;
+    const sz = size || 76;
+    return `<a class="an-thumb ${m.t}" href="${pick.im.f}" target="_blank" rel="noopener" style="width:${sz}px;height:${sz}px;background-image:url('${pick.im.f}');background-size:${S * 100}% auto;background-position:${bx.toFixed(1)}% ${by.toFixed(1)}%" title="누르면 큰 그림"><i></i></a>`;
+  }
   function anatHTML(part){
     const a = ANAT[part]; if(!a) return '';
     const byK = {}; a.muscles.forEach(m => byK[m.k] = m);
@@ -495,7 +507,7 @@
         <div class="an-body"><div class="an-n">${esc(m.n)} <small>${esc(m.en)}</small><span class="xi-basis b-${m.src === 'NASM' ? '수정' : (m.src === '강의' ? '수정' : '정의')}">${esc(m.src)}</span></div>
           <div class="an-where">📍 ${br(m.where)}</div>
           <div class="an-does">${br(m.does)}</div>
-          ${anatPlanHTML(m)}</div></div>`;
+          ${anatPlanHTML(m)}</div>${anatThumbHTML(part, m)}</div>`;
     const red = a.muscles.filter(m => m.t === 'r'), green = a.muscles.filter(m => m.t === 'g'), other = a.muscles.filter(m => m.t !== 'r' && m.t !== 'g');
     return `<details class="an"><summary><span class="an-title">🫀 ${esc(a.title)}</span><small>${esc(a.sub)}</small><span class="an-more">근육 보기 ▾</span></summary>
       <div class="an-body-wrap">
@@ -1063,7 +1075,11 @@
     .an-tip{font-size:10.5px;color:var(--ink-faint);word-break:keep-all;}
     .an-h{font-size:12px;font-weight:800;margin-top:4px;} .an-h.r{color:#E07A80;} .an-h.g{color:#7FC08A;} .an-h.p{color:var(--accent-a);} .an-h.n{color:#FFD54A;}
     .an-m.n{border-left-color:#FFD54A;} .an-m.n .an-k{background:#FFD54A;color:#1B1F23;font-size:12px;}
-    .an-m{display:grid;grid-template-columns:24px 1fr;gap:8px;padding:7px 8px;border-radius:9px;border:1px solid var(--border);border-left:4px solid;background:var(--surface);}
+    .an-m{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:start;padding:7px 8px;border-radius:9px;border:1px solid var(--border);border-left:4px solid;background:var(--surface);}
+    .an-thumb{margin:0;border-radius:9px;background-repeat:no-repeat;background-color:#fff;border:2px solid var(--border-strong);position:relative;display:block;}
+    .an-thumb.r{border-color:#D9534F;} .an-thumb.g{border-color:#3FA35B;} .an-thumb.p{border-color:#E8A33D;}
+    .an-thumb i{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid currentColor;box-shadow:0 0 0 2px rgba(255,255,255,.7);}
+    .an-thumb.r i{color:#D9534F;} .an-thumb.g i{color:#3FA35B;} .an-thumb.p i{color:#E8A33D;}
     .an-m.r{border-left-color:#D9534F;} .an-m.g{border-left-color:#3FA35B;} .an-m.p{border-left-color:#E8A33D;}
     .an-m.hit{box-shadow:0 0 0 2px var(--accent-a) inset;}
     .an-k{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;}
@@ -1241,5 +1257,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
