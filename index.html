@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=95"></script>
+<script src="exinfo.js?v=96"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v95</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v96</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -1604,6 +1604,7 @@ async function loadAllData(){
   });
   // 잘못 넣었다가 뺀 종목은 저장본에 남아 있어도 되살리지 않는다
   const RETIRED = ['코일링 코어 (CCT)',
+    'RMT 클럽 스윙', 'RMT 로프',   // 상필님: 배운 적 없음 (2026-10-17)
     '허리이완(다리자극)',   // 상필님: 빼도 됨 (2026-10-17)
     '오버헤드',             // 상필님: 빼라 (오버헤드프레스와 중복)
     '해머 컬',              // 상필님: 덤벨 해머컬만 (중복)
@@ -2016,7 +2017,8 @@ const KNEE_CARE = false;   // 상필님: 무릎 규칙 통째로 끄기 (2026-10
 const KNEE_AVOID = /스쿼트|런지|레그프레스|레그 익스텐션|야외 러닝|러닝머신|줄넘기|버피|점핑잭|마운틴|스텝밀|등산|조깅/;
 function kneeRisky(ex){ return KNEE_CARE && KNEE_AVOID.test(ex && ex.name || ''); }
 
-// ===== 이번 주 테마 (3주에 한 바퀴) =====
+// ===== 이번 주 테마 (BTT ↔ CCT 한 주씩 번갈아) =====
+// RMT 는 배운 종목이 없어서 뺐다 (2026-10-17 상필님: RMT 클럽·로프는 안 배움). 배우면 RMT 를 다시 넣고 % 3 으로
 // 한 주 내내 같은 결로 간다. 날마다 바꾸면 몸에 붙지 않는다.
 const THEMES = [
   // 종목은 exinfo.js 에서 그 결로 나온 것 중, 무릎 부담 없고 회복날에 맞는 가벼운 것만
@@ -2028,15 +2030,13 @@ const THEMES = [
     options:['원암 케이블 회전 로우 (불균형 교정)','겟업동작','케틀벨 암바'],
     // 종목마다 선생님이 정한 횟수가 다르면 여기서 바꾼다
     labels:{ '원암 케이블 회전 로우 (불균형 교정)':'15회씩 × 3세트' } },
-  { key:'RMT', name:'RMT 주간', sub:'이쪽 꼬임 → 저쪽 꼬임 (스윙)',
-    why:'RMT — 좌우로 넘기는 스윙', sets:3, reps:'좌우 10회', label:'좌우 10회 × 3세트',
-    options:['RMT 클럽 스윙','RMT 로프'] },
 ];
 // 기준일(2026-01-04 일요일)부터 몇 번째 주인지로 정한다 — 달이 바뀌어도 순서가 끊기지 않는다
 function themeOf(ds){
   const days = Math.floor((new Date(ds+'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
   const week = Math.floor(days / 7);
-  return THEMES[((week % 3) + 3) % 3];
+  // +1: 2026-10-11 주(40번째 주)가 CCT 가 되게 — 바꾸기 전과 이번 주가 같다
+  return THEMES[(((week + 1) % THEMES.length) + THEMES.length) % THEMES.length];
 }
 
 // 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
@@ -2068,8 +2068,8 @@ const RECOVERY_ROUTINE = [
   { why:'④ 통합 — 밸런스 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 20초', label:'좌우 20초 × 2',
     options:['책 위 밸런스 (한 발·일자 서기)'] },
   { why:'④ 통합 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
-    options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
-    labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
+    options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
+    labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
     // 선생님 종목만 쓰기로 해서 슬로우 조깅만. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
     options:['슬로우 조깅'] },
@@ -2104,6 +2104,8 @@ const PLAN = {
              tip:'공통 워밍업 먼저 · 마지막 2~3개 남기고 멈추기 · 끝나면 바로 우유·바나나',
              routine:[
                { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
+               { why:'고관절 준비 — 허벅지 안쪽 늘리기 (힌지가 잘 되게)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+                 options:['내전근 스트레칭'] },
                { why:'하체 주운동 (백스쿼트)', sets:4, reps:'10~12회',
                  options:['스쿼트','가블릿 스쿼트'] },
                { why:'한 다리 — 덤벨 런지로 고관절 바르게 (중요)', sets:3, reps:'좌우 12회',
@@ -2119,8 +2121,8 @@ const PLAN = {
                  options:['발가락 수건 잡기','발바닥 마사지'],
                  labels:{ '발바닥 마사지':'좌우 2분' } },
                { why:'코어 — 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
-                 options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
-                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
+                 options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
+                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
                { why:'마무리 — 뒷벅지 늘리기 (내일 안 뻐근하게)', sets:1, reps:'좌우 30초', label:'좌우 30초',
                  options:['의자 햄스트링 스트레칭'] },
              ] },
@@ -2140,8 +2142,8 @@ const PLAN = {
                { why:'팔 — 삼두 (케이블푸쉬다운)', sets:3, reps:'20회',
                  options:['케이블 푸쉬다운','라잉 트라이셉스 익스텐션'] },
                { why:'코어 — 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
-                 options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
-                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
+                 options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
+                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
              ] },
   chestback: { tag:'가슴등', kind:'A', title:'가슴·등',
              tip:'종목은 오래 안 한 것부터 자동으로 바뀌어요 (↻로 직접 바꾸기) · 마지막 2~3개 남기고 멈추기 · 끝나면 바로 우유·바나나',
@@ -2380,7 +2382,7 @@ function orderedRoutine(p, W, opt){
   // 같은 부위를 이틀 연속 해도 괜찮다 (선생님 의견) — 대신 "종목"이 겹치지 않게 돌린다
   const last = Object.assign(lastDoneMap(), opt.extraLast || {});
   const asOf = opt.asOf || W.today;
-  const used = new Set();
+  const used = new Set(opt.exclude || []);   // opt.exclude: 같은 날 이미 나온 종목(워밍업 등)
   const theme = themeOf(asOf);
   const list = p.routine.map((slot0, i)=>{
     // "이번 주 테마" 자리는 그 주의 결(BTT/CCT/RMT)로 채운다
@@ -2543,10 +2545,11 @@ function buildWeekProgram(W){
       ? orderedRoutine(WARMUP, W, { extraLast, asOf: ds }).map(r=>{
           // 기록 없이 지나간 날의 '계획'은 한 것이 아니므로 세지 않는다 (오늘부터만)
           if(r.id && ds >= W.today) extraLast[r.id] = ds;
-          return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:r.why, warm:true };
+          return { id:r.id, name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:r.why, warm:true };
         })
       : [];
-    const rows = warm.concat(orderedRoutine(base, W, { extraLast, asOf: ds }).map(r=>{
+    const warmIds = warm.map(r => r.id).filter(Boolean);
+    const rows = warm.concat(orderedRoutine(base, W, { extraLast, asOf: ds, exclude: warmIds }).map(r=>{
       if(r.id && ds >= W.today) extraLast[r.id] = ds;
       const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
       return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)),
@@ -2601,7 +2604,7 @@ function renderRoutineTab(){
     <div class="rt-theme">
       <div class="rt-theme-name">${th.name}</div>
       <div class="rt-theme-sub">${th.sub}</div>
-      <div class="rt-theme-cycle">BTT → CCT → RMT · 3주에 한 바퀴 · 그 주 내내 같은 결로</div>
+      <div class="rt-theme-cycle">BTT ↔ CCT · 한 주씩 번갈아 · 그 주 내내 같은 결로</div>
     </div>
     <div class="rt-week">${days.join('')}</div>
     <div class="routine-list">${
