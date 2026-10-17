@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=106"></script>
+<script src="exinfo.js?v=107"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -946,7 +946,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v106</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v107</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1342,6 +1342,15 @@ const DEFAULT_MASTER = [
   {id:'fx-ballsh',   name:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', part:'어깨', type:'bodyweight'},
   {id:'fx-chairham', name:'의자 햄스트링 스트레칭',      part:'뒷벅지',   type:'bodyweight'},
   {id:'fx-bookbal',  name:'책 위 밸런스 (한 발·일자 서기)', part:'균형',   type:'bodyweight'},
+  // NASM 교정운동 (2026-10-17) — 부위별 재활 카드
+  {id:'fx-chintuck', name:'턱 당기기 (깊은 목 근육)', part:'목',        type:'bodyweight'},
+  {id:'fx-uptrap',   name:'위 승모근 스트레칭 (목 옆 늘리기)', part:'목·어깨', type:'bodyweight'},
+  {id:'fx-tspine',   name:'폼롤러 등 펴기 (흉추)',      part:'등',        type:'bodyweight'},
+  {id:'fx-wallslide',name:'월 슬라이드',               part:'어깨',      type:'bodyweight'},
+  {id:'fx-latroll',  name:'폼롤러 광배근 풀기',          part:'등·겨드랑이', type:'bodyweight'},
+  {id:'fx-latstr',   name:'광배근 스트레칭 (짐볼·벤치)', part:'등·겨드랑이', type:'bodyweight'},
+  {id:'fx-deadbug',  name:'데드버그',                  part:'코어',      type:'bodyweight'},
+  {id:'fx-childpose',name:'아기 자세 (차일드 포즈)',     part:'허리',      type:'bodyweight'},
   {id:'fx-warmlow',  name:'내 몸풀기 (하체부터 · WGS · 점프)', part:'전신',   type:'bodyweight'},
   // 부위별 재활 4단계(어깨·허리·무릎)에 필요한 동작
   {id:'fx-chest',    name:'문틀 가슴 스트레칭',         part:'가슴 앞',   type:'bodyweight'},
@@ -1615,7 +1624,8 @@ async function loadAllData(){
     '해머 컬',              // 상필님: 덤벨 해머컬만 (중복)
     '케이블 로프푸쉬다운',   // 상필님: 케이블 푸쉬다운과 같음 (중복)
     // v76 에 잠깐 넣었다가 뺀 교정 종목들 (상필님이 고른 6개만 남김)
-    '맥길 컬업','사이드 플랭크','버드독','데드버그','골반 기울이기 (누워서)','턱 당기기 (친턱)','벽 천사 (월 엔젤)',
+    // 데드버그는 v107 에 NASM 기준으로 다시 씀 (상필님: NASM이 맞아)
+    '맥길 컬업','사이드 플랭크','버드독','골반 기울이기 (누워서)','턱 당기기 (친턱)','벽 천사 (월 엔젤)',
     '흉추 폼롤러 신전','캣카우','발가락 수건 집기','숏풋 (발 아치 세우기)','옆으로 누워 다리 들기',
     '이상근 스트레칭 (4자)','발목 가동 (무릎 벽 닿기)','한 발 서기',
   ].map(n=>n.replace(/\s+/g,''));

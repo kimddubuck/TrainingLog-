@@ -112,7 +112,7 @@
     '문틀가슴스트레칭':   { for:'② 늘리기 — 가슴 앞 (둥근어깨의 당기는 쪽)', how:'문틀에 팔꿈치를 어깨 높이로 대고 한 발 앞으로 → 가슴 앞이 늘어나는 곳에서 30초. 허리는 젖히지 않기', basis:'강의', src:'lecture' },
     '승모근아래깨우기(손바닥뒤로내리기)': { for:'③ 깨우기 — 중·하부 승모근 (어깨 올라감 잡기)', how:'서서 손바닥을 뒤로 향하게 하고 팔을 아래로 길게 내리기. 꼬리뼈는 아래로, 날개뼈는 아래·안쪽으로 모으기', basis:'강의', src:'lecture' },
     '엎드려코브라':       { for:'③ 깨우기 — 등 뒤 전체 (둥근어깨·굽은등)', how:'엎드려 손바닥 뒤로 향하게 하고 가슴·팔을 바닥에서 살짝 들기. 엄지는 하늘, 턱은 당긴 채 10초', basis:'강의', src:'lecture' },
-    '반무릎장요근스트레칭': { for:'② 늘리기 — 오른쪽 장요근·허벅지 앞 (골반 앞기울기)', how:'한 무릎 꿇고, 엉덩이에 힘 준 채 골반을 앞으로 살짝. 허리를 젖히지 말고 30초', basis:'일반', src:null },
+    '반무릎장요근스트레칭': { for:'② 늘리기 — 오른쪽 장요근·허벅지 앞 (골반 앞기울기)', how:'한 무릎 꿇고 골반을 뒤로 말고(꼬리뼈 아래로) 엉덩이를 조인 채 몸을 앞으로 살짝. 허리를 젖히지 말고 30초 (NASM)', basis:'NASM', src:'nasm_apt' },
     '클램쉘':            { for:'③ 깨우기 — 중둔근 (오른 무릎 안쪽 쏠림)', how:'옆으로 누워 무릎 굽히고, 발은 붙인 채 위 무릎만 조개처럼 열기. 골반이 뒤로 안 넘어가게', basis:'일반', src:null },
     '벽종아리스트레칭':   { for:'② 늘리기 — 오른쪽 종아리 (발목 가동성 → 무릎 부담 줄이기)', how:'벽 짚고 뒷다리 뒤꿈치를 바닥에 붙인 채 30초. 무릎 펴고 한 번, 살짝 굽히고 한 번', basis:'일반', src:null },
     '마사지볼풀기—종아리·정강이앞': { for:'① 풀기 — 종아리(비복근)·정강이 앞(전경골근)', how:'공 위에 종아리를 올려 천천히 굴리고, 정강이 바깥 근육도 손이나 공으로. 아픈 곳은 10초 머물기', basis:'강의', src:'lecture' },
@@ -120,6 +120,15 @@
     '플랭크':           { for:'코어 안티 모션 — 허리가 꺾이는 걸 막는 힘', how:'팔꿈치는 어깨 아래 일직선, 팔꿈치 고정한 채 무릎을 뒤로 당기는 느낌. 8초 버티고 2초 쉬기 × 8번. 코어가 제대로 힘을 내는 건 8~10초뿐 — 그 이상 버티면 다른 근육이 대신 써서 효과가 없다 (강사). 5분 버티기 금지', basis:'강의', src:'lecture' },
     '수트케이스캐리(한손케틀벨들고걷기)': { for:'코어 안티 모션 — 옆으로 쏠리는 걸 막는 힘 (골반 좌우 높이)', how:'한 손에 케틀벨을 들고 몸이 기울지 않게 똑바로 걷기. 어깨 높이 같게, 반대쪽 배가 당기면 맞게 하는 것. 좌우 바꿔서', basis:'강의', src:'lecture' },
     '내몸풀기(하체부터·WGS·점프)': { for:'운동 전 몸풀기 — 강의 틀(고관절부터 → 마지막 점프로 순환) + 내가 하던 WGS · 약 4분', how:'① 제자리 무릎 높이 올리기 좌우 10번 ② 스쿼트 10번 — 무릎은 세 번째 발가락 방향, 엄지발가락 꽉 누르기 ③ WGS 좌우 5번씩 — 런지 자세에서 팔꿈치를 앞발 안쪽으로 내렸다가 몸통을 돌려 팔을 하늘로 ④ 힙힌지 3번(강의) — 허벅지와 배 붙이고 엉덩이 뒤로 → 올라와 만세 ⑤ 거북목 풀기 10번(강의) — 엄지 따봉, 팔은 Y보다 조금 아래, 엄지를 뒤로 보내며 올리기 ⑥ 손 털기 10초 · 턱으로 목 천천히 좌우 3번 ⑦ 기마자세로 콩콩 10번 → 위로 점프 10번(강의). 무릎이 붓는 날엔 점프 대신 제자리 걷기 30초', basis:'강의', src:'lecture' },
+    // --- NASM 교정운동 (2026-10-17) ---
+    '턱당기기(깊은목근육)': { for:'③ 깨우기 — 깊은 목 굽힘근 (거북목)', how:'벽에 등과 뒤통수를 대고 서서, 고개를 숙이지 말고 턱을 뒤로 밀어 이중턱 만들듯 당기기. 목 앞 깊은 곳이 당기면 맞게 하는 것. 5초 버티기', basis:'NASM', src:'nasm_ucs' },
+    '위승모근스트레칭(목옆늘리기)': { for:'② 늘리기 — 위 승모근·견갑거근 (어깨 올라감)', how:'한 손으로 의자 끝을 잡아 그쪽 어깨를 내리고, 고개를 반대쪽으로 기울여 30초. 견갑거근은 고개를 반대쪽 겨드랑이 보듯 숙여서. 살살', basis:'NASM', src:'nasm_ucs' },
+    '폼롤러등펴기(흉추)': { for:'② 늘리기 — 등 위쪽(흉추) 펴기 (굽은 등)', how:'폼롤러를 날개뼈 아래에 가로로 두고 누워 손으로 머리를 받치고, 엉덩이는 바닥에. 등 위쪽만 롤러 위로 젖혔다 오기 — 허리는 젖히지 않기(갈비뼈 안 들리게). 롤러를 한 칸씩 옮겨 가며', basis:'NASM', src:'nasm_ucs' },
+    '월슬라이드': { for:'③ 깨우기 — 앞톱니근 · 날개뼈 위로 돌리기 (팔 올리기)', how:'벽을 마주 보고 팔뚝을 벽에 댄 채 위로 밀어 올리기. 꼭대기에서 벽을 살짝 밀어 날개뼈를 앞으로. 어깨 으쓱 금지, 허리 젖히지 않기', basis:'NASM', src:'nasm_ucs' },
+    '폼롤러광배근풀기': { for:'① 풀기 — 광배근 (팔이 머리 위로 안 올라가는 주범)', how:'옆으로 누워 겨드랑이 아래에 폼롤러, 엄지를 하늘로 하고 팔을 위로 뻗은 채 겨드랑이~갈비뼈 옆을 천천히. 아픈 곳 30~45초', basis:'NASM', src:'nasm_osa' },
+    '광배근스트레칭(짐볼·벤치)': { for:'② 늘리기 — 광배근 (팔 올리기 가동성)', how:'무릎 꿇고 엄지를 위로 한 손을 짐볼이나 벤치 위에 올린 뒤, 엉덩이를 뒤로 빼며 가슴을 바닥 쪽으로. 겨드랑이 아래가 늘어나는 곳에서 30초. 허리는 젖히지 않기', basis:'NASM', src:'nasm_osa' },
+    '데드버그': { for:'③ 깨우기 — 깊은 코어 (허리가 뜨지 않게)', how:'누워서 팔은 천장으로, 무릎·엉덩이는 90도로 들기. 허리를 바닥에 붙인 채 반대 팔·다리를 천천히 뻗었다 돌아오기. 허리가 뜨거나 갈비뼈가 들리면 거기까지만', basis:'NASM', src:'nasm_apt' },
+    '아기자세(차일드포즈)': { for:'② 늘리기 — 허리 근육(척추세움근)', how:'무릎 꿇고 엉덩이를 뒤꿈치 쪽으로 내리며 팔을 앞으로 길게 뻗기. 숨을 등 뒤로 넣으며 30초', basis:'NASM', src:'nasm_apt' },
     '책위밸런스(한발·일자서기)': { for:'④ 통합 — 좌우 차이 느끼기 (왼발목·오른 무릎)', how:'책 위에서 일자 서기(앞발 뒤꿈치에 뒷발 앞꿈치) 눈 뜨고 10초 → 눈 감고 20초 → 한 발 서기. 새끼발가락·골반·시선 정면, 무릎 안 굽히기. 흔들리면 잡는 연습', basis:'강의', src:'lecture' },
   };
   const FIX_SRC = {
@@ -127,6 +136,9 @@
     baeknyeon: { url:null, name:'정선근 《백년허리》·《백년목》 — 허리·목을 뒤로 젖히는 신전 원리 (맥켄지 방식 계열)' },
     ytw:       { url:null, name:'Y·T·W 레이즈 — 날개뼈 안정화 운동으로 재활·트레이닝에서 널리 씀 (직접 비교 연구는 적음)' },
     lecture:   { url:null, name:'웰니스데이 신체지도 강의 (2026-10-16) — 재활 4단계: 풀기 → 늘리기 → 깨우기 → 통합' },
+    nasm_ucs:  { url:'https://www.nasm.org/resource-center/blog/recovery/correcting-upper-crossed-syndrome-a-trainers-assessment-to-program-guide', name:'NASM 둥근어깨·거북목 교정' },
+    nasm_osa:  { url:'https://www.nasm.org/resource-center/blog/training/how-to-perform-an-overhead-squat-assessment-osa', name:'NASM 오버헤드 스쿼트 평가 — 팔이 앞으로 떨어짐' },
+    nasm_apt:  { url:'https://www.nasm.org/resource-center/blog/recovery/pelvic-tilt-how-personal-trainers-can-assess-and-address-it-in-clients', name:'NASM 골반 기울기 교정' },
   };
   function fixTip(name){ return FIX[norm(name)] || null; }
 
@@ -135,35 +147,76 @@
   // 부위별 순서는 강의에서 든 예시(어깨·발목·허리)를 그대로 따르고, 결과지(2022-12-28)의 상필님 항목에 맞춰 종목을 골랐다.
   // 강의 핵심: 마사지(풀기)에서 멈추지 말고 통합(움직임)까지 가야 진짜 재활. 앞쪽은 풀고 뒤쪽은 깨운다.
   const REHAB = {
-    shoulder: { name:'어깨', icon:'🫱', why:'둥근어깨 · 왼쪽 어깨 4° 올라감 · 거북목',
-      note:'강의 순서: 쇄골 아래·광배·견갑거근 풀기 → 가슴 스트레칭 → 중·하부 승모근 깨우기 → 코브라 → 당기기로 통합',
+    shoulder: { name:'어깨', icon:'🫱', why:'둥근어깨 · 왼쪽 어깨 4° 올라감 · 거북목 · 팔이 머리 위로 잘 안 올라감',
+      note:'NASM 둥근어깨·거북목 + 팔이 앞으로 떨어짐: 가슴·광배근·위 승모근은 풀고 늘리기 → 깊은 목 근육·중하부 승모근·앞톱니근 깨우기 → 로우를 어깨 내리고 머리 세운 채로',
+      vids:[ ['qM0c_xXjKa8','NASM Quick Fix: 팔이 앞으로 떨어짐 (어깨 가동성) 6분'], ['YGSa44JGF8Q','NASM: 둥근어깨·거북목 15분'] ],
       stages: [
-        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', set:'좌우 2분', sets:1 } ] },
-        { s:'② 늘리기', items:[ { n:'문틀 가슴 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', set:'10회 × 2세트', sets:2 } ] },
-        { s:'③ 깨우기', items:[ { n:'승모근 아래 깨우기 (손바닥 뒤로 내리기)', set:'10회 × 2세트', sets:2 }, { n:'Y 레이즈', set:'10회 × 2세트', sets:2 }, { n:'엎드려 코브라', set:'10초 × 5', sets:5 } ] },
-        { s:'④ 통합', items:[ { n:'덤벨 로우', set:'3세트 × 12회', sets:3 }, { n:'원암 케이블 회전 로우 (불균형 교정)', set:'15회씩 × 3세트', sets:3 } ] },
+        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', set:'아픈 곳마다 30~45초', sets:1 }, { n:'폼롤러 광배근 풀기', set:'좌우 아픈 곳마다 30~45초', sets:1 } ] },
+        { s:'② 늘리기', items:[ { n:'문틀 가슴 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'광배근 스트레칭 (짐볼·벤치)', set:'좌우 30초 × 2', sets:2 }, { n:'위 승모근 스트레칭 (목 옆 늘리기)', set:'좌우 30초', sets:1 }, { n:'폼롤러 등 펴기 (흉추)', set:'10회 × 2세트', sets:2 } ] },
+        { s:'③ 깨우기', items:[ { n:'턱 당기기 (깊은 목 근육)', set:'5초 × 10', sets:1 }, { n:'Y 레이즈', set:'10회 × 2세트 (T·W도 번갈아)', sets:2 }, { n:'월 슬라이드', set:'10회 × 2세트', sets:2 }, { n:'엎드려 코브라', set:'10초 × 5', sets:5 } ] },
+        { s:'④ 통합', items:[ { n:'덤벨 로우', set:'3세트 × 12회 (어깨 내리고)', sets:3 }, { n:'원암 케이블 회전 로우 (불균형 교정)', set:'15회씩 × 3세트', sets:3 } ] },
       ] },
     back: { name:'허리', icon:'🧍', why:'골반 앞기울기 6.5° · 오른쪽 허리 아래 욱신 · 오른쪽 장요근 당김',
-      note:'강의 순서: 골반 옆(대퇴근막장근)·허벅지 앞·엉덩이(이상근) 풀기 → 스트레칭 → 엉덩이 운동·스쿼트·런지',
+      note:'NASM 골반 앞기울기: 고관절 앞·허리 근육은 풀고 늘리기 → 엉덩이·깊은 코어 깨우기 → 힌지·캐리·스쿼트로 통합',
+      vids:[ ['j2rOw4qrE6Y','NASM Quick Fix: 허리 아치 (골반 앞기울기) 9분'], ['YUv-ZqW7PRs','NASM: 골반 앞기울기 근육 3분'] ],
       stages: [
-        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이', set:'좌우 2분', sets:1 } ] },
-        { s:'② 늘리기', items:[ { n:'반무릎 장요근 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'의자 햄스트링 스트레칭', set:'좌우 30초', sets:1 }, { n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', set:'10회 × 2세트', sets:2 } ] },
-        { s:'③ 깨우기', items:[ { n:'글루트 브릿지', set:'15회 × 2세트', sets:2 }, { n:'클램쉘', set:'좌우 15회 × 2세트', sets:2 } ] },
-        { s:'④ 통합', items:[ { n:'고관절 힌지 보조운동', set:'15회 × 2세트', sets:2 }, { n:'가블릿 스쿼트', set:'10회 × 2세트 (무릎 괜찮은 날만)', sets:2 } ] },
+        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이', set:'아픈 곳마다 30~45초', sets:1 } ] },
+        { s:'② 늘리기', items:[ { n:'반무릎 장요근 스트레칭', set:'좌우 30초 × 2 (골반 말고 엉덩이 조이기)', sets:2 }, { n:'아기 자세 (차일드 포즈)', set:'30초 × 2', sets:2 } ] },
+        { s:'③ 깨우기', items:[ { n:'데드버그', set:'좌우 8회 × 2세트', sets:2 }, { n:'글루트 브릿지', set:'15회 × 2세트', sets:2 }, { n:'플랭크', set:'8초 버티고 2초 쉬기 × 8 (골반 말고)', sets:1 } ] },
+        { s:'④ 통합', items:[ { n:'고관절 힌지 보조운동', set:'15회 × 2세트', sets:2 }, { n:'가블릿 스쿼트', set:'10회 × 2세트 (무릎 괜찮은 날만)', sets:2 }, { n:'수트케이스 캐리 (한 손 케틀벨 들고 걷기)', set:'좌우 30초 × 2', sets:2 } ] },
       ] },
     knee: { name:'무릎', icon:'🦵', why:'오른 무릎 안쪽 통증·붓기 · 오른 무릎 바깥돌림 · 왼발목 안으로 무너짐',
-      note:'강의: 무릎은 안정성 관절 — 위(고관절)·아래(발목) 가동성이 떨어지면 무릎이 대신 고생. 그래서 발목·엉덩이부터. 붓기 있는 날은 ①②만',
+      note:'NASM 무릎이 안으로 모임: 종아리·내전근·골반 옆(TFL)은 풀고 늘리기 → 엉덩이 옆(중둔근) 깨우기. 강의: 무릎은 안정성 관절, 발목·엉덩이부터. NASM은 무릎 통증 치료는 다루지 않아요 — 붓기 있는 날은 ①②만, 안쪽 통증은 정형외과 먼저',
+      vids:[ ['qh2JJnvMKv0','NASM: 발이 벌어지고 무릎이 안으로 9분'] ],
       stages: [
-        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 종아리·정강이 앞', set:'좌우 2분', sets:1 }, { n:'발바닥 마사지', set:'좌우 2분', sets:1 } ] },
+        { s:'① 풀기', items:[ { n:'마사지볼 풀기 — 종아리·정강이 앞', set:'아픈 곳마다 30~45초', sets:1 }, { n:'발바닥 마사지', set:'좌우 1분', sets:1 }, { n:'마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이', set:'아픈 곳마다 30~45초', sets:1 } ] },
         { s:'② 늘리기', items:[ { n:'벽 종아리 스트레칭', set:'좌우 30초 × 2', sets:2 }, { n:'내전근 스트레칭', set:'좌우 30초 × 2', sets:2 } ] },
         { s:'③ 깨우기', items:[ { n:'클램쉘', set:'좌우 15회 × 2세트', sets:2 }, { n:'발가락 수건 잡기', set:'15회 × 2세트', sets:2 }, { n:'월싯(벽 스쿼트)', set:'20초 × 3 (아프지 않은 각도)', sets:3 } ] },
         { s:'④ 통합', items:[ { n:'책 위 밸런스 (한 발·일자 서기)', set:'좌우 20초 × 2', sets:2 }, { n:'밸런스 리치 (한 발 서서 앞·뒤 터치)', set:'좌우 5회 × 2세트', sets:2 } ] },
       ] },
   };
   const REHAB_SRC = [
-    { url:'https://www.nasm.org/resource-center/blog/recovery/a-guide-to-nasms-corrective-exercise-continuum', name:'NASM 교정운동 연속체 (Inhibit → Lengthen → Activate → Integrate)' },
-    { url:null, name:'웰니스데이 신체지도 강의 (2026-10-16) — 재활 4단계와 부위별 순서' },
+    { url:'https://www.nasm.org/resource-center/blog/recovery/a-guide-to-nasms-corrective-exercise-continuum', name:'NASM 교정운동 연속체 (풀기 → 늘리기 → 깨우기 → 통합)' },
+    { url:'https://www.nasm.org/resource-center/blog/recovery/correcting-upper-crossed-syndrome-a-trainers-assessment-to-program-guide', name:'NASM 둥근어깨·거북목' },
+    { url:'https://www.nasm.org/resource-center/blog/training/how-to-perform-an-overhead-squat-assessment-osa', name:'NASM 오버헤드 스쿼트 평가 (팔이 앞으로 · 무릎이 안으로)' },
+    { url:'https://www.nasm.org/resource-center/blog/recovery/pelvic-tilt-how-personal-trainers-can-assess-and-address-it-in-clients', name:'NASM 골반 기울기' },
+    { url:null, name:'웰니스데이 신체지도 강의 (2026-10-16)' },
   ];
+  // 종목별 시범 영상 — NASM 공식 유튜브 (제목으로 동작 확인). 없으면 유튜브 검색 링크
+  const VIDEO = {
+    '마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤':['a8KjvtbkM8E','NASM · 가슴 폼롤러'],
+    '폼롤러 광배근 풀기':['1GaR-a9TWYM','NASM · 광배근 폼롤러'],
+    '문틀 가슴 스트레칭':['2EeBa3dksnw','NASM · 가슴 스트레칭'],
+    '광배근 스트레칭 (짐볼·벤치)':['kEH6jatSVSw','NASM · 광배근 볼 스트레칭'],
+    '위 승모근 스트레칭 (목 옆 늘리기)':['RNTlUaKeuXE','NASM · 위 승모근 스트레칭'],
+    '폼롤러 등 펴기 (흉추)':['NS73eSohTbc','NASM · 등(흉추) 폼롤러 — 비슷'],
+    'Y 레이즈':['rXcLUXzEA-w','NASM 자격 트레이너 · 엎드려 Y·T·W'],
+    '엎드려 코브라':['keErJXdp2lE','NASM · 바닥 코브라'],
+    '원암 케이블 회전 로우 (불균형 교정)':['8fAJEs3L110','NASM · 한 팔 회전 로우'],
+    '마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이':['asigNf1sh-k','NASM · 골반 옆(TFL) 폼롤러'],
+    '반무릎 장요근 스트레칭':['UU7Nqd_Dric','NASM · 무릎 꿇고 장요근'],
+    '아기 자세 (차일드 포즈)':['O_K116taN8o','NASM · 아기 자세'],
+    '데드버그':['EW65I2LyI2c','NASM · 데드버그 (한국어)'],
+    '글루트 브릿지':['Z3cY3d3BBo4','NASM · 브릿지'],
+    '플랭크':['xhk1JkbF2lg','NASM · 플랭크'],
+    '가블릿 스쿼트':['MWHIs0zxkCU','NASM · 고블릿 스쿼트'],
+    '마사지볼 풀기 — 종아리·정강이 앞':['w-e7YIpiok0','NASM · 종아리 폼롤러'],
+    '발바닥 마사지':['ZqwV6pJgvgE','NASM · 발바닥 풀기'],
+    '벽 종아리 스트레칭':['URK3EXjTUP4','NASM · 종아리 스트레칭'],
+    '내전근 스트레칭':['IzHUoWs0maQ','NASM · 서서 내전근 스트레칭'],
+    '클램쉘':['V_AnVxKPFlY','NASM · 클램쉘'],
+    '밸런스 리치 (한 발 서서 앞·뒤 터치)':['1sbENKqlslg','NASM · 한 발 앞뒤 리치'],
+  };
+  const ytWatch = id => 'https://www.youtube.com/watch?v=' + id;
+  function vidHTML(name){
+    const v = VIDEO[String(name || '').trim()];
+    return v ? `<a class="rh-vid nasm" href="${ytWatch(v[0])}" target="_blank" rel="noopener">▶ ${esc(v[1])}</a>`
+             : `<a class="rh-vid" href="${videoUrl(name)}" target="_blank" rel="noopener">▶ 영상 찾기</a>`;
+  }
+  function rhRow(it){
+    const pic = imgOf(it.n) ? imgHTML(it.n, 42) : '<span class="rh-noimg">그림 준비 중</span>';
+    return `<div class="rh-item"><span class="rh-pic">${pic}</span><span class="rh-txt"><span class="rh-n">${esc(it.n)}</span><span class="rh-set">${esc(it.set)}</span>${vidHTML(it.n)}</span></div>`;
+  }
   // opt.addBtn: 담기 단추를 그릴지 (앱만), opt.part: 한 부위만
   function rehabHTML(opt){
     opt = opt || {};
@@ -171,10 +224,11 @@
     const blocks = parts.map(k=>{
       const r = REHAB[k];
       const stages = r.stages.map(st => `<div class="rh-stage"><div class="rh-s">${esc(st.s)}</div>
-        <div class="rh-items">${st.items.map(it => `<div class="rh-item"><span class="rh-pic">${imgHTML(it.n, 42)}</span><span class="rh-txt"><span class="rh-n">${esc(it.n)}</span><span class="rh-set">${esc(it.set)}</span></span></div>`).join('')}</div></div>`).join('');
+        <div class="rh-items">${st.items.map(rhRow).join('')}</div></div>`).join('');
       return `<div class="rh-part" data-part="${k}">
         <div class="rh-head"><b>${r.icon} ${esc(r.name)}</b> <span>${esc(r.why)}</span></div>
         <div class="rh-note">${esc(r.note)}</div>
+        ${(r.vids || []).length ? `<div class="rh-vids">📺 ${r.vids.map(v => `<a href="${ytWatch(v[0])}" target="_blank" rel="noopener">${esc(v[1])}</a>`).join(' · ')}</div>` : ''}
         ${stages}
         ${opt.addBtn ? `<button class="rh-add" data-rhadd="${k}">${esc(r.name)} 4단계 오늘 기록에 담기</button>` : ''}
       </div>`;
@@ -315,13 +369,14 @@
     { k:'hip', ic:'🍑', n:'엉덩이·고관절', sub:'접기(힌지) · 엉덩이 옆', c:'#D9A05B',
       names:['#접기(힌지)','굿모닝 운동','케틀벨 굿모닝','스티프 데드리프트','케틀벨 스윙','고관절 힌지 보조운동','리버스 노드릭컬','#엉덩이 옆','토터치','크랩워킹','고관절 운동(폼롤러)','클램쉘'] },
     { k:'core', ic:'🧱', n:'복부·코어', sub:'움직임을 막는 힘 · 8초', c:'#B5B35C',
-      names:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)','악어호흡'] },
+      names:['플랭크','데드버그','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)','악어호흡'] },
     { k:'move', ic:'🌀', n:'움직임·가동성', sub:'몸풀기 · 흐르는 움직임', c:'#5FB3D9',
       names:['내 몸풀기 (하체부터 · WGS · 점프)','케틀벨 암바','겟업동작','그라운드 소통','스핀롤'] },
     { k:'rehab', ic:'🩹', n:'재활·풀기', sub:'풀기 → 늘리기 → 깨우기 → 균형', c:'#C1666B',
       names:['#① 풀기','발바닥 마사지','마사지볼 풀기 — 종아리·정강이 앞','마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤',
-             '#② 늘리기','문틀 가슴 스트레칭','의자 햄스트링 스트레칭','반무릎 장요근 스트레칭','벽 종아리 스트레칭','백년척추 디스크 예방 (허리·목 뒤로 젖히기)',
-             '#③ 깨우기','승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라','#④ 균형(통합)','책 위 밸런스 (한 발·일자 서기)','밸런스 리치 (한 발 서서 앞·뒤 터치)'] },
+             '폼롤러 광배근 풀기',
+             '#② 늘리기','문틀 가슴 스트레칭','광배근 스트레칭 (짐볼·벤치)','위 승모근 스트레칭 (목 옆 늘리기)','폼롤러 등 펴기 (흉추)','반무릎 장요근 스트레칭','아기 자세 (차일드 포즈)','의자 햄스트링 스트레칭','벽 종아리 스트레칭','백년척추 디스크 예방 (허리·목 뒤로 젖히기)',
+             '#③ 깨우기','턱 당기기 (깊은 목 근육)','월 슬라이드','승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라','#④ 균형(통합)','책 위 밸런스 (한 발·일자 서기)','밸런스 리치 (한 발 서서 앞·뒤 터치)'] },
     { k:'cardio', ic:'🫀', n:'유산소', sub:'순환 — 모든 운동의 1순위', c:'#E36F8E',
       names:['슬로우 조깅','수영'] },
   ];
@@ -335,7 +390,7 @@
     const leaf = x => {
       const r = roleOf(x.name), f = fixTip(x.name), w = x.info && x.info.weck;
       const wk = w && WECK[w.key];
-      const badges = (x.tip ? '<span class="tr-b t">쌤</span>' : '') + (f && f.basis === '강의' ? '<span class="tr-b l">강의</span>' : '')
+      const badges = (x.tip ? '<span class="tr-b t">쌤</span>' : '') + (f && f.basis === '강의' ? '<span class="tr-b l">강의</span>' : '') + (f && f.basis === 'NASM' ? '<span class="tr-b n">NASM</span>' : '')
                    + (w && /^(BTT|CCT|RMT)$/.test(w.key) ? `<span class="tr-b w" style="--wk:${wk.color}">${w.key}</span>` : '');
       return `<details class="tr-leaf"><summary><span class="tr-ln">${esc(x.name)}</span>${badges}${roleTag(r)}</summary>
         <div class="tr-detail">
@@ -343,6 +398,7 @@
           ${r ? `<div class="tr-row">🎯 <b>${esc(r.muscles)}</b> · ${esc(r.role)} · ${esc(r.joint)}<br><span class="tr-dim">${esc(r.note)}</span></div>` : ''}
           ${x.tip ? `<div class="tr-row tr-tip">💬 쌤: ${esc(x.tip)}</div>` : ''}
           ${f ? `<div class="tr-row tr-fix">🧩 <b>${esc(f.for)}</b><br>${esc(f.how)}</div>` : ''}
+          <div class="tr-row">${vidHTML(x.name)}</div>
           ${x.where && x.where.length ? `<div class="tr-row">📅 ${x.where.map(esc).join(' · ')}</div>` : ''}
           ${x.info ? `<div class="tr-row tr-dim">${esc(x.info.icon)} ${esc(x.info.toolText)} · ${esc(x.info.sideText)} · ${esc(w.key === '?' ? '선생님 확인' : (w.key === '일반' ? '셋 다 아님' : w.key))} — ${esc(w.why)}</div>` : ''}
         </div></details>`;
@@ -503,6 +559,11 @@
     '벽 종아리 스트레칭':['Calf_Stretch_Hands_Against_Wall'],
     // 재활 카드 (2026-10-17) — 공은 아니고 폼롤러·롤러로 같은 자리를 푸는 그림
     '발바닥 마사지':['Foot-SMR',1],
+    '폼롤러 광배근 풀기':['Latissimus_Dorsi-SMR'],
+    '광배근 스트레칭 (짐볼·벤치)':['One_Arm_Against_Wall',1],
+    '위 승모근 스트레칭 (목 옆 늘리기)':['Side_Neck_Stretch'],
+    '데드버그':['Dead_Bug'],
+    '아기 자세 (차일드 포즈)':['Childs_Pose'],
     '마사지볼 풀기 — 종아리·정강이 앞':['Calves-SMR',1],
     '마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이':['Iliotibial_Tract-SMR',1],
     '마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤':['Latissimus_Dorsi-SMR',1],
@@ -650,7 +711,7 @@
     if(FIX[n]){
       if(/레이즈$/.test(n)) return W('BTT', '정의', '양팔이 같이 똑같이 올라가 한쪽으로 꼴 수 없음 → BTT 정의 (교정 동작)');
       if(/백년척추/.test(n)) return W('BTT', '정의', '허리·목을 양쪽 같이 뒤로 젖힘 — 한쪽으로 꼬지 않음 → BTT 정의 (교정 동작)');
-      return W('일반', '정의', '발·발바닥 동작 — 몸통 비틀림이 없어 셋에 해당 근거 없음 (무엇을 바로잡는지는 🧩 설명)');
+      return W('일반', '정의', '교정·재활 동작 — 몸통을 한쪽으로 꼬지 않아 셋에 해당 근거 없음 (무엇을 바로잡는지는 🧩 설명)');
     }
     // ② 이름만으로는 무슨 동작인지 모르는 것 · 선생님만의 동작
     if(/^커틀벨$|^오버헤드$/.test(n)) return W('?', '확인', '이름만으로는 어떤 동작인지 몰라요');
@@ -892,6 +953,7 @@
     .tr-tag{font-size:10px;color:var(--ink-dim);border:1px solid var(--border-strong);border-radius:999px;padding:0 6px;margin-left:auto;}
     .tr-b{font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 4px;line-height:1.3;}
     .tr-b.t{background:var(--accent-a-dim);color:var(--accent-a);} .tr-b.l{background:var(--accent-b-dim);color:var(--accent-b);}
+    .tr-b.n{background:rgba(127,192,138,.16);color:#7FC08A;}
     .tr-b.w{background:color-mix(in srgb, var(--wk) 22%, transparent);color:var(--wk);}
     .tr-detail{margin:4px 0 6px;padding:8px 10px;border-radius:9px;background:var(--surface);border:1px dashed var(--border-strong);display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:var(--ink);line-height:1.5;}
     .tr-img img{border-radius:6px;} .tr-dim{color:var(--ink-dim);font-size:11px;}
@@ -973,6 +1035,11 @@
     .rh-items{display:flex;flex-direction:column;gap:5px;min-width:0;}
     .rh-item{display:grid;grid-template-columns:88px 1fr;align-items:center;gap:8px;font-size:12.5px;}
     .rh-txt{display:flex;flex-direction:column;gap:1px;min-width:0;} .rh-txt .rh-set{white-space:normal;}
+    .rh-vid{align-self:flex-start;margin-top:3px;font-size:10.5px;color:var(--accent-b);text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:1px 8px;}
+    .rh-vid.nasm{color:#7FC08A;border-color:rgba(127,192,138,.45);}
+    .rh-noimg{display:flex;align-items:center;justify-content:center;width:86px;height:42px;border:1px dashed var(--border-strong);border-radius:8px;font-size:9.5px;color:var(--ink-faint);}
+    .rh-vids{font-size:11px;line-height:1.6;margin:-2px 0 8px;color:var(--ink-dim);word-break:keep-all;}
+    .rh-vids a{color:#7FC08A;}
     .rh-pic{width:88px;} .rh-pic .xi-vid{font-size:10px;white-space:nowrap;margin:0;}
     .rh-pic .xi-img{flex-wrap:wrap;gap:2px;margin:0;} .rh-pic .xi-img em{font-size:9px;}
     .xi-img.one img{width:calc(var(--s) * 2 + 2px);height:var(--s);object-fit:contain;background:#fff;}
@@ -1019,11 +1086,11 @@
   function fixHTML(){
     const rows = Object.keys(FIX).map(k=>{
       const f = FIX[k];
-      return `<div class="xi-trow"><span class="xi-ticon">🧩</span><div><b>${esc(f.for)}</b><div>${esc(f.how)} <span class="xi-basis b-${f.basis === '연구' ? '공식' : (f.basis === '교과' || f.basis === '강의') ? '수정' : '정의'}">${esc(f.basis)}</span>${f.src && FIX_SRC[f.src] ? ` <span class="xi-src">— ${FIX_SRC[f.src].url ? `<a href="${FIX_SRC[f.src].url}" target="_blank" rel="noopener">${esc(FIX_SRC[f.src].name)}</a>` : esc(FIX_SRC[f.src].name)}</span>` : ''}</div></div></div>`;
+      return `<div class="xi-trow"><span class="xi-ticon">🧩</span><div><b>${esc(f.for)}</b><div>${esc(f.how)} <span class="xi-basis b-${f.basis === '연구' ? '공식' : (f.basis === '교과' || f.basis === '강의' || f.basis === 'NASM') ? '수정' : '정의'}">${esc(f.basis)}</span>${f.src && FIX_SRC[f.src] ? ` <span class="xi-src">— ${FIX_SRC[f.src].url ? `<a href="${FIX_SRC[f.src].url}" target="_blank" rel="noopener">${esc(FIX_SRC[f.src].name)}</a>` : esc(FIX_SRC[f.src].name)}</span>` : ''}</div></div></div>`;
     }).join('');
     return `<div class="xi-tools">${rows}
       <div class="xi-science"><div class="xi-sci-title">딱지 뜻</div>
-        <div class="xi-sci"><span class="xi-basis b-공식">연구</span> 무작위 비교 연구가 있음 · <span class="xi-basis b-수정">교과</span> 물리치료·재활 교과서/전문가 지침 · <span class="xi-basis b-수정">강의</span> 직접 들은 웰니스 강의(2026-10-16) · <span class="xi-basis b-정의">일반</span> 널리 쓰이지만 직접 비교 연구는 적음</div>
+        <div class="xi-sci"><span class="xi-basis b-공식">연구</span> 무작위 비교 연구가 있음 · <span class="xi-basis b-수정">교과</span> 물리치료·재활 교과서/전문가 지침 · <span class="xi-basis b-수정">강의</span> 직접 들은 웰니스 강의(2026-10-16) · <span class="xi-basis b-수정">NASM</span> 미국 NASM 교정운동 공식 자료 · <span class="xi-basis b-정의">일반</span> 널리 쓰이지만 직접 비교 연구는 적음</div>
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
