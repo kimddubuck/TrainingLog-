@@ -506,7 +506,6 @@
     '마사지볼 풀기 — 종아리·정강이 앞':['Calves-SMR',1],
     '마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이':['Iliotibial_Tract-SMR',1],
     '마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤':['Latissimus_Dorsi-SMR',1],
-    'Y 레이즈':['Dumbbell_Scaption',1],
     '의자 햄스트링 스트레칭':['Hamstring_Stretch',1],
     '내전근 스트레칭':['Side_Lying_Groin_Stretch',1],
     '문틀 가슴 스트레칭':['Dynamic_Chest_Stretch',1],
@@ -514,7 +513,17 @@
   };
   // 다른 출처 그림 (논문·정부·국제 도구). 파일은 이 저장소 img/ 폴더에 받아 두고 출처·라이선스를 같이 보인다
   // { f: 'img/..', approx, by: '저작자·출처', lic: '라이선스', url: '라이선스가 적힌 쪽' }
+  // 2026-10-17: 공개 논문(PMC, CC BY)·위키미디어(CC BY-SA) — 목록·라이선스 원문은 img/rehab/CREDITS.md
   const IMG_EXT = {
+    '클램쉘': { f:'img/rehab/clamshell.jpg', approx:false, by:'Nielsen 외, J Exp Orthop 2020', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC7007455/' },
+    '월싯(벽 스쿼트)': { f:'img/rehab/wallsit.jpg', approx:false, by:'Rees-Roberts 외, NIHR Open Res 2025', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12869024/' },
+    '발가락 수건 잡기': { f:'img/rehab/towelcurl.jpg', approx:false, by:'Kanayama 외, Sci Rep 2022', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC9056519/' },
+    '책 위 밸런스 (한 발·일자 서기)': { f:'img/rehab/tandem.jpg', approx:false, by:'Augustine11, Wikimedia Commons', lic:'CC BY-SA 3.0', url:'https://commons.wikimedia.org/wiki/File:SCAT_Balance_testing_Tandem_Stance.png' },
+    '밸런스 리치 (한 발 서서 앞·뒤 터치)': { f:'img/rehab/ybalance.jpg', approx:false, by:'Zhou 외, Front Hum Neurosci 2024', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11183502/' },
+    '백년척추 디스크 예방 (허리·목 뒤로 젖히기)': { f:'img/rehab/standing-extension.jpg', approx:false, by:'Sakaguchi 외, J Clin Med 2024 (일부 자름)', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11122457/' },
+    '승모근 아래 깨우기 (손바닥 뒤로 내리기)': { f:'img/rehab/lowtrap.jpg', approx:true, by:'Levine·Rigby, Healthcare 2018', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC6023437/' },
+    'Y 레이즈': { f:'img/rehab/prone-y.jpg', approx:false, by:'Liu 외, Medicine 2025 (일부 자름)', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12440407/' },
+    '고관절 힌지 보조운동': { f:'img/rehab/hiphinge-dowel.jpg', approx:true, by:'Michaud 외, Sensors 2021', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC8402067/' },
   };
   function imgOf(name){
     const key = String(name || '').trim();
