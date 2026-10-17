@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=114"></script>
+<script src="exinfo.js?v=115"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -353,7 +353,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .body-legend i.r{background:#D9534F;} .body-legend i.g{background:#3FA35B;} .body-legend i.p{background:#E8A33D;} .body-legend i.n{background:#FFD54A;}
   .body-nerve{align-items:center;} .body-nerve .body-btn{flex:0 0 auto;padding:6px 10px;} .body-nerve .body-btn.on{border-color:#FFD54A;color:#FFD54A;}
   .body-pick{margin-top:8px;padding:9px 11px;border-radius:9px;background:var(--surface-2);border:1px solid var(--border);font-size:11.5px;color:var(--ink-dim);line-height:1.5;word-break:keep-all;}
-  .body-pick b{color:var(--ink);font-size:12.5px;} .body-pick .pk-fix{color:var(--accent-b);} .body-pick .pk-k{display:inline-flex;width:18px;height:18px;border-radius:50%;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px;}
+  .body-pick b{color:var(--ink);font-size:12.5px;} .body-pick .an-plan{margin-top:6px;} .body-pick .an-step b{font-size:11.5px;} .body-pick .pk-fix{color:var(--accent-b);} .body-pick .pk-k{display:inline-flex;width:18px;height:18px;border-radius:50%;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px;}
   .body-pick .pk-k.r{background:#D9534F;} .body-pick .pk-k.g{background:#3FA35B;} .body-pick .pk-k.p{background:#E8A33D;color:#1B1F23;} .body-pick .pk-k.n{background:#FFD54A;color:#1B1F23;}
   .body-note{font-size:11.5px;color:var(--ink-faint);line-height:1.6;margin:10px 0 0;word-break:keep-all;}
   .body-note b{color:var(--ink-dim);}
@@ -994,7 +994,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v114</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v115</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1244,19 +1244,11 @@ if(!window.EXINFO) window.EXINFO = (function(){
         <span class="body-legend"><i class="r"></i>풀고 늘리기 <i class="g"></i>깨우기 <i class="p"></i>조심 <i class="n"></i>신경</span>
       </div>
       <div class="body-pick" id="bodyPick">근육 보기에서 부위를 고르면 그 근육만 보여요. 두 손가락으로 확대하고, 근육을 누르면 설명이 나와요</div>
-      <p class="body-note">손가락으로 끌면 돌아가요. 전신 뼈대 + 오른쪽 다리 근육(아픈 쪽)이고,
+      <p class="body-note">손가락으로 끌면 돌아가요. 전신 뼈대 + 근육(오른쪽 원본, 왼쪽은 거울)이고,
       결과지 각도대로 머리·어깨·골반·다리를 기울여 놓았어요(뼈대는 2배, 선·숫자는 3배 과장).
-      <b>흰 점선은 수평·수직 기준</b>, <b>빨간 선은 실제 기울기</b>. 색이 입혀진 근육이 풀어줄 곳·힘 기를 곳이고,
-      모델에 없는 근육(허리·배·목·가슴)은 점으로만 찍었어요. 아래 목록을 누르면 그 자리로 돌아가며 깜빡여요.<br>
+      <b>흰 점선은 수평·수직 기준</b>, <b>빨간 선은 실제 기울기</b>. 전체 보기의 점(🔴 아픈 곳 · 🟠 풀 곳 · 🟢 힘 기를 곳)을 누르면 메모가 나와요.
+      부위 보기에서는 근육마다 한글 이름표가 붙고, 누르면 내 증상과 ①풀기 ②늘리기 ③깨우기 ④통합 운동이 나와요.<br>
       <span class="body-credit">3D 모델: <a href="https://anatomytool.org/open3dmodel-create" target="_blank" rel="noopener">Open3DModel</a> (CC BY-SA 4.0), 혈관·신경을 빼고 뼈·근육만 씀</span></p>
-    </div>
-    <div class="card">
-      <div class="body-legend">
-        <span><i class="body-dot pain"></i>지금 아픈 곳</span>
-        <span><i class="body-dot release"></i>풀어줄 곳</span>
-        <span><i class="body-dot strength"></i>힘 기를 곳</span>
-      </div>
-      <div id="bodyList"></div>
     </div>
     <!-- 부위별 재활 4단계 (풀기→늘리기→깨우기→통합). 내용은 exinfo.js 의 REHAB -->
     <div class="card">
@@ -3125,13 +3117,12 @@ async function openBodyTab(){
   if(bodyTabReady) return;
   bodyTabReady = true;
   const mount = document.getElementById('bodyMount');
-  const list = document.getElementById('bodyList');
   try{
     if(!window.THREE)      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
     if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
     if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
-    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=114');
-    if(!window.initBody3D) await loadScript('bodymodel.js?v=114');
+    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=115');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=115');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';
@@ -3144,20 +3135,15 @@ async function openBodyTab(){
     bodyTabReady = false; mount.dataset.ready = '';
     showStatus('3D 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.');
   });
-  list.innerHTML = BODY_DATA.markers.map((m, i)=>
-    `<div class="body-row" data-i="${i}"><i class="body-dot ${m.kind}">${i + 1}</i>
-       <div><div class="body-name">${m.name}</div><div class="body-desc">${m.note}</div></div></div>`).join('');
-  window.body3dFocusAll = function(i){
-    list.querySelectorAll('.body-row').forEach(x=>x.classList.toggle('sel', +x.dataset.i === i));
-    setBodyAutoBtn(false);
-    if(window.body3dFocus) body3dFocus(i);   // 모델이 아직 안 떴으면 목록 표시만
-    if(mount.scrollIntoView) mount.scrollIntoView({ behavior:'smooth', block:'start' });
-  };
-  list.querySelectorAll('.body-row').forEach(r=> r.addEventListener('click', ()=> body3dFocusAll(+r.dataset.i)));
 }
 // 근육 보기: 누른 근육 설명
 function showBodyPick(hit){
   const box = document.getElementById('bodyPick'); if(!box) return;
+  if(hit.marker != null){
+    const d = hit.data || {}; const KIND = { pain:['r','🔴 지금 아픈 곳'], release:['p','🟠 풀어줄 곳'], strength:['g','🟢 힘 기를 곳'] }[d.kind] || ['p',''];
+    box.innerHTML = `<span class="pk-k ${KIND[0]}">${hit.marker + 1}</span><b>${d.name || ''}</b> <span style="color:var(--ink-faint)">${KIND[1]}</span><br>${d.note || ''}<br><span style="color:var(--ink-faint)">자세한 근육 분석은 위 단추에서 부위를 골라 보세요</span>`;
+    return;
+  }
   const a = EXINFO.ANAT && EXINFO.ANAT[hit.part];
   if(hit.nerve != null){
     const nv = a && a.nerves && a.nerves[hit.nerve]; if(!nv) return;
@@ -3166,7 +3152,7 @@ function showBodyPick(hit){
   }
   const m = a && a.muscles.find(x => x.k === hit.k);
   if(!m){ box.textContent = hit.orig || ''; return; }
-  box.innerHTML = `<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${m.where}<br>${m.does}<br><span class="pk-fix">${m.fix}</span>`;
+  box.innerHTML = `<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${m.where}<br>${m.does}${EXINFO.anatPlanHTML ? EXINFO.anatPlanHTML(m) : ''}`;
 }
 let bodyRegion = 'all';
 document.querySelectorAll('.body-btn[data-reg]').forEach(b=> b.addEventListener('click', ()=>{

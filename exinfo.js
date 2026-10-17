@@ -448,18 +448,7 @@
         { n:'등쪽어깨신경', en:'dorsal scapular nerve', mesh:['dorsalscapularnerve.r'], where:'목 옆에서 날개뼈 안쪽 모서리를 따라', why:'마름근·어깨올림근을 움직이는 신경 (어깨올림근은 풀 근육, 마름근은 깨울 근육)', src:'교과' },
         { n:'어깨위신경', en:'suprascapular nerve', mesh:['suprascapularnerve.r'], where:'어깨뼈 위 홈(패임)을 지나 뒷면으로', why:'가시위근·가시아래근(회전근개)을 움직여요. 어깨뼈 위 홈에서 눌리면 회전근개가 약해지고 어깨 뒤가 아파요', src:'교과' },
       ],
-      muscles:[
-        { k:1, n:'큰가슴근 · 작은가슴근', en:'pectoralis major/minor', t:'r', where:'가슴 앞 · 쇄골 아래 오목한 곳', does:'어깨를 앞으로 말아 당겨요 (둥근어깨의 주범)', fix:'🔴 마사지볼 쇄골 아래 → 문틀 가슴 스트레칭', src:'NASM' },
-        { k:2, n:'위 승모근', en:'upper trapezius', t:'r', where:'목과 어깨 사이 두툼한 곳', does:'어깨를 귀 쪽으로 올려요 (왼쪽 어깨 4° 올라감)', fix:'🔴 위 승모근 스트레칭 (목 옆 늘리기)', src:'NASM' },
-        { k:3, n:'어깨올림근 (견갑거근)', en:'levator scapulae', t:'r', where:'목 옆에서 날개뼈 위 안쪽 모서리까지', does:'날개뼈를 위로 끌어올리고 거북목과 짝을 이뤄요', fix:'🔴 고개를 반대쪽 겨드랑이 보듯 숙여 늘리기', src:'NASM' },
-        { k:4, n:'목빗근 (흉쇄유돌근)', en:'sternocleidomastoid', t:'r', where:'목 옆 비스듬한 굵은 줄 (이마를 손으로 밀면 튀어나옴)', does:'턱을 앞으로 내밀어요 (거북목) · 강의: 뒷골 당김의 원인', fix:'🔴 손·볼로 살살 풀기', src:'NASM' },
-        { k:5, n:'넓은등근 (광배근)', en:'latissimus dorsi', t:'r', where:'겨드랑이 뒤에서 허리·골반까지 넓게', does:'팔을 아래·안쪽으로 당겨요 → 짧으면 팔이 머리 위로 못 올라가요. 골반까지 이어져 허리와 연결', fix:'🔴 폼롤러 겨드랑이 → 광배근 스트레칭', src:'NASM' },
-        { k:6, n:'중·아래 승모근', en:'middle/lower trapezius', t:'g', where:'날개뼈 사이 · 날개뼈 아래 등 가운데', does:'날개뼈를 모으고 아래로 내려요 (어깨 올라감 잡기)', fix:'🟢 Y·T·W 레이즈 · 승모근 아래 깨우기', src:'NASM' },
-        { k:7, n:'마름근 (능형근)', en:'rhomboids', t:'g', where:'날개뼈 안쪽 모서리와 척추 사이', does:'날개뼈를 척추 쪽으로 모아요', fix:'🟢 T 레이즈 · 로우', src:'NASM' },
-        { k:8, n:'앞톱니근 (전거근)', en:'serratus anterior', t:'g', where:'겨드랑이 아래 갈비뼈 옆 톱니 모양', does:'날개뼈를 갈비뼈에 붙이고, 팔 올릴 때 날개뼈를 위로 돌려요', fix:'🟢 월 슬라이드', src:'NASM' },
-        { k:9, n:'깊은 목 굽힘근', en:'deep cervical flexors (longus colli)', t:'g', where:'목뼈 바로 앞 깊은 곳', does:'턱을 당겨 목을 곧게 세워요 (거북목 반대 힘)', fix:'🟢 턱 당기기', src:'NASM' },
-        { k:10, n:'회전근개 (가시아래근 등)', en:'rotator cuff (infraspinatus)', t:'g', where:'날개뼈 뒷면 · 어깨 뒤 관절 아래', does:'어깨 공을 소켓 가운데에 잡아 둬요', fix:'🟢 로우 (어깨 내리고) · 케틀벨 암바', src:'NASM' },
-      ] },
+      muscles:[{k:1,n:'큰가슴근 · 작은가슴근',s:'가슴근',en:'pectoralis major/minor',t:'r',where:'가슴 앞 · 쇄골 아래 오목한 곳',does:'어깨를 앞으로 말아 당겨요 (둥근어깨의 주범)',me:'둥근어깨 2번 · 어깨 2° 앞기울기 · 굽은등',rel:'마사지볼 쇄골 아래 오목한 곳 → 겨드랑이 앞 접히는 곳, 아픈 곳마다 30~45초 (고개는 반대로)',str:'문틀 가슴 스트레칭 좌우 30초 × 2 — 허리 젖히지 않기',int:'로우·프레스 때 어깨 내리고 가슴 연 채로',src:'NASM'},{k:2,n:'위 승모근',s:'위 승모근',en:'upper trapezius',t:'r',where:'목과 어깨 사이 두툼한 곳',does:'어깨를 귀 쪽으로 올려요',me:'양쪽 어깨 올라감 — 왼쪽 4° · 오른쪽 2°',rel:'마사지볼 목·어깨 사이 (벽에 대고) 30~45초',str:'위 승모근 스트레칭 (목 옆 늘리기) 좌우 30초 — 의자 잡아 그쪽 어깨 내리고',int:'모든 운동에서 어깨 으쓱 금지 · 턱 당기고',src:'NASM'},{k:3,n:'어깨올림근 (견갑거근)',s:'어깨올림근',en:'levator scapulae',t:'r',where:'목 옆에서 날개뼈 위 안쪽 모서리까지',does:'날개뼈를 위로 끌어올리고 거북목과 짝을 이뤄요',me:'거북목 · 어깨 올라감과 한 줄',rel:'마사지볼 날개뼈 위 안쪽 모서리 30초',str:'고개를 반대쪽 겨드랑이 보듯 숙여 30초',int:'승모근 아래 깨우기와 짝 — 날개뼈 내리는 느낌 익히기',src:'NASM'},{k:4,n:'목빗근 (흉쇄유돌근)',s:'목빗근',en:'sternocleidomastoid',t:'r',where:'목 옆 비스듬한 굵은 줄 (이마를 손으로 밀면 튀어나옴)',does:'턱을 앞으로 내밀어요 (거북목) · 강의: 뒷골 당김의 원인',me:'거북목 · 목뼈 왼쪽 볼록 · 머리 오른쪽 2° 기울기 · 왼쪽 회전',rel:'손가락으로 살살 집어 풀기 (강의 처방) · 세게 금지',str:'고개를 반대쪽으로 돌리고 살짝 뒤로 젖혀 20초',int:'턱 당기기로 깊은 목 근육이 대신 일하게',src:'NASM'},{k:5,n:'넓은등근 (광배근)',s:'광배근',en:'latissimus dorsi',t:'r',where:'겨드랑이 뒤에서 허리·골반까지 넓게',does:'팔을 아래·안쪽으로 당겨요 → 짧으면 팔이 머리 위로 못 올라가요. 골반까지 이어져 허리와 연결',me:'팔이 머리 위로 잘 안 올라감 (어깨 가동성)',rel:'폼롤러 광배근 풀기 — 겨드랑이 아래 옆으로 누워 30~45초',str:'광배근 스트레칭 (짐볼·벤치) 좌우 30초 × 2',int:'케틀벨 암바 · 오버헤드프레스 (허리 젖히지 않고 팔만)',src:'NASM'},{k:6,n:'중·아래 승모근',s:'아래 승모근',en:'middle/lower trapezius',t:'g',where:'날개뼈 사이 · 날개뼈 아래 등 가운데',does:'날개뼈를 모으고 아래로 내려요 (어깨 올라감 잡기)',me:'어깨 올라감(왼쪽 더) · 날개뼈가 들뜸',act:'승모근 아래 깨우기 10회 × 2 · Y 레이즈 10회 × 2 (T·W 번갈아) · 엎드려 코브라 10초 × 5',int:'덤벨 로우 · 원암 회전 로우 — 어깨 내리고 당기기 · 끝에서 2초',src:'NASM'},{k:7,n:'마름근 (능형근)',s:'마름근',en:'rhomboids',t:'g',where:'날개뼈 안쪽 모서리와 척추 사이',does:'날개뼈를 척추 쪽으로 모아요',me:'둥근어깨로 늘어난 채 약함 · 굽은등',act:'T 레이즈 10회 × 2 · 엎드려 코브라 10초 × 5',int:'로우 끝에서 날개뼈 모아 2초 버티기',src:'NASM'},{k:8,n:'앞톱니근 (전거근)',s:'앞톱니근',en:'serratus anterior',t:'g',where:'겨드랑이 아래 갈비뼈 옆 톱니 모양',does:'날개뼈를 갈비뼈에 붙이고, 팔 올릴 때 날개뼈를 위로 돌려요',me:'굽은등 · 팔 올릴 때 날개뼈가 안 따라 돌아감',act:'월 슬라이드 10회 × 2 (꼭대기에서 벽 밀기)',int:'오버헤드프레스·밀리터리 프레스 꼭대기에서 어깨 살짝 밀어 올리기',src:'NASM'},{k:9,n:'깊은 목 굽힘근',s:'깊은 목 근육',en:'deep cervical flexors (longus colli)',t:'g',where:'목뼈 바로 앞 깊은 곳',does:'턱을 당겨 목을 곧게 세워요 (거북목 반대 힘)',me:'거북목 · 머리 오른쪽 2° 기울기',act:'턱 당기기 5초 × 10 (벽에 뒤통수 대고)',int:'로우·프레스 할 때 턱 당긴 채 (머리 세우기) · 책 위 밸런스 시선 정면',src:'NASM'},{k:10,n:'회전근개 (가시위근·가시아래근·어깨밑근·작은원근)',s:'회전근개',en:'rotator cuff',t:'g',where:'날개뼈 앞뒷면 · 어깨 뒤 관절 아래',does:'어깨 공을 소켓 가운데에 잡아 둬요',me:'어깨 가동성 부족 · 어깨 앞으로 말림',act:'케틀벨 암바 좌우 8회 × 2 · 후면 리어 델토이드 플라이 15회',int:'덤벨 로우 · 원암 회전 로우 (어깨 공을 소켓에 넣은 느낌으로)',src:'NASM'}] },
     back: {
       title:'허리 · 골반 · 고관절 근육 지도', sub:'골반 앞기울기 6.5° · 오른쪽 허리 아래 욱신 · 오른쪽 장요근 당김',
       link:'💡 연결: 강의의 코어 = 허리뼈 + 골반 + 고관절 한 덩어리(LPHC). 광배근은 골반에, 뒷벅지는 고관절에 붙어서 모든 근육이 여기로 모여요. 앞(고관절 굽힘근)이 짧아지면 골반이 앞으로 기울고 허리가 대신 일해요 → 앞은 풀고 뒤(엉덩이·코어)는 깨우기',
@@ -470,17 +459,7 @@
         { n:'대퇴신경', en:'femoral nerve', mesh:['femoralnerve.r','femoralnervemuscularbranches.r'], where:'허리뼈에서 큰허리근과 엉덩근 사이로 내려와 사타구니 앞으로', why:'허벅지 앞 근육을 움직여요. 장요근 사이를 지나므로 장요근이 굳으면 영향을 줄 수 있다는 설명이 있지만, 근거는 약해요', src:'추정' },
         { n:'폐쇄신경', en:'obturator nerve', mesh:['obturatornerve.r','obturatornerveanteriorbranch.r','obturatornerveposteriorbranch.r'], where:'골반 안쪽 구멍을 지나 내전근 사이로', why:'내전근을 움직이는 신경 — 선생님이 말한 "내전근 사이 신경이 지나는 터널"', src:'쌤' },
       ],
-      muscles:[
-        { k:1, n:'장요근 (큰허리근 + 엉덩근)', en:'iliopsoas', t:'r', where:'허리뼈 앞 깊은 곳에서 골반 안쪽을 지나 허벅지 뼈 안쪽까지', does:'다리를 들어 올려요. 짧아지면 골반을 앞으로 기울이고 허리를 당겨요 (오른쪽 당김)', fix:'🔴 반무릎 장요근 스트레칭 — 골반 말고 엉덩이 조이기', src:'NASM' },
-        { k:2, n:'넙다리곧은근 (대퇴직근)', en:'rectus femoris', t:'r', where:'허벅지 앞 한가운데 (골반 앞 뼈에서 시작)', does:'허벅지 앞 네 근육 중 유일하게 골반에서 시작해 골반 앞기울기를 거들어요', fix:'🔴 마사지볼 허벅지 앞', src:'NASM' },
-        { k:3, n:'넙다리근막긴장근 (TFL) + 장경인대', en:'tensor fasciae latae / IT band', t:'r', where:'골반 옆 바지 주머니 자리 → 허벅지 바깥 띠 → 무릎 바깥', does:'골반 옆을 당기고 무릎 바깥까지 이어져요 (허리와 무릎 둘 다 관여)', fix:'🔴 마사지볼 골반 옆', src:'강의' },
-        { k:4, n:'척추세움근 (허리 부분)', en:'lumbar erector spinae', t:'r', where:'허리뼈 양옆 세로 근육 기둥', does:'허리를 뒤로 젖혀요. 골반이 앞으로 기울면 과하게 일해서 뻐근해요 (오른쪽 허리 아래 욱신)', fix:'🔴 아기 자세', src:'NASM' },
-        { k:5, n:'궁둥구멍근 (이상근)', en:'piriformis', t:'r', where:'엉덩이 깊은 곳, 꼬리뼈 옆에서 허벅지 뼈 윗부분까지', does:'고관절을 바깥으로 돌려요. 뭉치면 엉덩이·허리 통증', fix:'🔴 마사지볼 엉덩이 깊은 곳', src:'강의' },
-        { k:6, n:'큰볼기근 (대둔근)', en:'gluteus maximus', t:'g', where:'엉덩이 전체 가장 큰 근육', does:'고관절을 펴고 골반을 뒤로 말아 세워요 (골반 앞기울기 반대 힘)', fix:'🟢 글루트 브릿지 · 힌지 · 스쿼트', src:'NASM' },
-        { k:7, n:'중간볼기근 (중둔근)', en:'gluteus medius', t:'g', where:'엉덩이 위 바깥쪽 (골반 뼈 바로 아래)', does:'한 발로 설 때 골반이 옆으로 떨어지지 않게 잡아요', fix:'🟢 클램쉘 · 캐리', src:'NASM' },
-        { k:8, n:'배가로근 · 깊은 코어', en:'transversus abdominis', t:'g', where:'배 가장 안쪽, 허리를 띠처럼 감싸는 층', does:'허리가 움직이는 걸 막아 줘요 (안티 모션)', fix:'🟢 데드버그 · 플랭크 8초', src:'NASM' },
-        { k:9, n:'뒷벅지 (햄스트링)', en:'hamstrings', t:'g', where:'허벅지 뒤 (골반 뒤 앉는 뼈에서 시작)', does:'골반을 뒤로 당겨요. 골반이 앞으로 기울면 늘어난 채 약해져요', fix:'🟢 힌지 · 스티프 데드리프트', src:'NASM 교과(간접)' },
-      ] },
+      muscles:[{k:1,n:'장요근 (큰허리근 + 엉덩근)',s:'장요근',en:'iliopsoas',t:'r',where:'허리뼈 앞 깊은 곳에서 골반 안쪽을 지나 허벅지 뼈 안쪽까지',does:'다리를 들어 올려요. 짧아지면 골반을 앞으로 기울이고 허리를 당겨요',me:'오른쪽 고관절 앞 불편 · 런지로 펴면 시원 · 골반 앞기울기 6.5° · 오른쪽 장요근 당김',rel:'마사지볼 골반 앞 뼈 안쪽 (살살, 아프면 중단) 30초',str:'반무릎 장요근 스트레칭 좌우 30초 × 2 — 골반 뒤로 말고 엉덩이 조이기 (NASM)',int:'런지 · 고관절 힌지 — 골반 세운 채',src:'NASM'},{k:2,n:'넙다리곧은근 (대퇴직근)',s:'대퇴직근',en:'rectus femoris',t:'r',where:'허벅지 앞 한가운데 (골반 앞 뼈에서 시작)',does:'허벅지 앞 네 근육 중 유일하게 골반에서 시작해 골반 앞기울기를 거들어요',me:'골반 앞기울기 6.5° 거듦',rel:'마사지볼·폼롤러 허벅지 앞 30~45초 (강의: 허리 통증의 앞쪽 원인)',str:'반무릎 장요근 스트레칭에서 뒷발을 손으로 잡아 당기면 같이 늘어나요 30초',int:'가블릿 스쿼트 — 골반 세운 채 내려가기',src:'NASM'},{k:3,n:'넙다리근막긴장근 (TFL) + 장경인대',s:'TFL',en:'tensor fasciae latae / IT band',t:'r',where:'골반 옆 바지 주머니 자리 → 허벅지 바깥 띠 → 무릎 바깥',does:'골반 옆을 당기고 무릎 바깥까지 이어져요 (허리와 무릎 둘 다 관여)',me:'오른쪽 골반 3° 낮음 · 오른 무릎 바깥돌림과 엮임',rel:'마사지볼 골반 옆 바지 주머니 자리 30~45초 (장경인대 띠는 굴리지 말고 골반 옆만)',str:'서서 다리 꼬고 골반을 옆으로 밀기 30초',int:'클램쉘로 중둔근이 대신 일하게 (TFL 대신)',src:'강의'},{k:4,n:'척추세움근 (허리 부분)',s:'허리 세움근',en:'lumbar erector spinae',t:'r',where:'허리뼈 양옆 세로 근육 기둥',does:'허리를 뒤로 젖혀요. 골반이 앞으로 기울면 과하게 일해서 뻐근해요',me:'오른쪽 허리 아래 욱신 · (추론) 골반 앞기울기로 L4·L5 뒤쪽이 눌림 · 허리 과한 앞굽음',rel:'허리 자체는 폼롤러 금지 — 골반 옆·허벅지 앞·엉덩이를 풀면 허리가 편해져요',str:'아기 자세 30초 × 2 (숨을 등 뒤로)',int:'플랭크·데드버그로 코어가 대신 잡게 · 힌지 때 허리 대신 엉덩이',src:'NASM'},{k:5,n:'궁둥구멍근 (이상근)',s:'이상근',en:'piriformis',t:'r',where:'엉덩이 깊은 곳, 꼬리뼈 옆에서 허벅지 뼈 윗부분까지',does:'고관절을 바깥으로 돌려요. 뭉치면 엉덩이·허리 통증, 아래 좌골신경이 눌려 저림',me:'오래 앉으면 저림 · 테니스공으로 풀면 시원 · 오른 고관절 바깥돌림 · 오른 발끝 바깥 회전',rel:'마사지볼 엉덩이 깊은 곳 (앉아서 공 위에 체중) 30~45초',str:'누워서 4자 다리 (발목을 반대 무릎 위) 당기기 30초',int:'크랩워킹·클램쉘로 중둔근이 일하게 · 발끝 11자로 걷기',src:'강의'},{k:6,n:'큰볼기근 (대둔근)',s:'대둔근',en:'gluteus maximus',t:'g',where:'엉덩이 전체 가장 큰 근육',does:'고관절을 펴고 골반을 뒤로 말아 세워요 (골반 앞기울기 반대 힘)',me:'골반 앞기울기 6.5° · (추론) 엉덩이가 약해 종아리·허리가 대신 일함 → 골반을 세우는 힘',act:'글루트 브릿지 15회 × 2 (꼭대기에서 엉덩이 2초 조이기)',int:'고관절 힌지 보조 · 가블릿 스쿼트 · 케틀벨 스윙 · 케틀벨 굿모닝',src:'NASM'},{k:7,n:'중간볼기근 (중둔근)',s:'중둔근',en:'gluteus medius',t:'g',where:'엉덩이 위 바깥쪽 (골반 뼈 바로 아래)',does:'한 발로 설 때 골반이 옆으로 떨어지지 않게 잡아요',me:'오른쪽 골반 3° 낮음 · 무릎 안으로 쏠림',act:'클램쉘 좌우 15회 × 2 · 크랩워킹 · 토터치',int:'수트케이스 캐리 좌우 30초 · 책 위 밸런스 · 런지',src:'NASM'},{k:8,n:'배가로근 · 깊은 코어',s:'깊은 코어',en:'transversus abdominis',t:'g',where:'배 가장 안쪽, 허리를 띠처럼 감싸는 층',does:'허리가 움직이는 걸 막아 줘요 (안티 모션)',me:'허리 과한 앞굽음 → 엉덩이·깊은 복근으로 세우기',act:'악어호흡 3분 · 데드버그 좌우 8회 × 2 · 플랭크 8초 버티고 2초 쉬기 × 8',int:'바디컨트롤 전면 코어 · 모든 운동 전 복압 잡기 (스쿼트·데드 호흡)',src:'NASM'},{k:9,n:'뒷벅지 (햄스트링)',s:'햄스트링',en:'hamstrings',t:'g',where:'허벅지 뒤 (골반 뒤 앉는 뼈에서 시작)',does:'골반을 뒤로 당겨요. 골반이 앞으로 기울면 늘어난 채 약해져요',me:'골반 앞기울기로 늘어난 채 약함',act:'스티프 데드리프트 15회 (끝범위 집중) · 의자 햄스트링 스트레칭 ⑤⑥ (뒤꿈치로 의자 누르기·상체 돌리기)',int:'고관절 힌지 · 케틀벨 스윙',src:'NASM 교과(간접)'}] },
     knee: {
       title:'무릎 · 발목 · 발 근육 지도', sub:'오른 무릎 안쪽 통증 · 무릎 바깥돌림 · 왼발목 안으로 무너짐',
       link:'💡 연결: 무릎은 안정성 관절 — 위(고관절)와 아래(발목)가 굳으면 무릎이 대신 돌아가요 (강의). 무릎이 안으로 모이는 건 허벅지 안쪽·바깥 띠가 당기고 엉덩이 옆이 못 잡아 줘서예요 (NASM). 무릎 안쪽 통증 자리는 거위발(허벅지 안쪽 세 근육이 붙는 곳)일 수 있어요 — 진단은 정형외과',
@@ -491,17 +470,7 @@
         { n:'복재신경 (무릎 안쪽)', en:'saphenous nerve', mesh:['saphenousbranchoffemoralisnerve.r','saphenousnervemedialcruralcutaneousbranches.r','infrapatellarbranchofsaphenousnerve.r'], where:'내전근 터널을 지나 무릎 안쪽 → 정강이 안쪽 피부', why:'무릎 안쪽·정강이 안쪽 피부 감각 신경. 거위발 근처를 지나서 무릎 안쪽 통증과 섞여 보일 수 있어요 — 원인 구분은 정형외과', src:'교과' },
         { n:'발바닥 신경', en:'medial / lateral plantar nerve', mesh:['medialplantarnerve.r','lateralplantarnerve.r'], where:'발목 안쪽 복사뼈 뒤를 돌아 발바닥으로', why:'발 아치 근육을 움직이고 발바닥 감각을 맡아요 — 수건 잡기로 깨우는 근육에 명령을 보내는 줄', src:'교과' },
       ],
-      muscles:[
-        { k:1, n:'모음근 (내전근)', en:'adductors', t:'r', where:'허벅지 안쪽', does:'짧아지면 무릎을 안으로 끌어당겨요', fix:'🔴 내전근 스트레칭', src:'NASM' },
-        { k:2, n:'TFL + 장경인대', en:'TFL / IT band', t:'r', where:'골반 옆 → 허벅지 바깥 띠 → 무릎 바깥', does:'무릎 바깥을 당겨 무릎이 돌아가게 해요', fix:'🔴 마사지볼 골반 옆', src:'NASM' },
-        { k:3, n:'장딴지근 · 가자미근 (종아리)', en:'gastrocnemius / soleus', t:'r', where:'종아리 뒤 (겉·속 두 층)', does:'굳으면 발목이 안 젖혀져 발·무릎이 안으로 무너져요', fix:'🔴 종아리 폼롤러 → 벽 종아리 스트레칭', src:'NASM 교과(간접)' },
-        { k:4, n:'넙다리두갈래근 (대퇴이두근)', en:'biceps femoris', t:'r', where:'허벅지 뒤 바깥쪽', does:'무릎을 바깥으로 돌려요 (오른 무릎 바깥돌림)', fix:'🔴 폼롤러 허벅지 뒤 바깥', src:'NASM 교과(간접)' },
-        { k:5, n:'중간볼기근 (중둔근)', en:'gluteus medius', t:'g', where:'엉덩이 위 바깥쪽', does:'무릎이 안으로 모이는 걸 위에서 막아 줘요', fix:'🟢 클램쉘 · 밸런스 리치', src:'NASM' },
-        { k:6, n:'안쪽넓은근 (내측광근)', en:'vastus medialis', t:'g', where:'무릎 바로 위 안쪽 물방울 모양', does:'무릎뼈가 안쪽으로 잘 미끄러지게 잡아요', fix:'🟢 월싯 (아프지 않은 각도)', src:'NASM 교과(간접)' },
-        { k:7, n:'앞정강근 · 뒤정강근', en:'tibialis anterior / posterior', t:'g', where:'정강이 앞 · 종아리 속 깊은 곳', does:'발 아치를 세우고 발목을 젖혀요 (왼발목 안으로 무너짐)', fix:'🟢 카프 레이즈(끝까지 내려) · 수건 잡기', src:'NASM 교과(간접)' },
-        { k:8, n:'발바닥 근막 · 발 안쪽 근육', en:'plantar fascia / intrinsic foot', t:'g', where:'발바닥 뒤꿈치에서 발가락까지', does:'아치를 받쳐요. 뭉치면 종아리까지 당겨요', fix:'🔴 발바닥 마사지 → 🟢 수건 잡기', src:'강의' },
-        { k:9, n:'거위발 (무릎 안쪽)', en:'pes anserinus', t:'p', where:'무릎 안쪽 아래 정강이 뼈에 세 근육(넙다리빗근·두덩정강근·반힘줄근)이 붙는 곳', does:'무릎 안쪽 통증이 자주 생기는 자리 — 내전근·햄스트링이 당기면 여기가 아파요', fix:'⚠ 붓거나 아프면 ①② 까지만 · 정형외과', src:'일반' },
-      ] },
+      muscles:[{k:1,n:'모음근 (내전근)',s:'내전근',en:'adductors',t:'r',where:'허벅지 안쪽',does:'짧아지면 무릎을 안으로 끌어당겨요',me:'오른쪽 허벅지 안쪽 — 신경이 지나는 터널 (선생님) · 오른 무릎 안쪽 통증과 엮임',rel:'폼롤러 허벅지 안쪽 (엎드려 다리 옆으로) 30~45초',str:'내전근 스트레칭 좌우 30초 × 2 → 끝에서 5초 × 3 (선생님)',int:'이너타이 머신 · 가블릿 스쿼트 (무릎 세 번째 발가락 방향)',src:'NASM'},{k:2,n:'TFL + 장경인대',s:'TFL',en:'TFL / IT band',t:'r',where:'골반 옆 → 허벅지 바깥 띠 → 무릎 바깥',does:'무릎 바깥을 당겨 무릎이 돌아가게 해요',me:'오른 무릎 바깥돌림 6° · 오른쪽 골반 3° 낮음',rel:'마사지볼 골반 옆 30~45초',str:'서서 다리 꼬고 골반 옆으로 밀기 30초',int:'클램쉘·크랩워킹으로 중둔근이 대신 일하게',src:'NASM'},{k:3,n:'장딴지근 · 가자미근 (종아리)',s:'종아리',en:'gastrocnemius / soleus',t:'r',where:'종아리 뒤 (겉·속 두 층)',does:'굳으면 발목이 안 젖혀져 발·무릎이 안으로 무너져요',me:'오른쪽 종아리 항상 뭉침 · (추론) 엉덩이가 약해 종아리가 과로 · 오른 발끝 바깥 회전',rel:'마사지볼 풀기 — 종아리·정강이 앞 30~45초 · 발바닥 마사지',str:'벽 종아리 스트레칭 좌우 30초 × 2 (무릎 펴고 한 번, 굽히고 한 번)',int:'카프 레이즈 끝까지 내려 2초 · 책 위 밸런스',src:'NASM 교과(간접)'},{k:4,n:'넙다리두갈래근 (대퇴이두근)',s:'대퇴이두근',en:'biceps femoris',t:'r',where:'허벅지 뒤 바깥쪽',does:'무릎을 바깥으로 돌려요',me:'오른 무릎 바깥돌림 6° · 오른 발끝 바깥 회전 — 고관절 바깥돌림과 한 줄',rel:'폼롤러 허벅지 뒤 바깥쪽 30~45초',str:'의자 햄스트링 스트레칭 — 발끝을 안쪽으로 살짝 돌려서',int:'스티프 데드리프트 발끝 11자로',src:'NASM 교과(간접)'},{k:5,n:'중간볼기근 (중둔근)',s:'중둔근',en:'gluteus medius',t:'g',where:'엉덩이 위 바깥쪽',does:'무릎이 안으로 모이는 걸 위에서 막아 줘요',me:'왼 무릎 안쪽돌림 4° · 왼 발목 안으로 무너짐',act:'클램쉘 좌우 15회 × 2 · 크랩워킹 · 토터치',int:'밸런스 리치 · 책 위 밸런스 · 런지',src:'NASM'},{k:6,n:'안쪽넓은근 (내측광근)',s:'내측광근',en:'vastus medialis',t:'g',where:'무릎 바로 위 안쪽 물방울 모양',does:'무릎뼈가 안쪽으로 잘 미끄러지게 잡아요',me:'오른쪽 무릎 안쪽 근육 — 무릎이 안으로 쏠리지 않게 잡아주는 힘',act:'월싯 20초 × 3 (아프지 않은 각도) · 레그프레스 마지막 15° 천천히',int:'스쿼트·레그프레스 통제되는 깊이 (손잡이 잡고 코어)',src:'NASM 교과(간접)'},{k:7,n:'앞정강근 · 뒤정강근',s:'정강근',en:'tibialis anterior / posterior',t:'g',where:'정강이 앞 · 종아리 속 깊은 곳',does:'발 아치를 세우고 발목을 젖혀요',me:'왼쪽 발목 안쪽으로 약간 무너짐 · 왼 무릎 안쪽돌림',act:'카프 레이즈 15회 (끝까지 내려 2초) · 발가락 수건 잡기 15회 × 2',int:'책 위 밸런스 — 새끼발가락 쪽 누르기 · 밸런스 리치',src:'NASM 교과(간접)'},{k:8,n:'발바닥 근막 · 발 안쪽 근육',s:'발바닥',en:'plantar fascia / intrinsic foot',t:'g',where:'발바닥 뒤꿈치에서 발가락까지',does:'아치를 받쳐요. 뭉치면 종아리까지 당겨요',me:'왼발 아치 무너짐',rel:'발바닥 마사지 좌우 1분 (공 굴리기, 아픈 곳 10초)',act:'발가락 수건 잡기 15회 × 2 (뒤꿈치는 바닥에)',int:'밸런스 리치 · 맨발로 책 위 밸런스',src:'강의'},{k:9,n:'거위발 (무릎 안쪽)',s:'거위발',en:'pes anserinus',t:'p',where:'무릎 안쪽 아래 정강이 뼈에 세 근육(넙다리빗근·두덩정강근·반힘줄근)이 붙는 곳',does:'무릎 안쪽 통증이 자주 생기는 자리 — 내전근·햄스트링이 당기면 여기가 아파요',me:'오른쪽 무릎 안쪽 욱신 · 접으면 불편 · 붓기 · 달리면 아픔 → 1~2주 안에 정형외과',rel:'붓기 있는 날은 ①② 까지만 · 내전근·햄스트링을 풀면 당김이 줄어요 · 얼음 10분',str:'내전근 스트레칭 · 의자 햄스트링 스트레칭 (아프지 않은 범위)',int:'붓기 없을 때만 — 월싯 · 책 위 밸런스. 달리기·점프는 쉬기',src:'일반'}] },
   };
 
   // 근육 지도 그리기: 해부도 + 번호 핀 + 근육 목록 (🔴 풀고 늘리기 · 🟢 깨우기 · ⚠ 조심)
@@ -515,6 +484,17 @@
       row.classList.add('hit'); row.scrollIntoView({ behavior:'smooth', block:'center' });
       setTimeout(() => row.classList.remove('hit'), 2500);
     });
+  }
+  // 근육 하나의 "내 증상 + ① 풀기 ② 늘리기 ③ 깨우기 ④ 통합" (앱 3D 설명 상자와 재활 카드가 같이 씀)
+  function anatPlanHTML(m){
+    const L = [];
+    if(m.me)  L.push(`<div class="an-me">🙋 내 증상 — ${esc(m.me)}</div>`);
+    if(m.rel) L.push(`<div class="an-step r"><b>① 풀기</b> ${esc(m.rel)}</div>`);
+    if(m.str) L.push(`<div class="an-step r"><b>② 늘리기</b> ${esc(m.str)}</div>`);
+    if(m.act) L.push(`<div class="an-step g"><b>③ 깨우기</b> ${esc(m.act)}</div>`);
+    if(m.int) L.push(`<div class="an-step i"><b>④ 통합</b> ${esc(m.int)}</div>`);
+    if(!L.length && m.fix) L.push(`<div class="an-fix">${esc(m.fix)}</div>`);
+    return `<div class="an-plan">${L.join('')}</div>`;
   }
   function anatHTML(part){
     const a = ANAT[part]; if(!a) return '';
@@ -530,7 +510,7 @@
         <div class="an-body"><div class="an-n">${esc(m.n)} <small>${esc(m.en)}</small><span class="xi-basis b-${m.src === 'NASM' ? '수정' : (m.src === '강의' ? '수정' : '정의')}">${esc(m.src)}</span></div>
           <div class="an-where">📍 ${esc(m.where)}</div>
           <div class="an-does">${esc(m.does)}</div>
-          <div class="an-fix">${esc(m.fix)}</div></div></div>`;
+          ${anatPlanHTML(m)}</div></div>`;
     const red = a.muscles.filter(m => m.t === 'r'), green = a.muscles.filter(m => m.t === 'g'), other = a.muscles.filter(m => m.t !== 'r' && m.t !== 'g');
     return `<details class="an"><summary><span class="an-title">🫀 ${esc(a.title)}</span><small>${esc(a.sub)}</small><span class="an-more">근육 보기 ▾</span></summary>
       <div class="an-body-wrap">
@@ -1104,6 +1084,10 @@
     .an-body{min-width:0;display:flex;flex-direction:column;gap:2px;font-size:11.5px;line-height:1.45;word-break:keep-all;}
     .an-n{font-size:12.5px;font-weight:700;color:var(--ink);} .an-n small{font-weight:400;color:var(--ink-faint);font-size:10px;margin-left:4px;}
     .an-where{color:var(--ink-dim);} .an-does{color:var(--ink);} .an-fix{color:var(--accent-b);}
+    .an-plan{display:flex;flex-direction:column;gap:3px;margin-top:4px;padding-top:4px;border-top:1px dashed var(--border);}
+    .an-me{color:var(--accent-a);font-size:11.5px;word-break:keep-all;}
+    .an-step{font-size:11.5px;color:var(--ink);word-break:keep-all;line-height:1.45;} .an-step b{margin-right:4px;}
+    .an-step.r b{color:#E07A80;} .an-step.g b{color:#7FC08A;} .an-step.i b{color:var(--accent-b);}
     .tr{display:flex;flex-direction:column;gap:8px;}
     .tr-root{align-self:center;text-align:center;background:var(--accent-a-dim);color:var(--ink);border-radius:14px;padding:8px 16px;font-size:14px;font-weight:700;}
     .tr-root b{color:var(--accent-a);margin-left:4px;} .tr-root small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-dim);margin-top:2px;}
@@ -1270,5 +1254,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

@@ -258,7 +258,7 @@
     [].concat(boneMeshes, legMuscleMeshes).forEach(m => origMat.set(m, m.material));
     const dimBone = new THREE.MeshStandardMaterial({ color:0xBFC5CC, transparent:true, opacity:0.18, depthWrite:false });
     const dimMus  = new THREE.MeshStandardMaterial({ color:0x6E7B86, transparent:true, opacity:0.12, depthWrite:false });
-    let region = null, regionMeshes = [], pickHL = [], pickT = 0;
+    let region = null, regionMeshes = [], pickHL = [], pickT = 0, labelSprites = [];
     // 부위마다 근육 덩어리 중심(회전 전에 잰다)
     const regionBox = {};
     Object.keys(REGIONS).forEach(k => {
@@ -302,6 +302,7 @@
     };
     window.body3dRegion = function(key){
       pickHL = []; region = REGIONS[key] ? key : null;
+      labelSprites.forEach(sp => body.remove(sp)); labelSprites = [];
       if(!region){
         restoreAll(); markers.forEach(s => s.visible = true); lines.visible = linesOn;
         cam.ty = CAM0.y; cam.tdist = CAM0.dist; auto = true; targetX = 0;
@@ -323,6 +324,17 @@
       });
       markers.forEach(s => s.visible = false); lines.visible = false;
       mirrorMeshes.forEach(m => { m.visible = false; });
+      // 근육마다 작은 한글 이름표 (묶음 가운데)
+      labelSprites.forEach(sp => body.remove(sp)); labelSprites = [];
+      Object.keys(R.groups).forEach(k => {
+        const info = byK[+k]; if(!info) return;
+        const ms = regionMeshes.filter(m => m.userData.anatK === +k); if(!ms.length) return;
+        const bx = new THREE.Box3(); ms.forEach(m => bx.expandByObject(m));
+        const c = bx.getCenter(new THREE.Vector3());
+        const sp = textSprite((info.s || info.n), '#' + new THREE.Color(TCOL[info.t] || TCOL.r).getHexString());
+        sp.scale.multiplyScalar(0.55); sp.center.set(0.5, 0.5); sp.position.copy(c); sp.renderOrder = 21;
+        body.add(sp); labelSprites.push(sp);
+      });
       nerveOn = false; nerveMeshes.forEach(m => { m.visible = false; }); nerveMeshes = []; nervePick = [];
       const bx = regionBox[region]; const c = bx.getCenter(new THREE.Vector3()); const sz = bx.getSize(new THREE.Vector3());
       cam.ty = (R.camY != null) ? R.camY : c.y; cam.tdist = (R.dist != null) ? R.dist : Math.max(1.1, Math.min(3.9, Math.max(sz.x, sz.y, sz.z) * 2.4));
@@ -335,10 +347,15 @@
     };
     const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
     function pickAt(x, y){
-      if(!region || !regionMeshes.length) return null;
       const r = renderer.domElement.getBoundingClientRect();
       ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
+      if(!region){   // 전체 보기: 표시점(공)을 누르면 그 자리 메모
+        const hm = ray.intersectObjects(markers, false)[0];
+        if(hm){ const i = markers.indexOf(hm.object); window.body3dFocus(i); return { marker: i, data: hm.object.userData }; }
+        return null;
+      }
+      if(!regionMeshes.length) return null;
       const hitN = nervePick.length ? ray.intersectObjects(nervePick, false)[0] : null;   // 신경이 켜져 있으면 신경 먼저 (근육 속에 묻혀 있어서)
       const hit = hitN || ray.intersectObjects(regionMeshes, false)[0];
       if(!hit) return null;
