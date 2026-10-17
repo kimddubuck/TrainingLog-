@@ -365,13 +365,36 @@
     return { a: IMG_BASE + v[0] + '/0.jpg', b: IMG_BASE + v[0] + '/1.jpg', approx: !!v[1] };
   }
   // 그림이 없으면 유튜브에서 자세 영상을 찾는 링크
-  function videoUrl(name){ return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(String(name || '').replace(/\s*\(.*?\)\s*/g, ' ').trim() + ' 운동 자세'); }
+  function videoUrl(name){
+    const r = roleOf(name);
+    const q = (r && r.video) ? r.video : String(name || '').replace(/\s*\(.*?\)\s*/g, ' ').trim() + ' 운동 자세';
+    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  }
   // 작은 그림 두 장 (없으면 영상 찾기 링크)
   function imgHTML(name, size){
     const im = imgOf(name); const s = size || 64;
     if(!im) return `<a class="xi-vid" href="${videoUrl(name)}" target="_blank" rel="noopener">▶ 영상 찾기</a>`;
     return `<span class="xi-img" style="--s:${s}px"><img src="${im.a}" loading="lazy" alt=""><img src="${im.b}" loading="lazy" alt="">${im.approx ? '<em>비슷한 그림</em>' : ''}</span>`;
   }
+
+  // ----- 종목 정리표: 근육 · 역할 · 관절 (상필님과 하나씩 맞춰 가는 표) -----
+  // role: 가동성(잘 돌게) / 안정성(버티게) / 근력 / 교정 / 회복 — 강의의 "관절마다 맡은 일" 기준
+  // ok: '확인됨' = 상필님이 맞다고 한 것. 없으면 제 짐작 (화면에 "짐작"이라 표시)
+  const ROLE = {
+    '그라운드소통':       { muscles:'등(흉추)·어깨·고관절', role:'가동성', joint:'등·어깨', ok:'확인됨',
+                           note:'움직임을 부드럽게 이어 흐르게 (바디컨트롤 Lv.1 · 닐링 암쓰레드/숄더 로테이션)', video:'바디컨트롤 그라운드 소통' },
+    '바디컨트롤전면코어':  { muscles:'복부 (복사근 — 몸통 회전)', role:'안정성', joint:'허리·골반', ok:'확인됨',
+                           note:'복부 회전 운동 — 몸통을 꼬며 배로 잡기 (바디컨트롤 전면 코어 1~3단계)', video:'바디컨트롤 전면 코어' },
+    '고관절운동(폼롤러)': { muscles:'엉덩이(둔근) · 뒷벅지', role:'안정성', joint:'고관절', ok:'확인됨',
+                           note:'엉덩이 운동 · 허리 통증 예방 — 폼롤러를 무릎 뒤에 끼우고 한 다리로 천천히 숙이기(동전 줍듯). 허리 대신 엉덩이가 일하게 (선생님 9/15)', video:'싱글레그 데드리프트 폼롤러' },
+    '토터치':            { muscles:'엉덩이(둔근)', role:'안정성', joint:'고관절·무릎', ok:'확인됨',
+                           note:'엉덩이 운동 — 스텝 위에서 덤벨 들고, 대각선 방향으로 다리를 뻗으며 런지. 뒤쪽에 체중이 너무 쏠리지 않게 (선생님)', video:'대각선 런지 스텝박스' },
+    '크랩워킹':           { muscles:'엉덩이(둔근 — 옆쪽 중둔근)', role:'안정성', joint:'고관절', ok:'확인됨',
+                           note:'엉덩이 운동 — 무릎에 밴드 끼고 인사하는 자세(힙힌지)에서 옆으로 벌리며 이동 (선생님 7/24)', video:'밴드 크랩워킹 사이드 스텝' },
+    '스핀롤':            { muscles:'고관절 둘레 · 등', role:'가동성', joint:'고관절', ok:'확인됨',
+                           note:'고관절을 잘 움직이게 — 몸을 말아 구르는 움직임 회복 (바디컨트롤)', video:'바디컨트롤 스핀롤' },
+  };
+  function roleOf(name){ return ROLE[norm(name)] || null; }
 
   // ----- 이름 → 기구 · 쪽 · 결 -----
   const norm = s => String(s || '').replace(/\s+/g, '');
@@ -390,7 +413,7 @@
     return '웨이트';
   }
   function sideOf(n, tool){
-    if(/원암|한팔|싱글|덤벨로우|스플릿|불가리안|런지|겟업|암바|불균형교정/.test(n)) return '한쪽씩';
+    if(/원암|한팔|싱글|덤벨로우|스플릿|불가리안|런지|겟업|암바|불균형교정|토터치|고관절운동\(폼롤러\)/.test(n)) return '한쪽씩';
     if(tool === '회전 도구' || /크랩워킹|걷기|러닝|조깅|수영|자전거|등산|일립티컬|스텝밀|마운틴/.test(n)) return '좌우 번갈아';
     if((tool === '덤벨' || tool === '케틀벨') && !/가블릿|굿모닝/.test(n)) return '양손 따로';
     return '양쪽 같이';
@@ -412,7 +435,11 @@
     // 원암 케이블 회전 로우(선생님 이름: 불균형 교정운동) — 사진으로 동작 확인: 한 팔로 당기며 몸통을 꼰다
     if(/회전로우/.test(n)) return W('CCT', '정의', '한 팔로 당기며 몸통을 꼬아 마무리 — 공식 CCT 예 "끝에서 꼬아 마무리하는 로우"와 같은 모양');
     if(/겟업|암바/.test(n)) return W('CCT', '확인', '한쪽으로 몸통을 꼬는 동작이라 정의상 CCT 쪽 — 공식 자료엔 없어서 선생님 확인 필요');
-    if(/크랩워킹|토터치|그라운드소통|바디컨트롤|스핀롤/.test(n)) return W('?', '확인', '선생님만의 동작이라 공식 자료에 없어요');
+    if(/바디컨트롤전면코어/.test(n)) return W('CCT', '정의', '복부 회전 — 몸통을 한쪽으로 꼬며 배로 잡는 동작 → CCT 정의 (상필님 확인)');
+    if(/그라운드소통|스핀롤/.test(n)) return W('일반', '정의', '가동성 흐름(등·어깨·고관절 돌리기) — 셋에 해당 근거 없음 (상필님 확인)');
+    if(/고관절운동\(폼롤러\)/.test(n)) return W('CCT', '정의', '한 다리씩 숙이는 동작 — 공식 CCT 예(스플릿·런지)처럼 한쪽씩 (상필님 확인)');
+    if(/토터치/.test(n)) return W('CCT', '정의', '대각선으로 한 다리씩 뻗는 런지 — 공식 CCT 예(런지)와 같은 집안 (상필님 확인)');
+    if(/크랩워킹/.test(n)) return W('일반', '정의', '밴드 끼고 옆으로 걷기 — 몸통을 꼬지 않아 셋에 해당 근거 없음 (상필님 확인)');
     // ③ 셋 중 근거가 없는 것
     if(type === 'cardio') return W('일반', '정의', '유산소 — 셋 중 어디라고 한 적 없음 (접영만 BTT 예로 나와요)');
     if(tool === '회복') return W('일반', '정의', '스트레칭·호흡·이완 — 셋에 해당 근거 없음');
@@ -456,6 +483,7 @@
   function detailHTML(info){
     return `<div class="xi-detail">
       <div class="xi-detail-img">${imgHTML(info.name, 72)}</div>
+      ${(r => r ? `<div><b>${esc(r.muscles)}</b> — ${esc(r.role)} (${esc(r.joint)}) <span class="xi-basis b-공식">${esc(r.ok || '짐작')}</span><br><span style="color:var(--ink-faint)">${esc(r.note)}</span></div>` : '')(roleOf(info.name))}
       <div><b>${esc(info.icon)} ${esc(info.tool)}</b> — ${info.toolKid}</div>
       <div><b>${esc(info.side)}</b> — ${esc(info.sideText)}</div>
       <div><b>${esc(info.weck.key === '?' ? '선생님 확인' : info.weck.key)}</b> — ${esc(info.weck.why)}
@@ -693,5 +721,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

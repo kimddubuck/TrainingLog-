@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=89"></script>
+<script src="exinfo.js?v=90"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v89</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v90</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -1604,6 +1604,7 @@ async function loadAllData(){
   });
   // 잘못 넣었다가 뺀 종목은 저장본에 남아 있어도 되살리지 않는다
   const RETIRED = ['코일링 코어 (CCT)',
+    '허리이완(다리자극)',   // 상필님: 빼도 됨 (2026-10-17)
     // v76 에 잠깐 넣었다가 뺀 교정 종목들 (상필님이 고른 6개만 남김)
     '맥길 컬업','사이드 플랭크','버드독','데드버그','골반 기울이기 (누워서)','턱 당기기 (친턱)','벽 천사 (월 엔젤)',
     '흉추 폼롤러 신전','캣카우','발가락 수건 집기','숏풋 (발 아치 세우기)','옆으로 누워 다리 들기',
@@ -2055,7 +2056,7 @@ const RECOVERY_ROUTINE = [
   { why:'③ 깨우기 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
     options:['발가락 수건 잡기'] },
   { why:'④ 통합 — 선생님 동작 (움직임으로 연결)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
-    options:['겟업동작','그라운드 소통','크랩워킹','케틀벨 암바','고관절 힌지 보조운동','허리이완(다리자극)','리버스 노드릭컬'] },
+    options:['겟업동작','그라운드 소통','크랩워킹','케틀벨 암바','고관절 힌지 보조운동','리버스 노드릭컬'] },
   { theme:true },
   { why:'④ 통합 — 밸런스 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 20초', label:'좌우 20초 × 2',
     options:['책 위 밸런스 (한 발·일자 서기)'] },
@@ -3025,14 +3026,14 @@ const PT_TIPS = {
   'RMT클럽스윙':'RMT · 클럽을 휘둘러 이쪽 꼬임 → 저쪽 꼬임 (공식 첫 동작: 아래로 8자 돌리기)',
   'RMT로프':'RMT · 로프를 좌우로 휘둘러 이쪽 꼬임 → 저쪽 꼬임',
   '슬로우조깅':'코로 숨 쉬며 대화할 수 있는 속도 · 보폭 짧게, 소리 안 나게 · 무릎 아프면 바로 걷기로',
-  '그라운드소통':'바디컨트롤 Lv.1 · 집에서 꾸준히 · 움직임을 이어서 흐르게',
-  '바디컨트롤전면코어':'단계별 1~3번 동작을 꾸준히 (집에서)',
+  '그라운드소통':'바디컨트롤 Lv.1 · 집에서 꾸준히 · 움직임을 부드럽게 이어 흐르게 (등·어깨·고관절 돌리기)',
+  '바디컨트롤전면코어':'단계별 1~3번 동작을 꾸준히 (집에서) · 복부 회전 — 몸통을 꼬며 배로 잡기',
   '고관절힌지보조운동':'힌지를 잘 하기 위한 보조 운동 · 자주 반복해서 체크해보기',
   '내전근스트레칭':'허벅지 안쪽 늘이기 · 고관절 힌지가 잘 되게',
   '케틀벨암바':'자세 만들고 시선은 케틀벨 · 팔꿈치 당기기',
   '악어호흡':'복부 뒤쪽으로 호흡 넣기 · 코로 들이마시고 입으로 뱉기',
-  '고관절운동(폼롤러)':'폼롤러 끼우고 천천히 · 동전 줍듯 엉덩이 자극',
-  '스핀롤':'10번씩 3세트 · 몸을 말아주는 움직임 회복',
+  '고관절운동(폼롤러)':'허리 통증 예방 · 폼롤러를 무릎 뒤에 끼우고 한 다리로 천천히 숙이기 — 동전 줍듯, 엉덩이 자극',
+  '스핀롤':'10번씩 3세트 · 몸을 말아주는 움직임 회복 — 고관절을 잘 움직이게',
   '리버스노드릭컬':'엉덩이에 힘 준 상태로 10번씩',
 };
 function ptTip(ex){
