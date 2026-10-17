@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=104"></script>
+<script src="exinfo.js?v=105"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -90,9 +90,11 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .app{max-width:640px;margin:0 auto;padding:20px 16px 80px;}
 
   /* Header */
-  .header{margin-bottom:18px;}
+  .header{margin-bottom:10px;}
+  .hd-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+  .hd-ver{color:var(--ink-faint);font-size:10.5px;}
   .share-btn{
-    margin-top:10px;padding:8px 14px;border-radius:999px;cursor:pointer;
+    margin-top:0;padding:8px 14px;border-radius:999px;cursor:pointer;
     background:var(--accent-b-dim);border:1px solid var(--accent-b);color:var(--accent-b);
     font-size:12.5px;font-weight:600;font-family:'IBM Plex Sans KR',sans-serif;
   }
@@ -127,7 +129,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     display:grid;
     grid-template-columns:repeat(7,1fr);
     gap:6px;
-    margin:18px 0 22px;
+    margin:10px 0 18px;
   }
   .day-chip{
     background:var(--surface);
@@ -162,6 +164,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .day-chip.A .dtag{color:var(--accent-a);}
   .day-chip.B .dtag{color:var(--accent-b);}
   .day-chip.future{opacity:.62;}
+  /* 계획했는데 기록이 없는 지난날: 계획한 부위를 흐리게 줄 그어 */
+  .day-chip.missed{opacity:.5;} .day-chip.missed .dtag{text-decoration:line-through;}
 
   /* 오늘 할 운동 카드 */
   .plan-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--ink-faint);border-radius:12px;padding:12px 14px;margin:-10px 0 20px;}
@@ -942,8 +946,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v104</span></p>
-    <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v105</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -2341,7 +2344,11 @@ function renderWeekBoard(){
     const hasEntry = entries.some(e=>e.date===dstr);
     let tag, kind, future = false;
     if(act.strength){ ({ tag, kind } = actualTag(act)); }          // 실제로 한 운동
-    else if(dstr < W.today){ tag = '회복'; kind = 'free'; }        // 지난날 근력 없음
+    else if(dstr < W.today){                                      // 지난날 근력 없음 → 요일표 계획을 보여 준다
+      const pk = WEEK_PLAN[dow];
+      tag = PLAN[pk].tag; kind = PLAN[pk].kind;
+      if(pk !== 'rest' && pk !== 'walk') kind += ' missed';          // 운동·PT 계획이었는데 기록이 없으면 흐리게 줄 그어
+    }
     else { tag = PLAN[rec.key].tag; kind = PLAN[rec.key].kind; future = dstr > W.today; }  // 추천
     const chip = document.createElement('div');
     chip.className = 'day-chip ' + kind + (dstr===W.today?' today':'') + (future?' future':'');
