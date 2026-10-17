@@ -593,15 +593,58 @@
       ] },
     ],
   };
-  function hbHTML(){
-    const g = HB.groups.map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.map(it => `
-      <a class="hb-i" href="https://www.youtube.com/watch?v=${it.id}" target="_blank" rel="noopener">
+  // "하루 5분" (@5min_dailymove) — 맨몸 가동성 채널. 개인 채널이라 근거는 '일반' (강의·NASM 과는 다름). sh:true = 짧은 영상
+  const HB2 = {
+    channel:'https://www.youtube.com/@5min_dailymove', name:'하루 5분',
+    tip:'맨몸으로 하는 가동성 영상이 많은 개인 채널이에요.\n관절마다 1편 2편으로 나눠 가르쳐요.\n근거는 "일반"이에요. 강의나 NASM 과는 달라요.\n제목으로 골랐고 영상을 다 본 건 아니에요.',
+    groups:[
+      { t:'🫱 어깨 · 목 · 굽은등', items:[
+        { id:'Qz0U8GHs9_Q', n:'어깨 필수 가동성 동작 5가지', sh:true, pick:true }, { id:'wWUC_a8QnUk', n:'30년간 굳은 말린 어깨 되돌리는 동작', sh:true },
+        { id:'7-boBAcgoC4', n:'내 승모근이 계속 뭉치는 이유', sh:true }, { id:'GRA80jmVydQ', n:'목 불편하신 분 꼭 보세요', sh:true },
+        { id:'Mey2Myd1BPw', n:'겨드랑이 옆이 뻣뻣하면 생기는 문제 (광배근)', sh:true },
+        { id:'MM4Sf7C618U', n:'목·어깨가 뻐근하고 등이 굽는다면 하루 5분' }, { id:'NamfKGJD9vs', n:'척추에 매일 아침 필요한 동작', sh:true },
+        { id:'nYhI5J3khuc', n:'굽은 몸 한 번에 펴주는 동작', sh:true }, { id:'ypmLu6CrgyI', n:'캣카우 스트레칭 제대로', sh:true },
+      ] },
+      { t:'🍑 골반 · 고관절 · 허벅지', items:[
+        { id:'-v-ZDIrVg0E', n:'하체 필수 가동성 동작 5가지', sh:true, pick:true },
+        { id:'DK5yLrPTQc0', n:'고관절을 부드럽게 만드는 기본 움직임 7가지 (1편)' }, { id:'8rGQzOeemRI', n:'고관절 스트레칭만 하면 안 되는 이유 — 90/90 루틴' },
+        { id:'fBByTVXCONA', n:'고관절·골반 뻐근할 때 이 동작', sh:true }, { id:'KJdm8eXAKFM', n:'허벅지 앞이 짧아지고 뻣뻣해지면?', sh:true },
+        { id:'hrZQxlNijRU', n:'햄스트링은 늘어난 범위를 기억하지 않습니다', note:'햄스트링은 늘리기보다 쓰기 — 앱 설명과 같은 쪽' },
+        { id:'YkAA-X5Lp64', n:'하체가 뻣뻣하다면 스트레칭 말고 바닥에서 움직여보세요' },
+      ] },
+      { t:'🦵 무릎 · 발목 · 발', items:[
+        { id:'UR7Rse9mUVQ', n:'무릎을 부드럽게 움직이는 기본 움직임 9가지 (무릎 1편)' }, { id:'9m2pCtqeW94', n:'무릎을 안정적으로 만드는 움직임 4가지 (무릎 2편)' },
+        { id:'1xpHkNuWP5A', n:'무릎을 강하게 만드는 움직임 6가지 (무릎 3편)', note:'붓기 없을 때만' }, { id:'V_8s9gQGd18', n:'무릎 통증 없애는 하루 5분 루틴', sh:true },
+        { id:'KPOvkM_y020', n:'무릎 바깥쪽 통증, 장경인대만 풀고 있나요?', sh:true },
+        { id:'1PY-Nh9hR8E', n:'발목을 부드럽게 만드는 기본 움직임 6가지 (발목 1편)' }, { id:'Bzlhi8S8nQI', n:'약한 발목을 튼튼하게 만드는 움직임 7가지 (발목 2편)' },
+        { id:'FD5G7WpnIaY', n:'발을 깨우는 기본 움직임 9가지', note:'왼발 아치 — 수건 잡기와 같은 쪽' },
+      ] },
+      { t:'🧱 몸통 · 아침 · 자기 전', items:[
+        { id:'ZmLCJy5gFCs', n:'하루 1분, 몸통을 돌려보세요', sh:true }, { id:'dPrXUac3Njc', n:'복근 운동 딱 하나만 — 할로우 바디', sh:true },
+        { id:'Z1O7kwObK8s', n:'몸통이 단단히 굳은 느낌이라면', sh:true }, { id:'0eKeKBjP8NI', n:'통나무 같은 몸 풀어주는 전신 동작', sh:true },
+        { id:'n9u8G5BHV4I', n:'기상 직후 몸이 무겁다면 — 아침 스트레칭 루틴' }, { id:'MkqMew92om4', n:'자기 전 5분 전신 이완 루틴', sh:true },
+        { id:'9uRP2_KQR3M', n:'러닝 전 최고의 5분 운동 루틴', sh:true, note:'슬로우 조깅 전에' },
+      ] },
+    ],
+  };
+  function hbChannelHTML(ch, showGear){
+    const g = ch.groups.map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.map(it => `
+      <a class="hb-i" href="https://www.youtube.com/${it.sh ? 'shorts/' : 'watch?v='}${it.id}" target="_blank" rel="noopener">
         <img src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" loading="lazy" alt="">
-        <span class="hb-x"><span class="hb-n">${esc(it.n)}</span><span class="hb-gear ${it.gear}">${it.gear === 'bw' ? '맨몸으로도 가능' : '필라케이블·코어케이블 필요'}</span>${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
-    return `<div class="hb">
-      <div class="hb-head">📺 <b>${esc(HB.name)}</b> 따라하기 <a href="${HB.channel}" target="_blank" rel="noopener">채널 열기</a></div>
-      <div class="hb-tip">신체지도 강의를 한 곳의 채널이에요.<br>내 문제 부위에 맞는 영상만 골랐어요.<br>제목으로 고른 거라 영상을 다 본 건 아니에요.<br>대부분 그 회사 기구를 써요. 맨몸으로 되는 건 표시했어요.</div>
-      ${g}</div>`;
+        <span class="hb-x"><span class="hb-n">${it.pick ? '⭐ ' : ''}${esc(it.n)}</span>${showGear ? `<span class="hb-gear ${it.gear}">${it.gear === 'bw' ? '맨몸으로도 가능' : '필라케이블·코어케이블 필요'}</span>` : (it.sh ? '<span class="hb-gear bw">짧은 영상 · 맨몸</span>' : '<span class="hb-gear bw">맨몸</span>')}${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
+    return `<details class="hb-ch"${showGear ? ' open' : ''}><summary><span class="hb-head">📺 <b>${esc(ch.name)}</b> 따라하기</span><a href="${ch.channel}" target="_blank" rel="noopener">채널 열기</a><span class="hb-more">▾</span></summary>
+      <div class="hb-tip">${esc(ch.tip).replace(/\n/g, '<br>')}</div>${g}</details>`;
+  }
+  // 회복날 자리용: 날짜마다 다른 영상 하나 (하루 5분 채널을 차례로 돌린다. 같은 날은 늘 같은 영상)
+  function mobVideo(ds){
+    const all = []; HB2.groups.forEach(g => g.items.forEach(it => all.push(it)));
+    const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
+    const it = all[((d * 7) % all.length + all.length) % all.length];   // 7칸씩 건너뛰어 묶음이 섞이게
+    return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
+  }
+  function hbHTML(){
+    HB.tip = '신체지도 강의를 한 곳의 채널이에요.\n내 문제 부위에 맞는 영상만 골랐어요.\n제목으로 고른 거라 영상을 다 본 건 아니에요.\n대부분 그 회사 기구를 써요. 맨몸으로 되는 건 표시했어요.';
+    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}</div>`;
   }
 
   // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
@@ -868,6 +911,7 @@
     '악어호흡':          { muscles:'횡격막 · 깊은 복근', role:'회복', joint:'갈비뼈·허리', ok:'확인됨', note:'엎드려 배 뒤쪽으로 숨 넣기 — 코어의 바닥(호흡)부터' },
     // --- 2026-10-17 상필님 확인 ---
     '내몸풀기(하체부터·WGS·점프)': { muscles:'전신 (고관절 먼저)', role:'가동성', joint:'고관절 → 등 → 어깨·목', ok:'확인됨', note:'무릎 올리기 → 스쿼트 → WGS → 힙힌지 → 거북목 → 손 털기 → 점프 10번 (강의 틀 + 내 WGS)', video:'월드 그레이티스트 스트레칭' },
+    '가동성영상따라하기': { muscles:'전신 가동성', role:'가동성', joint:'그날 영상의 관절', ok:'일반', note:'회복날마다 다른 영상 하나 (하루 5분 채널 · 맨몸). 프로그램 탭에서 ▶ 링크로 열기. 근거는 일반 — 아프면 그 동작은 건너뛰기', video:'하루 5분 가동성' },
     '수영':             { muscles:'전신 · 심폐', role:'회복', joint:'—', ok:'확인됨', note:'유산소 — 무릎 충격이 적음. 회복날에 슬로우 조깅과 번갈아 (강사도 시간이 없어 수영으로 유산소를 해결한다고 함)', video:'자유형 천천히 오래 수영' },
     '카프레이즈':        { muscles:'종아리', role:'근력', joint:'발목', ok:'확인됨', note:'뒤꿈치를 들었다 내렸다 — 선생님 종아리 운동' },
     '케틀벨암바':        { muscles:'어깨 · 등(흉추)', role:'가동성', joint:'어깨·등', ok:'확인됨', note:'누워서 케틀벨 들고 몸을 굴리며 어깨·등을 열기 — 매 운동 워밍업' },
@@ -1132,8 +1176,11 @@
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
     .pm{margin:6px 0 2px;}
-    .hb{display:flex;flex-direction:column;gap:10px;}
-    .hb-head{font-size:14px;color:var(--ink);} .hb-head a{font-size:11px;color:var(--accent-b);margin-left:6px;}
+    .hb{display:flex;flex-direction:column;gap:12px;}
+    .hb-ch>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent;} .hb-ch>summary::-webkit-details-marker{display:none;}
+    .hb-ch>summary a{font-size:11px;color:var(--accent-b);} .hb-more{margin-left:auto;color:var(--ink-faint);font-size:12px;} .hb-ch[open] .hb-more{transform:rotate(180deg);}
+    .hb-ch .hb-tip{margin-top:6px;} .hb-ch .hb-g{margin-top:8px;}
+    .hb-head{font-size:14px;color:var(--ink);}
     .hb-tip{font-size:11.5px;color:var(--ink-dim);line-height:1.55;word-break:keep-all;}
     .hb-g{display:flex;flex-direction:column;gap:6px;} .hb-t{font-size:12.5px;font-weight:800;color:var(--ink);margin-top:4px;}
     .hb-i{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;text-decoration:none;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:6px;}
@@ -1351,5 +1398,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, hbHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, HB2, hbHTML, mobVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

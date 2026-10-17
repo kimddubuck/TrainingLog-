@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=123"></script>
+<script src="exinfo.js?v=124"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -204,6 +204,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     grid-column:2;font-size:12px;font-family:'IBM Plex Mono',Consolas,monospace;
     color:var(--ink-dim);white-space:nowrap;text-align:right;
   }
+  .pe-vid{color:var(--accent-b);text-decoration:none;font-weight:700;} .pe-vid:active{opacity:.7;}
   .plan-card .pe-why{
     grid-column:1 / -1;font-size:11px;color:var(--ink-faint);line-height:1.45;
     word-break:keep-all;overflow-wrap:anywhere;
@@ -999,7 +1000,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v123</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v124</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1466,6 +1467,7 @@ const DEFAULT_MASTER = [
   {id:'rmtrope',     name:'RMT 로프',        part:'전신', type:'bodyweight'},
   {id:'slowjog',     name:'슬로우 조깅',      part:'유산소', type:'cardio'},
   {id:'groundflow',  name:'그라운드 소통',     part:'전신', type:'bodyweight'},
+  {id:'mobvid',      name:'가동성 영상 따라하기', part:'전신', type:'bodyweight'},   // 회복날 — 날마다 다른 영상 (exinfo.js mobVideo)
   {id:'bcfrontcore', name:'바디컨트롤 전면 코어', part:'코어', type:'bodyweight'},
 
   // ===== 웨이트(근력) =====
@@ -2263,6 +2265,9 @@ const RECOVERY_ROUTINE = [
   { why:'④ 통합 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
     options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
     labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
+  // 2026-10-18 상필님: 하루 5분 채널 가동성 영상들을 회복날에 랜덤으로. 날짜마다 다른 영상 하나가 ▶ 링크로 붙는다
+  { why:'가동성 — 영상 보며 따라하기 (맨몸 · 날마다 다른 영상)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
+    options:['가동성 영상 따라하기'] },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
     // 슬로우 조깅 ↔ 수영을 번갈아 (2026-10-17 상필님: 수영·슬로우 조깅 같은 유산소를 주 1~2번).
     // 회복날이 주 2번(월·토)이라 한 주에 하나씩 나온다. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
@@ -2591,6 +2596,12 @@ function candOrder(theme, last){
     return da.localeCompare(db);
   };
 }
+// 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
+function mobLink(ex, ds){
+  if(!ex || ex.id !== 'mobvid' || !window.EXINFO || !EXINFO.mobVideo) return '';
+  const v = EXINFO.mobVideo(ds);
+  return ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.n}</a>`;
+}
 function orderedRoutine(p, W, opt){
   opt = opt || {};
   if(!p.routine) return [];
@@ -2618,7 +2629,7 @@ function orderedRoutine(p, W, opt){
              label: (slot.labels && slot.labels[ex.name]) || slot.label,
              ago: daysAgo(last[ex.id], asOf),
              care: kneeRisky(ex) ? '무릎 상태 보고 · 가볍게/얕게 (아프면 건너뛰기)' : '',
-             why: (!slot0.theme && bigGroupOf(ex) === theme.key) ? slot.why + ' · 이번 주 ' + theme.key : slot.why,
+             why: ((!slot0.theme && bigGroupOf(ex) === theme.key) ? slot.why + ' · 이번 주 ' + theme.key : slot.why) + mobLink(ex, asOf),
              skip: '' };
   });
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
