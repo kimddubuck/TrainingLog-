@@ -547,7 +547,7 @@
     const warm = `<div class="xh-chain"><span>WGS 스트레칭</span><i>→</i><span>케틀벨 암바</span><i>→</i><span>바디컨트롤</span></div>`;
     const ring = `<div class="xh-ring">${['BTT','CCT','RMT'].map((k,i)=>`<span class="xh-rk${k===th?' on':''}" style="--wk:${WECK[k].color}">${k}<small>${esc(WECK[k].kr)}</small></span>${i<2?'<i>→</i>':'<i>↺</i>'}`).join('')}</div>`;
     const funnel = `<div class="xh-funnel">
-      <div class="f1">선생님이 가르쳐주신 종목</div>
+      <div class="f1">선생님이 가르쳐주신 종목만</div>
       <div class="f2">그중 가장 오래 안 한 것</div>
       <div class="f3">이번 주에 아직 안 쓴 것</div>
       <div class="f4">✅ 오늘 종목</div></div>`;

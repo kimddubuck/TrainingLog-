@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=85"></script>
+<script src="exinfo.js?v=86"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -940,7 +940,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
     <!-- 요일 설명은 요일 단추·프로그램 탭에 있어서 뺐다. 버전만 작게 (배포 확인용) -->
-    <p class="sub" style="margin-top:0;"><span style="color:var(--ink-faint);font-size:10.5px;">· v85</span></p>
+    <p class="sub" style="margin-top:0;"><span style="color:var(--ink-faint);font-size:10.5px;">· v86</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -2012,7 +2012,7 @@ const THEMES = [
   // 종목은 exinfo.js 에서 그 결로 나온 것 중, 무릎 부담 없고 회복날에 맞는 가벼운 것만
   { key:'BTT', name:'BTT 주간', sub:'양쪽 같이 비틀기 (양손·양발이 같이)',
     why:'BTT — 양쪽 같이 (골반 세우는 힘)', sets:3, reps:'15회', label:'15회 × 3세트',
-    options:['케틀벨 굿모닝','글루트 브릿지','굿모닝 운동','Y 레이즈','T 레이즈','W 레이즈','백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
+    options:['케틀벨 굿모닝','굿모닝 운동','Y 레이즈','T 레이즈','W 레이즈','백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
   { key:'CCT', name:'CCT 주간', sub:'한쪽으로 꼬아 버티기 (한 번에 한쪽씩)',
     why:'CCT — 한쪽씩 꼬아 버티기', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
     options:['원암 케이블 회전 로우 (불균형 교정)','겟업동작','케틀벨 암바'],
@@ -2060,9 +2060,9 @@ const RECOVERY_ROUTINE = [
   { why:'④ 통합 — 코어 안티 모션 (움직임을 막는 힘, 짧게 끊어서)', sets:1, reps:'10초 × 8', label:'10초 × 8 (2초 쉬고)',
     options:['플랭크','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
     labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
-  { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도', sets:1, reps:'20분', label:'20분',
-    // 무릎 붓기 중에는 충격 없는 것으로. 슬로우 조깅은 괜찮은 날만
-    options:['걷기','실내자전거','수영','슬로우 조깅'] },
+  { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
+    // 선생님 종목만 쓰기로 해서 슬로우 조깅만. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
+    options:['슬로우 조깅'] },
 ];
 
 // 선생님이 정해준 공통 워밍업 — 개인 운동이든 PT든 운동 전에 먼저 한다
@@ -2095,15 +2095,15 @@ const PLAN = {
              routine:[
                { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
                { why:'하체 주운동 (백스쿼트)', sets:4, reps:'10~12회',
-                 options:['스쿼트','가블릿 스쿼트','레그프레스'] },
+                 options:['스쿼트','가블릿 스쿼트'] },
                { why:'한 다리 (스플릿스쿼트)', sets:3, reps:'좌우 12회',
-                 options:['불가리안 스플릿 스쿼트','프론트런지','런지'] },
+                 options:['프론트런지'] },
                { why:'머신 (레그프레스)', sets:3, reps:'15회',
-                 options:['레그프레스','이너타이 머신','힙어드덕션'] },
+                 options:['이너타이 머신'] },
                { why:'워킹런지', sets:3, reps:'좌우 12회',
-                 options:['런지','프론트런지','토터치'] },
+                 options:['프론트런지','토터치'] },
                { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
-                 options:['글루트 브릿지','힙 쓰러스트','스티프 데드리프트'] },
+                 options:['스티프 데드리프트'] },
                { why:'발 마무리 — 왼발 아치·발바닥 (교정)', sets:2, reps:'15회', label:'15회 × 2세트',
                  options:['발가락 수건 잡기','발바닥 마사지'],
                  labels:{ '발바닥 마사지':'좌우 2분' } },
@@ -2122,7 +2122,7 @@ const PLAN = {
                { why:'덤벨 숄더프레스', sets:3, reps:'15회',
                  options:['덤벨 숄더프레스'] },
                { why:'후면 어깨 (페이스풀)', sets:3, reps:'20회',
-                 options:['페이스풀','후면 리어 델토이드 플라이','업라이트로우','Y 레이즈','T 레이즈','W 레이즈'],
+                 options:['후면 리어 델토이드 플라이','업라이트로우','Y 레이즈','T 레이즈','W 레이즈'],
                  labels:{ 'Y 레이즈':'15회 × 3세트', 'T 레이즈':'15회 × 3세트', 'W 레이즈':'15회 × 3세트' } },
                { why:'팔 — 이두 (바벨컬)', sets:3, reps:'20회',
                  options:['바벨 컬','덤벨 해머컬','해머 컬'] },
@@ -2139,13 +2139,13 @@ const PLAN = {
              routine:[
                { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
                { why:'가슴 주운동 (벤치프레스)',  sets:4, reps:'10~12회',
-                 options:['벤치프레스','인클라인 덤벨프레스','인클라인 벤치프레스'] },
+                 options:['벤치프레스','인클라인 덤벨프레스'] },
                { why:'덤벨프레스',   sets:3, reps:'12~15회',
                  options:['덤벨 벤치프레스','케이블 플라이','딥스'] },
                { why:'등 — 렛풀다운', sets:4, reps:'12회',
                  options:['랫풀다운','비하인드 렛풀다운','어시스턴트 풀업','암풀다운'] },
                { why:'데드리프트', sets:3, reps:'10~15회',
-                 options:['데드리프트','스티프 데드리프트','루마니안 데드리프트'] },
+                 options:['데드리프트','스티프 데드리프트'] },
                { why:'롱풀로우', sets:3, reps:'15~20회',
                  options:['롱풀로우 머신','덤벨 로우','바벨 로우','인버티드로우'] },
                { why:'등 마무리 — 날개뼈 모으기 (교정)', sets:2, reps:'10회', label:'10회 × 2세트',
@@ -2160,19 +2160,19 @@ const PLAN = {
              routine:[
                { theme:true },
                { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
-                 options:['글루트 브릿지','힙 쓰러스트','힙어드덕션'] },
+                 options:['스티프 데드리프트','고관절 힌지 보조운동'] },
                { why:'하체 — 접는 동작 (무릎 부담 적음)', sets:3, reps:'15~20회',
-                 options:['스티프 데드리프트','루마니안 데드리프트','케틀벨 굿모닝','굿모닝 운동','데드리프트'] },
+                 options:['스티프 데드리프트','케틀벨 굿모닝','굿모닝 운동','데드리프트'] },
                { why:'하체 — 앉는 동작', sets:4, reps:'10회',
-                 options:['가블릿 스쿼트','스쿼트','레그프레스','불가리안 스플릿 스쿼트','프론트런지'] },
+                 options:['가블릿 스쿼트','스쿼트','프론트런지'] },
                { why:'어깨 주운동',   sets:3, reps:'12~15회',
                  options:['밀리터리 프레스','오버헤드프레스','덤벨 숄더프레스'] },
                { why:'어깨 보조',    sets:3, reps:'20회',
-                 options:['업라이트로우','후면 리어 델토이드 플라이','사이드 레터럴 레이즈','페이스풀'] },
+                 options:['업라이트로우','후면 리어 델토이드 플라이'] },
                { why:'팔 (여유 있을 때)', sets:2, reps:'20회',
-                 options:['바벨 컬','덤벨 해머컬','해머 컬','덤벨 컬'] },
+                 options:['바벨 컬','덤벨 해머컬','해머 컬'] },
                { why:'팔 (여유 있을 때)', sets:2, reps:'20회',
-                 options:['케이블 푸쉬다운','케이블 로프푸쉬다운','라잉 트라이셉스 익스텐션','오버헤드 익스텐션'] },
+                 options:['케이블 푸쉬다운','케이블 로프푸쉬다운','라잉 트라이셉스 익스텐션'] },
              ] },
 };
 function planYmd(d){
