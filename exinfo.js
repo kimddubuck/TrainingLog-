@@ -486,7 +486,7 @@
     const byK = {}; a.muscles.forEach(m => byK[m.k] = m);
     const figs = (a.imgs || []).map(im => `<figure class="an-fig">
         <div class="an-wrap"><img src="${im.f}" alt="" loading="lazy">
-          ${(im.pins || []).map(p => { const m = byK[p.m]; return m ? `<button type="button" class="an-pin ${m.t}" style="left:${p.x}%;top:${p.y}%" data-anpin="${part}-${m.k}" title="${esc(m.n)}">${m.k}</button>` : ''; }).join('')}
+          ${(im.pins || []).map(p => { const m = byK[p.m]; return m ? `<button type="button" class="an-pin ${m.t}" style="left:${p.x}%;top:${p.y}%" data-anpin="${part}-${m.k}" title="${esc(m.n)}">${m.k}<span class="an-pl">${esc(m.s || m.n)}</span></button>` : ''; }).join('')}
         </div>
         <figcaption>${esc(im.cap || '')}<a class="xi-credit" href="${im.url}" target="_blank" rel="noopener">${esc(im.by)} · ${esc(im.lic)}</a></figcaption>
       </figure>`).join('');
@@ -502,7 +502,7 @@
         <div class="an-link">💡 ${br(a.link)}</div>
         ${figs}
         <div class="an-legend"><span class="r">🔴 풀고 늘리기 — 너무 일하는 근육 (①②)</span><span class="g">🟢 깨우기 — 쉬고 있는 근육 (③④)</span></div>
-        <div class="an-tip">번호를 누르면 그 근육 설명으로 가요 · 그림은 해부학 교과서(OpenStax)와 공개 자료 — 번호 자리는 제가 표시한 것</div>
+        <div class="an-tip">그림 속 영어 글자는 안 봐도 돼요.<br>색 번호와 한글 이름만 보면 돼요.<br>번호를 누르면 그 근육 설명으로 가요.</div>
         <div class="an-h r">🔴 풀고 늘리기</div>${red.map(row).join('')}
         <div class="an-h g">🟢 깨우기</div>${green.map(row).join('')}
         ${other.length ? `<div class="an-h p">⚠ 조심할 자리</div>${other.map(row).join('')}` : ''}
@@ -1056,6 +1056,8 @@
     .an-wrap img{display:block;width:100%;height:auto;}
     .an-pin{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;border:2px solid #fff;color:#fff;font-size:11px;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.45);padding:0;font-family:inherit;}
     .an-pin.r{background:#D9534F;} .an-pin.g{background:#3FA35B;} .an-pin.p{background:#E8A33D;color:#1B1F23;}
+    .an-pl{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:3px;padding:1px 5px;border-radius:5px;background:rgba(20,24,28,.82);color:#fff;font-size:10px;font-weight:700;white-space:nowrap;pointer-events:none;}
+    .an-pin.r .an-pl{color:#FFB3B0;} .an-pin.g .an-pl{color:#A8E6B5;} .an-pin.p .an-pl{color:#FFD9A0;}
     .an-fig figcaption{font-size:10px;color:var(--ink-faint);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 8px;} .an-fig .xi-credit{display:inline;width:auto;margin:0;}
     .an-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-dim);}
     .an-tip{font-size:10.5px;color:var(--ink-faint);word-break:keep-all;}
