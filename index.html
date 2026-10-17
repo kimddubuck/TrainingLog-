@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=92"></script>
+<script src="exinfo.js?v=93"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v92</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v93</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -2106,10 +2106,10 @@ const PLAN = {
                { theme:true },   // 이번 주 결 (BTT/CCT/RMT) 기능성 한 자리
                { why:'하체 주운동 (백스쿼트)', sets:4, reps:'10~12회',
                  options:['스쿼트','가블릿 스쿼트'] },
-               { why:'한 다리 (스플릿스쿼트)', sets:3, reps:'좌우 12회',
-                 options:['프론트런지'] },
-               { why:'머신 (레그프레스)', sets:3, reps:'15회',
-                 options:['이너타이 머신'] },
+               { why:'한 다리 — 덤벨 런지로 고관절 바르게 (중요)', sets:3, reps:'좌우 12회',
+                 options:['런지','프론트런지'] },
+               { why:'머신 (레그프레스 — 손잡이 잡고 코어)', sets:3, reps:'15회',
+                 options:['레그프레스','이너타이 머신'] },
                { why:'워킹런지', sets:3, reps:'좌우 12회',
                  options:['프론트런지','토터치'] },
                { why:'엉덩이 — 골반 세우는 힘', sets:3, reps:'15~20회',
@@ -3010,6 +3010,8 @@ const PT_TIPS = {
   '굿모닝운동':'고관절 접는 것에 집중 · 견착 신경쓰기',
   '케틀벨굿모닝':'인사하듯 고관절 접어 뒷벅지 자극 · 머리를 앞으로 보낸다는 생각',
   '프론트런지':'20회 4세트 · 만세해서, 몸을 축 중심으로 길어지게',
+  '런지':'양손에 덤벨 · 고관절을 바르게 — 골반을 정면으로 두고 곧게 내려갔다 오기 (선생님 영상 · 중요)',
+  '레그프레스':'옆 손잡이를 꽉 잡고 해야 코어에 힘이 들어가서 버틸 수 있음',
   '토터치':'대각선 방향으로 다리 뻗으며 런지 · 뒤쪽으로 체중 쏠리지 않게',
   '크랩워킹':'인사하는 자세에서 벌리면서 이동',
   '이너타이머신':'뒤꿈치·앞꿈치 누른 상태로 다리 모으기 · 등받이에 몸 전체 기대기',
