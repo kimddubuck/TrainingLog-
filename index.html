@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=84"></script>
+<script src="exinfo.js?v=85"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -646,6 +646,10 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .today-ex-head .tex-name .tex-type.cardio{background:var(--accent-b-dim);color:var(--accent-b);}
   .today-ex-head .tex-name .tex-type.bodyweight{background:var(--accent-a-dim);color:var(--accent-a);}
   .tex-img{margin:-2px 0 6px;}
+  .plan-inline{margin:8px 0 12px;}
+  .pi-btn{width:100%;box-sizing:border-box;padding:10px;border-radius:9px;cursor:pointer;border:1px solid var(--accent-b);
+    background:var(--accent-b-dim);color:var(--accent-b);font-size:13px;font-weight:700;font-family:inherit;}
+  .pi-sub{font-size:11.5px;color:var(--ink-faint);margin-top:5px;line-height:1.5;word-break:keep-all;} .pi-sub b{color:var(--ink-dim);}
   .today-ex-head .tex-btns{display:flex;align-items:center;gap:2px;flex:none;}
   .today-ex-head .tex-swap{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);font-size:15px;line-height:1;cursor:pointer;width:32px;height:28px;border-radius:8px;}
   .today-ex-head .tex-swap:active{color:var(--accent-b);border-color:var(--accent-b);}
@@ -935,7 +939,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v84</span></p>
+    <!-- 요일 설명은 요일 단추·프로그램 탭에 있어서 뺐다. 버전만 작게 (배포 확인용) -->
+    <p class="sub" style="margin-top:0;"><span style="color:var(--ink-faint);font-size:10.5px;">· v85</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -944,7 +949,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   </div>
 
   <div class="board" id="weekBoard"></div>
-  <div class="plan-card" id="todayPlan"></div>
+  <div class="plan-card" id="todayPlan" style="display:none;"></div>
 
   <div class="tabs">
     <div class="tab active" data-tab="log">오늘 기록</div>
@@ -996,6 +1001,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
         <input type="text" id="exSearch" placeholder="🔍 운동 검색 (예: 벤치, 스쿼트, 러닝)" autocomplete="off">
         <div class="ex-search-results" id="exSearchResults"></div>
       </div>
+      <!-- 오늘 할 운동 담기 (프로그램 탭의 오늘 추천을 한 번에) -->
+      <div class="plan-inline" id="planAddInline"></div>
       <div id="todayExerciseList"></div>
     </div>
 
@@ -2696,6 +2703,20 @@ function renderTodayPlan(W){
     <div class="pc-why">왜? ${t.rec.why}${tmrTxt}<br>몸이 안 좋으면 추천은 무시하고 쉬어도 돼요.</div>`;
   const addEl = document.getElementById('planAddBtn');
   if(addEl) addEl.onclick = ()=> addRoutineToToday(routine);
+  // 검색창 밑 한 줄: 오늘 할 운동 담기
+  const inline = document.getElementById('planAddInline');
+  if(inline){
+    const isToday = document.getElementById('dateInput').value === W.today;
+    if(!isToday){
+      inline.innerHTML = '';
+    }else if(routine.length){
+      inline.innerHTML = `<button class="pi-btn" id="planAddBtn2">⬇ 오늘 할 운동 담기 · ${p.title.replace(/\s*\(.*\)\s*$/, '')} · ${routine.length}개</button>
+        <div class="pi-sub">${done || '이번 주 ' + themeOf(W.today).name + ' · 자세한 목록·↻ 바꾸기는 <b>프로그램</b> 탭에서'}</div>`;
+      document.getElementById('planAddBtn2').onclick = ()=> addRoutineToToday(routine);
+    }else{
+      inline.innerHTML = `<div class="pi-sub">오늘은 <b>${p.title}</b> — ${p.how || '선생님께 맡기기'}</div>`;
+    }
+  }
   // ↻ 를 누르면 그 자리에 쓸 다음 종목으로 바꾼다
   card.querySelectorAll('.pe-swap').forEach(btn=>{
     btn.onclick = (ev)=>{
@@ -3616,6 +3637,7 @@ document.getElementById('dateInput').value = todayStr();
 document.getElementById('dateInput').addEventListener('change', ()=>{
   renderDayTypeAndForm();
   renderWaterCounter();
+  renderWeekBoard();   // 검색창 밑 "오늘 할 운동 담기"는 오늘 날짜에서만 보인다
 });
 document.getElementById('waterPlus').addEventListener('click', ()=>changeWater(1));
 document.getElementById('waterMinus').addEventListener('click', ()=>changeWater(-1));
