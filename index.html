@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=96"></script>
+<script src="exinfo.js?v=97"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v96</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v97</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -2024,10 +2024,10 @@ const THEMES = [
   // 종목은 exinfo.js 에서 그 결로 나온 것 중, 무릎 부담 없고 회복날에 맞는 가벼운 것만
   { key:'BTT', name:'BTT 주간', sub:'양쪽 같이 비틀기 (양손·양발이 같이)',
     why:'BTT — 양쪽 같이 (골반 세우는 힘)', sets:3, reps:'15회', label:'15회 × 3세트',
-    options:['케틀벨 굿모닝','굿모닝 운동','Y 레이즈','T 레이즈','W 레이즈','백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
+    options:['케틀벨 굿모닝','굿모닝 운동','케틀벨 스윙','Y 레이즈','T 레이즈','W 레이즈','백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
   { key:'CCT', name:'CCT 주간', sub:'한쪽으로 꼬아 버티기 (한 번에 한쪽씩)',
     why:'CCT — 한쪽씩 꼬아 버티기', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
-    options:['원암 케이블 회전 로우 (불균형 교정)','겟업동작','케틀벨 암바'],
+    options:['원암 케이블 회전 로우 (불균형 교정)','바디컨트롤 전면 코어','고관절 운동(폼롤러)'],
     // 종목마다 선생님이 정한 횟수가 다르면 여기서 바꾼다
     labels:{ '원암 케이블 회전 로우 (불균형 교정)':'15회씩 × 3세트' } },
 ];
@@ -2117,9 +2117,9 @@ const PLAN = {
                  options:['토터치','크랩워킹'] },
                { why:'엉덩이 ② 접기·힌지 (골반 세우는 힘 · 허리 대신 엉덩이)', sets:3, reps:'15회',
                  options:['고관절 운동(폼롤러)','스티프 데드리프트','케틀벨 굿모닝','굿모닝 운동'] },
-               { why:'발 마무리 — 왼발 아치·발바닥 (교정)', sets:2, reps:'15회', label:'15회 × 2세트',
-                 options:['발가락 수건 잡기','발바닥 마사지'],
-                 labels:{ '발바닥 마사지':'좌우 2분' } },
+               { why:'발·종아리 마무리 — 왼발 아치 · 종아리', sets:2, reps:'15회', label:'15회 × 2세트',
+                 options:['발가락 수건 잡기','카프 레이즈','발바닥 마사지'],
+                 labels:{ '발바닥 마사지':'좌우 2분', '카프 레이즈':'15회 × 3세트' } },
                { why:'코어 — 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
                  options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
                  labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
@@ -3048,6 +3048,7 @@ const PT_TIPS = {
   '고관절운동(폼롤러)':'허리 통증 예방 · 폼롤러를 무릎 뒤에 끼우고 한 다리로 천천히 숙이기 — 동전 줍듯, 엉덩이 자극',
   '스핀롤':'10번씩 3세트 · 몸을 말아주는 움직임 회복 — 고관절을 잘 움직이게',
   '리버스노드릭컬':'엉덩이에 힘 준 상태로 10번씩 · 고관절 굴곡근 강화',
+  '카프레이즈':'종아리 — 뒤꿈치 들었다 내렸다 (선생님)',
   '케틀벨스윙':'케틀벨을 다리 사이로 보냈다가 엉덩이로 튕겨 올리기 (팔로 들지 않기)',
 };
 function ptTip(ex){
