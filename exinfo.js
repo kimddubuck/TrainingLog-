@@ -216,6 +216,13 @@
       <div class="pg-prom">${PHILO.promises.map(p => `<span>${esc(p)}</span>`).join('')}</div>
     </div>`;
   }
+  // 제목 밑 짧은 판: 🎯 목적 한 줄 + 신체지도 한 줄. 직접 고친 글이면 첫 줄을 목적으로 쓴다
+  function philoMiniHTML(text){
+    const t = String(text || '').trim();
+    const goal = (!t || t === PHILO_DEFAULT.trim()) ? PHILO.goal : t.split('\n')[0].replace(/^[^\w가-힣]+/, '').replace(/^목적\s*[—-]\s*/, '');
+    return `<div class="pm-goal">🎯 ${esc(goal)}</div>
+      <div class="pm-ladder">${PHILO.ladder.map(s => `<span>${s[0]} ${esc(s[1])}</span>`).join('<i>→</i>')}</div>`;
+  }
   // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
   function philoHTML(text){
     const t = String(text || '').trim();
@@ -606,6 +613,10 @@
     .xi-sci-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px;}
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
+    .pm{margin:6px 0 2px;}
+    .pm-goal{font-size:14.5px;font-weight:700;color:var(--accent-a);line-height:1.4;word-break:keep-all;}
+    .pm-ladder{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin-top:4px;font-size:11px;color:var(--ink-dim);}
+    .pm-ladder span{white-space:nowrap;} .pm-ladder i{font-style:normal;color:var(--ink-faint);font-size:10px;}
     .pg-goal{font-size:15px;font-weight:800;color:var(--ink);line-height:1.35;word-break:keep-all;}
     .pg-sub{font-size:11.5px;color:var(--ink-faint);margin:2px 0 10px;word-break:keep-all;}
     .pg-ladder{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;align-items:end;}
@@ -682,5 +693,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
