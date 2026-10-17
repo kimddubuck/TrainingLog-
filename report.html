@@ -36,7 +36,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (앱과 같은 파일) -->
-<script src="exinfo.js?v=102"></script>
+<script src="exinfo.js?v=103"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{
@@ -232,7 +232,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v102</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v103</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -625,6 +625,17 @@ document.querySelectorAll('.body-btn').forEach(b=> b.addEventListener('click', (
 }));
 
 // ---------- 종목·원리 ----------
+// 종목 지도는 저장된 목록(예전 것일 수 있음)이 아니라 exinfo.js 의 프로그램 종목 표(TREE)를 기준으로 그린다.
+// 저장 목록에 있으면 그 종류·결 고침을 쓰고, 없으면 이름으로 판단 (맨몸 동작은 이름으로 알려 준다)
+function treeItems(){
+  const BW = /그라운드소통|겟업|스핀롤|크랩워킹|힌지보조|노드릭|악어호흡|레그레이즈|플랭크|바디컨트롤|딥스|인버티드|몸풀기/;
+  return EXINFO.TREE.flatMap(g => g.names.filter(n => n[0] !== '#').map(n => {
+    const k = n.replace(/s+/g, '');
+    const m = masterExercises.find(e => (e.name || '').replace(/s+/g, '') === k);
+    const ex = m || { name:n, type: g.k === 'cardio' ? 'cardio' : (BW.test(k) ? 'bodyweight' : undefined) };
+    return { name:n, part:m && m.part, info:exInfoOf(ex), tip:'', where:[] };
+  }));
+}
 function renderGuide(){
   const wrap = document.getElementById('guideView');
   if(!window.EXINFO){ wrap.innerHTML = '<div class="empty">설명 파일을 불러오지 못했어요</div>'; return; }
@@ -646,11 +657,11 @@ function renderGuide(){
         </div>`).join('');
   }).join('');
   wrap.innerHTML = `
-    <details class="algo" open><summary>프로그램은 이렇게 짜여요 (그림)</summary><div class="algo-body">${EXINFO.howHTML()}</div></details>
+    <details class="algo"><summary>프로그램은 이렇게 짜여요 (그림)</summary><div class="algo-body">${EXINFO.howHTML()}</div></details>
     <details class="algo"><summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary><div class="algo-body">${EXINFO.weckHTML()}</div></details>
     <details class="algo"><summary>바벨 · 덤벨 · 머신은 뭐가 달라요? (연구 근거)</summary><div class="algo-body">${EXINFO.toolsHTML()}</div></details>
     <details class="algo"><summary>교정운동은 뭘 바로잡나요? (회복날 시리즈)</summary><div class="algo-body">${EXINFO.fixHTML()}</div></details>
-    <details class="algo"><summary>종목 사전 — ${items.length}개 (결 · 기구 · 근거)</summary><div class="algo-body">${dict}</div></details>`;
+    <details class="algo" open><summary>종목 지도 — 묶음 → 종목 → 설명</summary><div class="algo-body">${EXINFO.treeHTML ? EXINFO.treeHTML(treeItems(), { etc:false }) : dict}</div></details>`;
   wrap.querySelectorAll('details.algo').forEach((d, i)=>{ if(open.length) d.open = !!open[i]; });
 }
 

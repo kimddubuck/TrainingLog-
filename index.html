@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=102"></script>
+<script src="exinfo.js?v=103"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -314,7 +314,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .plan-card .pc-ex.warm .pe-why{color:var(--accent-a);}
 
   /* Tabs */
-  .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+  .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
   .tab{
     flex:1;text-align:center;padding:10px 2px;
     font-size:13px;font-weight:600;color:var(--ink-faint);
@@ -941,7 +942,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v102</span></p>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v103</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -956,6 +957,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <div class="tab active" data-tab="log">오늘 기록</div>
     <div class="tab" data-tab="history">기록 보기</div>
     <div class="tab" data-tab="routine">프로그램</div>
+    <div class="tab" data-tab="extree">종목</div>
     <div class="tab" data-tab="graph">그래프</div>
     <div class="tab" data-tab="inbody">인바디</div>
     <div class="tab" data-tab="meal">식단</div>
@@ -1142,6 +1144,11 @@ if(!window.EXINFO) window.EXINFO = (function(){
       <div class="meal-grid" id="mealGrid" style="margin-top:14px;"></div>
     </div>
     <p class="section-label" style="text-align:center;">최근 4개월치 식단 사진이 보관돼요. 그 이전 사진은 자동으로 정리됩니다.</p>
+  </div>
+
+  <!-- 종목 지도 — 묶음 → 종목 → 설명 (exinfo.js treeHTML). 보기만 -->
+  <div class="panel" id="panel-extree">
+    <div id="exTreeView"></div>
   </div>
 
   <!-- 내 몸 상태 — 체형분석 결과를 3D 사람 위에 표시. three.js 는 이 탭을 처음 열 때만 불러온다 -->
@@ -2808,8 +2815,32 @@ document.querySelectorAll('.tab').forEach(tab=>{
       renderMeals();
     }
     if(tab.dataset.tab==='body') openBodyTab();
+    if(tab.dataset.tab==='extree') renderExTree();
   });
 });
+
+// ---------- 종목 지도 ----------
+// 그 종목이 프로그램 어디에 나오는지 (요일 · 자리) — 요일표·루틴에서 바로 계산한다
+function exWhereMap(){
+  const map = {};
+  const add = (name, label) => { const k = name.replace(/\s+/g, ''); (map[k] = map[k] || []); if(!map[k].includes(label)) map[k].push(label); };
+  const slotName = s => String(s.why || '').split(' — ')[0].replace(/\s*\(.*$/, '');
+  (WARMUP.routine || []).forEach(s => (s.options || []).forEach(o => add(o, '운동날 워밍업')));
+  const DAY = { legs:'일 하체', chestback:'수 가슴·등', shoulderarm:'목 어깨·팔', walk:'월·토 회복', rest:'월·토 회복' };
+  Object.keys(DAY).forEach(k => ((PLAN[k] && PLAN[k].routine) || []).forEach(s => (s.options || []).forEach(o => add(o, DAY[k] + ' · ' + slotName(s)))));
+  THEMES.forEach(t => (t.options || []).forEach(o => add(o, t.key + ' 주간 회복날')));
+  return map;
+}
+function renderExTree(){
+  const wrap = document.getElementById('exTreeView');
+  if(!wrap || !window.EXINFO || !EXINFO.treeHTML){ if(wrap) wrap.innerHTML = '<div class="empty">설명 파일을 불러오지 못했어요</div>'; return; }
+  const open = [...wrap.querySelectorAll('details.tr-group')].map(d => d.open);
+  const where = exWhereMap();
+  const items = masterExercises.filter(e => !(exOverrides[e.id] && exOverrides[e.id].deleted))
+    .map(e => ({ name:e.name, part:e.part, info:exInfo(e), tip:ptTip(e), where:where[e.name.replace(/\s+/g, '')] || [] }));
+  wrap.innerHTML = EXINFO.treeHTML(items);
+  wrap.querySelectorAll('details.tr-group').forEach((d, i) => { if(open[i]) d.open = true; });
+}
 
 // ---------- 내 몸 상태 (3D) ----------
 // three.js · bodydata.js · body3d.js 는 무거우니 이 탭을 처음 열 때만 불러온다

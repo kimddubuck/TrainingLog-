@@ -298,6 +298,83 @@
       </div></details>`;
   }
 
+  // ----- 종목 지도 (종목 탭): 묶음 → 종목 → 설명, 나뭇가지처럼 펼친다 -----
+  // 묶음은 상필님이 말한 대로 (2026-10-17): T·W·Y = 어깨, 수건 잡기·내전근 = 하체, 토터치·크랩워킹·폼롤러 = 엉덩이,
+  // 바디컨트롤·플랭크 = 복부. '#' 로 시작하는 줄은 묶음 안의 작은 제목. 여기 없는 종목은 "그 밖에"로 간다.
+  const TREE = [
+    { k:'chest', ic:'🏋️', n:'가슴', sub:'밀기 — 가슴 앞', c:'#E8A33D',
+      names:['벤치프레스','인클라인 덤벨프레스','덤벨 벤치프레스','케이블 플라이','딥스'] },
+    { k:'back', ic:'🧗', n:'등', sub:'당기기 — 둥근어깨 반대쪽', c:'#4FA8A0',
+      names:['#위에서 당기기','랫풀다운','비하인드 렛풀다운','어시스턴트 풀업','암풀다운','#앞에서 당기기','롱풀로우 머신','바벨 로우','덤벨 로우','인버티드로우','#들기 · 회전','데드리프트','원암 케이블 회전 로우 (불균형 교정)'] },
+    { k:'shoulder', ic:'🙆', n:'어깨', sub:'머리 위로 밀기 · 어깨 뒤', c:'#C98BD6',
+      names:['#밀기','밀리터리 프레스','오버헤드프레스','덤벨 숄더프레스','#어깨 뒤 · 날개뼈','후면 리어 델토이드 플라이','업라이트로우','T 레이즈','W 레이즈','Y 레이즈'] },
+    { k:'arm', ic:'💪', n:'팔', sub:'이두 · 삼두', c:'#7FA7E0',
+      names:['#이두','바벨 컬','덤벨 해머컬','#삼두','케이블 푸쉬다운','라잉 트라이셉스 익스텐션'] },
+    { k:'leg', ic:'🦵', n:'하체', sub:'허벅지 · 무릎 · 종아리 · 발', c:'#E07A5F',
+      names:['#허벅지','스쿼트','가블릿 스쿼트','런지','프론트런지','레그프레스','이너타이 머신','내전근 스트레칭','#종아리 · 발','카프 레이즈','발가락 수건 잡기'] },
+    { k:'hip', ic:'🍑', n:'엉덩이·고관절', sub:'접기(힌지) · 엉덩이 옆', c:'#D9A05B',
+      names:['#접기(힌지)','굿모닝 운동','케틀벨 굿모닝','스티프 데드리프트','케틀벨 스윙','고관절 힌지 보조운동','리버스 노드릭컬','#엉덩이 옆','토터치','크랩워킹','고관절 운동(폼롤러)','클램쉘'] },
+    { k:'core', ic:'🧱', n:'복부·코어', sub:'움직임을 막는 힘 · 8초', c:'#B5B35C',
+      names:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)','악어호흡'] },
+    { k:'move', ic:'🌀', n:'움직임·가동성', sub:'몸풀기 · 흐르는 움직임', c:'#5FB3D9',
+      names:['내 몸풀기 (하체부터 · WGS · 점프)','케틀벨 암바','겟업동작','그라운드 소통','스핀롤'] },
+    { k:'rehab', ic:'🩹', n:'재활·풀기', sub:'풀기 → 늘리기 → 깨우기 → 균형', c:'#C1666B',
+      names:['#① 풀기','발바닥 마사지','마사지볼 풀기 — 종아리·정강이 앞','마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤',
+             '#② 늘리기','문틀 가슴 스트레칭','의자 햄스트링 스트레칭','반무릎 장요근 스트레칭','벽 종아리 스트레칭','백년척추 디스크 예방 (허리·목 뒤로 젖히기)',
+             '#③ 깨우기','승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라','#④ 균형(통합)','책 위 밸런스 (한 발·일자 서기)','밸런스 리치 (한 발 서서 앞·뒤 터치)'] },
+    { k:'cardio', ic:'🫀', n:'유산소', sub:'순환 — 모든 운동의 1순위', c:'#E36F8E',
+      names:['슬로우 조깅','수영'] },
+  ];
+  // items: [{ name, part, info(classify 결과), tip(선생님 말씀), where(프로그램 어디) }]
+  // opt.etc === false 면 "그 밖에" 묶음을 빼고 프로그램 종목만 (쌤 보기 페이지)
+  function treeHTML(items, opt){
+    opt = opt || {};
+    const byName = new Map(items.map(x => [norm(x.name), x]));
+    const used = new Set();
+    const roleTag = r => r ? `<span class="tr-tag">${esc(r.role.split(' · ')[0])}</span>` : '';
+    const leaf = x => {
+      const r = roleOf(x.name), f = fixTip(x.name), w = x.info && x.info.weck;
+      const wk = w && WECK[w.key];
+      const badges = (x.tip ? '<span class="tr-b t">쌤</span>' : '') + (f && f.basis === '강의' ? '<span class="tr-b l">강의</span>' : '')
+                   + (w && /^(BTT|CCT|RMT)$/.test(w.key) ? `<span class="tr-b w" style="--wk:${wk.color}">${w.key}</span>` : '');
+      return `<details class="tr-leaf"><summary><span class="tr-ln">${esc(x.name)}</span>${badges}${roleTag(r)}</summary>
+        <div class="tr-detail">
+          <div class="tr-img">${imgHTML(x.name, 64)}</div>
+          ${r ? `<div class="tr-row">🎯 <b>${esc(r.muscles)}</b> · ${esc(r.role)} · ${esc(r.joint)}<br><span class="tr-dim">${esc(r.note)}</span></div>` : ''}
+          ${x.tip ? `<div class="tr-row tr-tip">💬 쌤: ${esc(x.tip)}</div>` : ''}
+          ${f ? `<div class="tr-row tr-fix">🧩 <b>${esc(f.for)}</b><br>${esc(f.how)}</div>` : ''}
+          ${x.where && x.where.length ? `<div class="tr-row">📅 ${x.where.map(esc).join(' · ')}</div>` : ''}
+          ${x.info ? `<div class="tr-row tr-dim">${esc(x.info.icon)} ${esc(x.info.toolText)} · ${esc(x.info.sideText)} · ${esc(w.key === '?' ? '선생님 확인' : (w.key === '일반' ? '셋 다 아님' : w.key))} — ${esc(w.why)}</div>` : ''}
+        </div></details>`;
+    };
+    const branch = (g, rows) => {
+      const count = rows.filter(r => typeof r !== 'string').length;
+      if(!count) return '';
+      const body = rows.map(r => typeof r === 'string' ? `<div class="tr-sub">${esc(r)}</div>` : leaf(r)).join('');
+      return `<details class="tr-group" style="--gc:${g.c}"><summary><span class="tr-gi">${g.ic}</span><span class="tr-gn">${esc(g.n)}<small>${esc(g.sub)}</small></span><span class="tr-gc">${count}</span></summary>
+        <div class="tr-branch">${body}</div></details>`;
+    };
+    const groups = TREE.map(g => {
+      const rows = [];
+      g.names.forEach(n => {
+        if(n[0] === '#'){ rows.push(n.slice(1)); return; }
+        const x = byName.get(norm(n)); if(!x || used.has(norm(n))) return;
+        used.add(norm(n)); rows.push(x);
+      });
+      // 작은 제목 뒤에 종목이 하나도 없으면 그 제목은 지운다
+      const clean = rows.filter((r, i) => typeof r !== 'string' || (rows[i + 1] && typeof rows[i + 1] !== 'string'));
+      return branch(g, clean);
+    }).join('');
+    const rest = items.filter(x => !used.has(norm(x.name)));
+    const total = items.length - rest.length;
+    const etc = (rest.length && opt.etc !== false) ? branch({ ic:'📦', n:'그 밖에', sub:'프로그램엔 안 나와요 · 검색해서 기록할 때만', c:'#5E6A72' }, rest) : '';
+    return `<div class="tr">
+      <div class="tr-root">🌳 내 종목 지도 <b>${total}개</b><small>묶음을 누르면 종목이, 종목을 누르면 설명이 펼쳐져요</small></div>
+      <div class="tr-trunk">${groups}${etc}</div>
+      <div class="tr-legend"><span class="tr-b t">쌤</span> 선생님이 가르쳐 준 것 · <span class="tr-b l">강의</span> 신체지도 강의 · <span class="tr-b w" style="--wk:#888">BTT</span> 비틀기 결</div>
+    </div>`;
+  }
+
   // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----
   // 출처: 유튜브 '바디해킹트레이너' — 신경계 체조/필수 준비운동/뉴로 웜업, 센서리 웜업 (https://youtu.be/CDY3DKA37cU)
   // 순서·이름은 영상 화면 목록 그대로. 요령은 영상 자막에서 들리는 만큼만 적었다 (자세한 건 영상).
@@ -767,6 +844,36 @@
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
     .pm{margin:6px 0 2px;}
+    .tr{display:flex;flex-direction:column;gap:8px;}
+    .tr-root{align-self:center;text-align:center;background:var(--accent-a-dim);color:var(--ink);border-radius:14px;padding:8px 16px;font-size:14px;font-weight:700;}
+    .tr-root b{color:var(--accent-a);margin-left:4px;} .tr-root small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-dim);margin-top:2px;}
+    .tr-trunk{position:relative;padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+    .tr-trunk::before{content:'';position:absolute;left:7px;top:-8px;bottom:14px;width:2px;background:var(--border-strong);border-radius:2px;}
+    .tr-group{position:relative;}
+    .tr-group::before{content:'';position:absolute;left:-11px;top:21px;width:11px;height:2px;background:var(--border-strong);}
+    .tr-group>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--gc);-webkit-tap-highlight-color:transparent;}
+    .tr-group>summary::-webkit-details-marker,.tr-leaf>summary::-webkit-details-marker{display:none;}
+    .tr-group[open]>summary{background:color-mix(in srgb, var(--gc) 16%, var(--surface));}
+    .tr-gi{font-size:20px;line-height:1;} .tr-gn{flex:1;font-size:14px;font-weight:700;color:var(--ink);}
+    .tr-gn small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-dim);margin-top:1px;}
+    .tr-gc{font-size:12px;font-weight:700;color:var(--gc);min-width:26px;text-align:center;border:1px solid var(--gc);border-radius:999px;padding:1px 6px;}
+    .tr-gc::after{content:' ▾';font-size:9px;} .tr-group[open]>summary .tr-gc::after{content:' ▴';}
+    .tr-branch{position:relative;margin:6px 0 4px 16px;padding-left:16px;display:flex;flex-direction:column;gap:4px;}
+    .tr-branch::before{content:'';position:absolute;left:0;top:-6px;bottom:12px;width:2px;background:var(--gc);opacity:.55;border-radius:2px;}
+    .tr-sub{font-size:10.5px;font-weight:700;color:var(--gc);margin:6px 0 0 -4px;}
+    .tr-leaf{position:relative;}
+    .tr-leaf::before{content:'';position:absolute;left:-16px;top:15px;width:14px;height:2px;background:var(--gc);opacity:.55;}
+    .tr-leaf>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;padding:6px 10px;border-radius:9px;background:rgba(242,240,234,0.04);border:1px solid var(--border);-webkit-tap-highlight-color:transparent;}
+    .tr-leaf[open]>summary{border-color:var(--gc);}
+    .tr-ln{font-size:12.5px;color:var(--ink);font-weight:600;word-break:keep-all;}
+    .tr-tag{font-size:10px;color:var(--ink-dim);border:1px solid var(--border-strong);border-radius:999px;padding:0 6px;margin-left:auto;}
+    .tr-b{font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 4px;line-height:1.3;}
+    .tr-b.t{background:var(--accent-a-dim);color:var(--accent-a);} .tr-b.l{background:var(--accent-b-dim);color:var(--accent-b);}
+    .tr-b.w{background:color-mix(in srgb, var(--wk) 22%, transparent);color:var(--wk);}
+    .tr-detail{margin:4px 0 6px;padding:8px 10px;border-radius:9px;background:var(--surface);border:1px dashed var(--border-strong);display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:var(--ink);line-height:1.5;}
+    .tr-img img{border-radius:6px;} .tr-dim{color:var(--ink-dim);font-size:11px;}
+    .tr-row{word-break:keep-all;} .tr-tip{color:var(--accent-a);} .tr-fix b{color:var(--accent-b);}
+    .tr-legend{font-size:10.5px;color:var(--ink-dim);text-align:center;margin-top:4px;}
     .pf summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
     .pf summary::-webkit-details-marker{display:none;}
     .pf-more{display:inline-block;margin-top:5px;font-size:11px;color:var(--accent-a);border:1px solid var(--accent-a-dim);border-radius:999px;padding:1px 9px;}
@@ -892,5 +999,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
