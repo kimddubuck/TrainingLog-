@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=99"></script>
+<script src="exinfo.js?v=100"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -941,7 +941,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학 짧은 판 (✏️ 를 누르면 아래 카드가 펼쳐져 고칠 수 있다) -->
     <div class="pm" id="hdPhilo"></div>
-    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v99</span>
+    <p class="sub" style="margin-top:2px;"><span style="color:var(--ink-faint);font-size:10.5px;">· v100</span>
       <button class="philo-edit" id="hdPhiloEdit" style="margin-left:6px;padding:2px 8px;font-size:11px;">✏️ 철학 고치기</button></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
@@ -1338,7 +1338,7 @@ const DEFAULT_MASTER = [
   {id:'fx-ballsh',   name:'마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤', part:'어깨', type:'bodyweight'},
   {id:'fx-chairham', name:'의자 햄스트링 스트레칭',      part:'뒷벅지',   type:'bodyweight'},
   {id:'fx-bookbal',  name:'책 위 밸런스 (한 발·일자 서기)', part:'균형',   type:'bodyweight'},
-  {id:'fx-warmlow',  name:'하체부터 몸풀기 (강의 8가지)', part:'전신',   type:'bodyweight'},
+  {id:'fx-warmlow',  name:'내 몸풀기 (하체부터 · WGS · 점프)', part:'전신',   type:'bodyweight'},
   // 부위별 재활 4단계(어깨·허리·무릎)에 필요한 동작
   {id:'fx-chest',    name:'문틀 가슴 스트레칭',         part:'가슴 앞',   type:'bodyweight'},
   {id:'fx-lowtrap',  name:'승모근 아래 깨우기 (손바닥 뒤로 내리기)', part:'등·어깨 뒤', type:'bodyweight'},
@@ -1622,7 +1622,8 @@ async function loadAllData(){
   // 주의: 기본 종목(id가 겹치는 것)은 일부러 건너뛴다. 저장된 목록은 과거 스냅샷이라
   //       이걸 덮어쓰면 기본 라이브러리를 고쳐도 앱에 반영되지 않는다.
   // 선생님 이름이 헷갈리는 것은 여기서 바로잡는다 (번호는 그대로)
-  const RENAME = { '커틀벨': { name:'케틀벨 스윙', part:'엉덩이·뒷벅지' } };
+  const RENAME = { '커틀벨': { name:'케틀벨 스윙', part:'엉덩이·뒷벅지' },
+                   '하체부터몸풀기(강의8가지)': { name:'내 몸풀기 (하체부터 · WGS · 점프)' } };   // v100: WGS 를 몸풀기 안으로 합침
   (Array.isArray(data.masterExercises)?data.masterExercises:[]).forEach(e=>{
     const rn = RENAME[(e.name||'').replace(/\s+/g,'')];
     if(rn){ e = { ...e, ...rn }; }
@@ -2072,17 +2073,19 @@ const RECOVERY_ROUTINE = [
     options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
     labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
-    // 선생님 종목만 쓰기로 해서 슬로우 조깅만. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
-    options:['슬로우 조깅'] },
+    // 슬로우 조깅 ↔ 수영을 번갈아 (2026-10-17 상필님: 수영·슬로우 조깅 같은 유산소를 주 1~2번).
+    // 회복날이 주 2번(월·토)이라 한 주에 하나씩 나온다. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
+    rotate:true,
+    options:['슬로우 조깅','수영'],
+    labels:{ '수영':'20~30분 · 천천히, 숨 편하게' } },
 ];
 
 // 선생님이 정해준 공통 워밍업 — 개인 운동이든 PT든 운동 전에 먼저 한다
-// 맨 앞은 강의 몸풀기: 고관절(하체)부터 풀고 마지막은 점프로 순환 — 하체에 근육의 70%
+// 맨 앞은 내 몸풀기: 강의 틀(고관절부터 → 마지막 점프로 순환) 가운데에 상필님이 하던 WGS 를 넣었다.
+// WGS 가 강의의 런지·허리 돌리기 자리를 대신하므로 WGS 따로 하던 2세트는 뺐다 (2026-10-17 상필님: 합치자)
 const WARMUP = { kind:'free', routine:[
-  { why:'몸풀기 — 하체(고관절)부터 · 마지막은 점프 10번으로 순환 (강의)', sets:1, reps:'1~2분', label:'1~2분 · 8가지 한 번씩',
-    options:['하체부터 몸풀기 (강의 8가지)'] },
-  { why:'워밍업 — WGS 세계최고 스트레칭', sets:2, reps:'15회', label:'15회 × 2세트',
-    options:['WGS스트레칭'] },
+  { why:'몸풀기 — 하체(고관절)부터 → WGS → 점프 10번으로 순환 (강의 틀 + 내 WGS)', sets:1, reps:'약 4분', label:'약 4분 · 7가지 정해진 횟수',
+    options:['내 몸풀기 (하체부터 · WGS · 점프)'] },
   { why:'워밍업 — 어깨 안정화·흉추 가동성', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
     options:['케틀벨 암바'] },
   { why:'워밍업 — 바디컨트롤', sets:2, reps:'10회', label:'10회 × 2세트',
@@ -2408,7 +2411,11 @@ function orderedRoutine(p, W, opt){
     if(!cands.length) return { ...slot, id:null, name:(slot.options||[slot.name])[0], ago:null, alts:0 };
     // 고르는 순서: ① 선생님이 가르쳐준 종목 먼저  ② 그중 가장 오래 안 한 것
     // (가르쳐준 것만으로도 자리마다 2~4가지라 충분히 돌아간다. 나머지는 예비)
-    cands.sort(candOrder(theme, last));
+    // rotate 자리(유산소)는 선생님 팁·결과 상관없이 "가장 오래 안 한 것"만 보고 번갈아 돌린다
+    if(slot.rotate){
+      const opts = slot.options || [];
+      cands.sort((a,b)=> (last[a.id] || '0000-00-00').localeCompare(last[b.id] || '0000-00-00') || (opts.indexOf(a.name) - opts.indexOf(b.name)));
+    } else cands.sort(candOrder(theme, last));
     const key = p.kind + '-' + i;
     const ex = cands[(planSwap[key] || 0) % cands.length];
     used.add(ex.id);
