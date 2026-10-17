@@ -620,11 +620,26 @@
       ] },
     ],
   };
+  // 레드밸런스 (레드코드·토구 등 재활 기구 수입사) 의 "라쿠다" 체형교정 밴드 영상 — 밴드가 있어야 따라 할 수 있다. 근거는 '일반'
+  const HB3 = {
+    channel:'https://www.youtube.com/playlist?list=PLAVxPrBb55wE5C7r4ll2eMtDc7X-iDkLZ', name:'레드밸런스 · 라쿠다 밴드',
+    tip:'라쿠다는 구슬이 든 체형교정 밴드예요.\n밴드가 있어야 따라 할 수 있어요.\n목·어깨·견갑·골반·회전을 한 밴드로 다 해요.\n회사 채널 영상이라 근거는 "일반"이에요.',
+    groups:[
+      { t:'🪢 라쿠다 밴드 루틴', items:[
+        { id:'PV08L0Dqq9k', n:'30분 체형교정 전신 루틴', gear:'band', pick:true, note:'목 → 어깨 돌리기 → 어깨 3D 가동성 → 견갑 모으기 → 골반 좌우·전후 → 골반 회전 → 몸통 회전 → 호흡' },
+        { id:'Fn98cfpmzuk', n:'기본 동작편 (6분)', gear:'band', note:'ABC 기본 동작 — 처음 사면 이것부터' },
+        { id:'VAvBed5lB5A', n:'굽은 등과 어깨가 한 번에! 전신 정렬 요가 (20분)', gear:'band' },
+        { id:'3v_9U51I4V8', n:'50분 전신 스트레칭 & 요가 루틴', gear:'band', note:'시간 넉넉한 회복날에' },
+        { id:'Vm8-ix8r09U', n:'의자 스트레칭 (시니어용이지만 사무실에서 쓸 만함)', gear:'band' },
+      ] },
+    ],
+  };
+  const GEAR_TXT = { bw:'맨몸으로도 가능', cable:'필라케이블·코어케이블 필요', band:'라쿠다 밴드 필요' };
   function hbChannelHTML(ch, showGear){
     const g = ch.groups.map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.map(it => `
       <a class="hb-i" href="https://www.youtube.com/${it.sh ? 'shorts/' : 'watch?v='}${it.id}" target="_blank" rel="noopener">
         <img src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" loading="lazy" alt="">
-        <span class="hb-x"><span class="hb-n">${it.pick ? '⭐ ' : ''}${esc(it.n)}</span>${showGear ? `<span class="hb-gear ${it.gear}">${it.gear === 'bw' ? '맨몸으로도 가능' : '필라케이블·코어케이블 필요'}</span>` : (it.sh ? '<span class="hb-gear bw">짧은 영상 · 맨몸</span>' : '<span class="hb-gear bw">맨몸</span>')}${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
+        <span class="hb-x"><span class="hb-n">${it.pick ? '⭐ ' : ''}${esc(it.n)}</span>${(showGear || it.gear) ? `<span class="hb-gear ${it.gear}">${GEAR_TXT[it.gear] || it.gear}</span>` : (it.sh ? '<span class="hb-gear bw">짧은 영상 · 맨몸</span>' : '<span class="hb-gear bw">맨몸</span>')}${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
     return `<details class="hb-ch"${showGear ? ' open' : ''}><summary><span class="hb-head">📺 <b>${esc(ch.name)}</b> 따라하기</span><a href="${ch.channel}" target="_blank" rel="noopener">채널 열기</a><span class="hb-more">▾</span></summary>
       <div class="hb-tip">${esc(ch.tip).replace(/\n/g, '<br>')}</div>${g}</details>`;
   }
@@ -640,7 +655,7 @@
   }
   function hbHTML(){
     HB.tip = '신체지도 강의를 한 곳의 채널이에요.\n내 문제 부위에 맞는 영상만 골랐어요.\n제목으로 고른 거라 영상을 다 본 건 아니에요.\n대부분 그 회사 기구를 써요. 맨몸으로 되는 건 표시했어요.';
-    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}</div>`;
+    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}${hbChannelHTML(HB3, false)}</div>`;
   }
 
   // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
@@ -1182,7 +1197,7 @@
     .hb-i{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;text-decoration:none;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:6px;}
     .hb-i img{width:96px;height:54px;object-fit:cover;border-radius:6px;background:#000;}
     .hb-x{display:flex;flex-direction:column;gap:2px;min-width:0;} .hb-n{font-size:12px;color:var(--ink);font-weight:600;line-height:1.35;word-break:keep-all;}
-    .hb-gear{font-size:10px;border-radius:999px;padding:1px 7px;align-self:flex-start;} .hb-gear.bw{color:#7FC08A;border:1px solid rgba(127,192,138,.45);} .hb-gear.cable{color:var(--ink-faint);border:1px solid var(--border);}
+    .hb-gear{font-size:10px;border-radius:999px;padding:1px 7px;align-self:flex-start;} .hb-gear.bw{color:#7FC08A;border:1px solid rgba(127,192,138,.45);} .hb-gear.cable{color:var(--ink-faint);border:1px solid var(--border);} .hb-gear.band{color:var(--accent-a);border:1px solid rgba(232,163,61,.45);}
     .hb-note{font-size:10.5px;color:var(--ink-dim);}
     .an{margin:0 0 10px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);}
     .an>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:10px 12px;-webkit-tap-highlight-color:transparent;}
@@ -1394,5 +1409,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, HB2, hbHTML, mobVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, HB2, HB3, hbHTML, mobVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
