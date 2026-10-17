@@ -236,12 +236,18 @@
   //       내 몸 문제(어깨·허리·무릎 통증, 어깨·고관절·등 가동성)는 상필님이 말한 것. 요일표는 index.html WEEK_PLAN 과 같게.
   const PF = {
     house: [ // 위(지붕)에서 아래(바닥)로 그린다
-      { ic:'🚀', n:'파워', d:'안정화 → 근지구력 → (근육) → (힘) → 파워 · 근육·최대근력은 옵션, 꼭 필요한 건 근지구력', app:'선생님 근력 운동' },
-      { ic:'🩹', n:'재활', d:'풀기 → 늘리기 → 깨우기 → 통합 · 마사지에서 멈추지 않기, 근력(통합)까지', app:'운동날 그 부위 재활 · 회복날 4단계' },
-      { ic:'⚖️', n:'밸런스', d:'흔들리지 않는 게 아니라 흔들릴 때 잡는 것 · 좌우 차이 느끼기', app:'책 위 밸런스 · 밸런스 리치' },
-      { ic:'🧱', n:'코어', d:'힘을 내는 곳이 아니라 움직임을 막는 곳(안티 모션) · 8초가 한계', app:'8초 버티고 2초 쉬기 × 8' },
-      { ic:'🫀', n:'순환', d:'모든 운동의 1순위 · 앉아서 말고 서서 움직이기', app:'슬로우 조깅 ↔ 수영 · 몸풀기 끝 점프' },
-      { ic:'🍚', n:'바닥', d:'잘 먹고 · 잘 자고 · 마음이 편할 것', app:'식단 · 물 · 잠 7시간' },
+      { ic:'🚀', n:'파워', d:'안정화 → 근지구력 → (근육) → (힘) → 파워 · 근육·최대근력은 옵션, 꼭 필요한 건 근지구력', app:'선생님 근력 운동',
+        say:'할부로 사면 파워가 없고, 일시불로 사면 파워가 있다 — 가장 짧은 시간에 가장 큰 힘. 강사님도 "왜 기록이 안 늘지?" 했는데 옵션(근육·최대근력)만 하고 있었대요' },
+      { ic:'🩹', n:'재활', d:'풀기 → 늘리기 → 깨우기 → 통합 · 마사지에서 멈추지 않기, 근력(통합)까지', app:'운동날 그 부위 재활 · 회복날 4단계',
+        say:'컴퓨터 고치기 — 백업(풀기) → 자리 비우기(늘리기) → 프로그램 깔기(깨우기) → 여러 개를 한꺼번에 켜도 잘 돌아가게(통합). "마사지 받고 나았다"는 첫 단계만 한 것' },
+      { ic:'⚖️', n:'밸런스', d:'흔들리지 않는 게 아니라 흔들릴 때 잡는 것 · 좌우 차이 느끼기', app:'책 위 밸런스 · 밸런스 리치',
+        say:'책 위에 일자로 서서 눈 감고 20초를 못 버티면 50대 몸. 독일은 음주 측정을 똑바로 걷기로 해요. 50대부터 좌우 차이가 생겨요' },
+      { ic:'🧱', n:'코어', d:'힘을 내는 곳이 아니라 움직임을 막는 곳(안티 모션) · 8초가 한계', app:'8초 버티고 2초 쉬기 × 8',
+        say:'무거운 걸 한 손에 들고 걸으면 옆으로 쏠리지 않으려고 배가 당겨요 — 그게 코어. 플랭크 5분은 금지, 10초 넘으면 다른 근육이 대신 써요' },
+      { ic:'🫀', n:'순환', d:'모든 운동의 1순위 · 앉아서 말고 서서 움직이기', app:'슬로우 조깅 ↔ 수영 · 몸풀기 끝 점프',
+        say:'수술이 끝나면 의사가 제일 먼저 "걸으세요"라고 해요. 피가 안 돌면 운동 효과가 없어요. 무릎 아프다고 마사지부터? 순서가 틀렸다, 심폐 먼저' },
+      { ic:'🍚', n:'바닥', d:'잘 먹고 · 잘 자고 · 마음이 편할 것', app:'식단 · 물 · 잠 7시간',
+        say:'마음의 아픔과 몸의 아픔은 뇌의 같은 곳에서 처리돼요. 막 이별한 사람이 운동하는 건 막 교통사고 난 사람이 운동하는 것과 같아요' },
     ],
     joints: [ // 위에서 아래로 (몸 모양 그대로)
       { n:'목·어깨', r:'가동성', me:'어깨 가동성 부족 · 통증' },
@@ -258,15 +264,20 @@
     const t = String(text || '').trim();
     const custom = t && t !== PHILO_DEFAULT.trim();
     const sec = (ic, title, body) => `<div class="pf-sec"><div class="pf-h">${ic} ${esc(title)}</div>${body}</div>`;
-    const house = `<div class="pf-house">${PF.house.map((h, i) => `<div class="pf-floor" style="--w:${80 + i * 4}%">
+    const house = `<div class="pf-house">${PF.house.map((h, i) => `<div class="pf-floor" style="--w:${88 + i * 2.4}%">
         <div class="pf-fn">${h.ic} <b>${esc(h.n)}</b></div>
-        <div class="pf-fd">${esc(h.d)}<span class="pf-app">📱 ${esc(h.app)}</span></div></div>`).join('')}
-      <div class="pf-base">밑에 깔린 두 가지 — 💡 <b>인지</b>(알고 하기) · 🎯 <b>목적</b>(왜 하는지 정하기)</div></div>`;
+        <div class="pf-fd">${esc(h.d)}<span class="pf-app">📱 ${esc(h.app)}</span>${h.say ? `<span class="pf-say">💬 ${esc(h.say)}</span>` : ''}</div></div>`).join('')}
+      <div class="pf-base">밑에 깔린 두 가지 — 💡 <b>인지</b>(알고 하기) · 🎯 <b>목적</b>(왜 하는지 정하기)
+        <span class="pf-say">💬 인지: 원효대사 해골물 — 알고 하면 같은 운동도 효과가 달라요. 호텔 청소부에게 "당신 일이 곧 운동"이라고 알려 주니 몸이 더 변했어요</span>
+        <span class="pf-say">💬 목적: 공을 차면 무릎이 안 다치는데, 허공에 발차기를 하면 무릎이 나가요. 어디서 멈출지 알아야 안 다쳐요</span></div>
+      <div class="pf-note">💬 집짓기처럼 — 바닥을 안 다지고 지붕(파워)만 올리면 무너져요. 그래서 아래층부터.</div></div>`;
     const joints = `<div class="pf-joints">${PF.joints.map(j => `<div class="pf-j ${j.r === '가동성' ? 'mob' : 'stb'}">
         <span class="pf-jn">${esc(j.n)}</span><span class="pf-jr">${j.r === '가동성' ? '↔ 가동성' : '■ 안정성'}</span><span class="pf-me">${esc(j.me)}</span></div>`).join('')}</div>
-      <div class="pf-note">가동성 자리는 <b>넓히고</b>, 안정성 자리는 <b>버티게</b>. 무릎이 아픈 건 위(고관절)·아래(발목)가 굳어서인 경우가 많아요.</div>`;
+      <div class="pf-note">가동성 자리는 <b>넓히고</b>, 안정성 자리는 <b>버티게</b>. 무릎이 아픈 건 위(고관절)·아래(발목)가 굳어서인 경우가 많아요.</div>
+      <div class="pf-say pf-say-box">💬 집에 물이 새면 바닥만 닦지 말고 지붕을 고쳐야 해요. 실습에서도 아픈 건 왼쪽 어깨인데 실제로는 오른쪽이 더 나빴어요 — 아픈 곳과 원인이 다를 수 있어요</div>`;
     const mob = `<div class="pf-mob">${PF.mob.map((m, i) => `<div class="pf-m"><b>${i + 1}</b><span>${esc(m[0])}</span><small>${esc(m[1])}</small></div>`).join('<i>→</i>')}</div>
-      <div class="pf-note">다치는 곳은 늘 <b>가동범위의 끝</b> → 운동은 끝범위에서, 내가 통제할 수 있는 만큼.</div>`;
+      <div class="pf-note">다치는 곳은 늘 <b>가동범위의 끝</b> → 운동은 끝범위에서, 내가 통제할 수 있는 만큼.</div>
+      <div class="pf-say pf-say-box">💬 손가락으로 해 보기: 다른 손으로 손가락 하나를 뒤로 젖히고(늘리기) → 그 손가락으로 반대 손을 세게 밀고(버티기) → 그대로 둔 채 나머지 손가락으로 주먹 쥐기(움직이기). 유연성은 "남이 당겨 줬을 때 늘어나는 것", 가동성은 "내 힘으로 거기까지 가서 쓰는 것". 발목을 접질리는 것도 끝범위에서예요</div>`;
     const week = `<div class="pf-week">${PF.week.map(w => `<div class="pf-d ${w[1] === 'PT' ? 'pt' : (w[1] === '회복' ? 'rest' : 'work')}"><b>${w[0]}</b><span>${esc(w[1])}</span><small>${esc(w[2])}</small></div>`).join('')}</div>
       <div class="pf-note">매일 아침 기상 루틴 · 운동 전엔 <b>내 몸풀기 4분</b>(하체부터 → WGS → 점프) · 운동날은 한 시간 안</div>`;
     const prom = `<div class="pg-prom">${PHILO.promises.map(p => `<span>${esc(p)}</span>`).join('')}</div>`;
@@ -776,6 +787,9 @@
     .pf-fn{font-size:12px;color:var(--ink);white-space:nowrap;}
     .pf-fd{font-size:10.5px;color:var(--ink-dim);line-height:1.35;word-break:keep-all;}
     .pf-app{display:block;color:var(--accent-b);font-size:10px;margin-top:1px;}
+    .pf-say{display:block;color:var(--ink);font-size:10.5px;line-height:1.45;margin-top:3px;padding:3px 6px;background:rgba(242,240,234,0.06);border-radius:6px;word-break:keep-all;text-align:left;}
+    .pf-base .pf-say{margin-top:4px;}
+    .pf-say-box{margin-top:6px;}
     .pf-floor:first-child .pf-app{color:var(--accent-a);}
     .pf-base{width:100%;text-align:center;font-size:10.5px;color:var(--ink-dim);border-top:2px solid var(--border-strong);padding-top:5px;margin-top:2px;}
     .pf-joints{display:flex;flex-direction:column;gap:3px;}
