@@ -171,7 +171,7 @@
     const blocks = parts.map(k=>{
       const r = REHAB[k];
       const stages = r.stages.map(st => `<div class="rh-stage"><div class="rh-s">${esc(st.s)}</div>
-        <div class="rh-items">${st.items.map(it => `<div class="rh-item"><span class="rh-n">${esc(it.n)}</span><span class="rh-set">${esc(it.set)}</span></div>`).join('')}</div></div>`).join('');
+        <div class="rh-items">${st.items.map(it => `<div class="rh-item"><span class="rh-pic">${imgHTML(it.n, 42)}</span><span class="rh-txt"><span class="rh-n">${esc(it.n)}</span><span class="rh-set">${esc(it.set)}</span></span></div>`).join('')}</div></div>`).join('');
       return `<div class="rh-part" data-part="${k}">
         <div class="rh-head"><b>${r.icon} ${esc(r.name)}</b> <span>${esc(r.why)}</span></div>
         <div class="rh-note">${esc(r.note)}</div>
@@ -501,13 +501,26 @@
     '케틀벨 스윙':['One-Arm_Kettlebell_Swings',1],
     '반무릎 장요근 스트레칭':['Kneeling_Hip_Flexor'],
     '벽 종아리 스트레칭':['Calf_Stretch_Hands_Against_Wall'],
+    // 재활 카드 (2026-10-17) — 공은 아니고 폼롤러·롤러로 같은 자리를 푸는 그림
+    '발바닥 마사지':['Foot-SMR',1],
+    '마사지볼 풀기 — 종아리·정강이 앞':['Calves-SMR',1],
+    '마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이':['Iliotibial_Tract-SMR',1],
+    '마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤':['Latissimus_Dorsi-SMR',1],
+    'Y 레이즈':['Dumbbell_Scaption',1],
     '의자 햄스트링 스트레칭':['Hamstring_Stretch',1],
     '내전근 스트레칭':['Side_Lying_Groin_Stretch',1],
     '문틀 가슴 스트레칭':['Dynamic_Chest_Stretch',1],
     '엎드려 코브라':['Superman',1],
   };
+  // 다른 출처 그림 (논문·정부·국제 도구). 파일은 이 저장소 img/ 폴더에 받아 두고 출처·라이선스를 같이 보인다
+  // { f: 'img/..', approx, by: '저작자·출처', lic: '라이선스', url: '라이선스가 적힌 쪽' }
+  const IMG_EXT = {
+  };
   function imgOf(name){
-    const v = IMG[String(name || '').trim()]; if(!v) return null;
+    const key = String(name || '').trim();
+    const x = IMG_EXT[key];
+    if(x) return { a: x.f, b: null, approx: !!x.approx, credit: x };
+    const v = IMG[key]; if(!v) return null;
     return { a: IMG_BASE + v[0] + '/0.jpg', b: IMG_BASE + v[0] + '/1.jpg', approx: !!v[1] };
   }
   // 그림이 없으면 유튜브에서 자세 영상을 찾는 링크
@@ -520,7 +533,8 @@
   function imgHTML(name, size){
     const im = imgOf(name); const s = size || 64;
     if(!im) return `<a class="xi-vid" href="${videoUrl(name)}" target="_blank" rel="noopener">▶ 영상 찾기</a>`;
-    return `<span class="xi-img" style="--s:${s}px"><img src="${im.a}" loading="lazy" alt=""><img src="${im.b}" loading="lazy" alt="">${im.approx ? '<em>비슷한 그림</em>' : ''}</span>`;
+    const credit = im.credit ? `<a class="xi-credit" href="${im.credit.url}" target="_blank" rel="noopener">${esc(im.credit.by)} · ${esc(im.credit.lic)}</a>` : '';
+    return `<span class="xi-img${im.b ? '' : ' one'}" style="--s:${s}px"><img src="${im.a}" loading="lazy" alt="">${im.b ? `<img src="${im.b}" loading="lazy" alt="">` : ''}${im.approx ? '<em>비슷한 그림</em>' : ''}${credit}</span>`;
   }
 
   // ----- 종목 정리표: 근육 · 역할 · 관절 (상필님과 하나씩 맞춰 가는 표) -----
@@ -948,7 +962,12 @@
     .rh-stage{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:7px 0;border-top:1px dashed var(--border);}
     .rh-s{font-size:12px;font-weight:700;color:var(--accent-a);padding-top:2px;}
     .rh-items{display:flex;flex-direction:column;gap:5px;min-width:0;}
-    .rh-item{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;}
+    .rh-item{display:grid;grid-template-columns:88px 1fr;align-items:center;gap:8px;font-size:12.5px;}
+    .rh-txt{display:flex;flex-direction:column;gap:1px;min-width:0;} .rh-txt .rh-set{white-space:normal;}
+    .rh-pic{width:88px;} .rh-pic .xi-vid{font-size:10px;white-space:nowrap;margin:0;}
+    .rh-pic .xi-img{flex-wrap:wrap;gap:2px;margin:0;} .rh-pic .xi-img em{font-size:9px;}
+    .xi-img.one img{width:calc(var(--s) * 2 + 2px);height:var(--s);object-fit:contain;background:#fff;}
+    .xi-credit{display:block;width:100%;font-size:8.5px;line-height:1.2;color:var(--ink-faint);text-decoration:none;margin-top:1px;word-break:keep-all;}
     .rh-n{color:var(--ink);word-break:keep-all;} .rh-set{color:var(--ink-faint);white-space:nowrap;font-size:11.5px;}
     .rh-add{width:100%;margin-top:10px;padding:10px;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
     .rh-tabs{display:flex;gap:6px;margin-bottom:10px;}
