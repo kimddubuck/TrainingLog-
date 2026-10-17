@@ -36,7 +36,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (앱과 같은 파일) -->
-<script src="exinfo.js?v=111"></script>
+<script src="exinfo.js?v=112"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{
@@ -101,6 +101,8 @@ window.__chartReady = false;
   @media (max-width:430px){ .tab{font-size:12.5px;padding:10px 7px;} }
   .r-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;}
   /* 식단 */
+  .meal-prot{font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;margin-bottom:10px;} .meal-prot b{color:var(--accent-b);} .meal-prot .ok{color:#7FC08A;font-weight:700;margin-left:6px;}
+  .meal-lbl .pg{color:var(--accent-b);font-weight:700;margin-left:6px;}
   .meal-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
   .meal-nav .cal-nav:disabled{opacity:.3;}
   .meal-day{font-family:'IBM Plex Mono',Consolas,monospace;font-size:14.5px;font-weight:600;text-align:center;}
@@ -232,7 +234,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v111</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v112</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -345,7 +347,7 @@ const DEFAULT_MASTER = [
 ];
 const DAY_NAMES = ['일','월','화','수','목','금','토'];
 let CUP_ML = 165;
-let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dailyItems = [], exOverrides = {};
+let entries = [], water = {}, masterExercises = [], inbody = [], meals = {}, dailyItems = [], exOverrides = {}, proteinGoalR = null;
 
 function dayOfWeek(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
 function allExercises(){ return masterExercises; }
@@ -561,8 +563,16 @@ function renderMealTab(){
       const pt = photoTime(p);
       return `<span class="meal-cell"><img class="meal-photo" src="${photoUrl(p)}" loading="lazy">${pt ? `<span class="mtime">${pt}</span>` : ''}</span>`;
     }).join('');
-    return `<div class="meal-slot-r"><div class="meal-lbl">${lbl}${timeHtml}</div><div class="meal-row">${thumbs}</div></div>`;
+    const pg = Number((mm.protein || {})[k] || 0);
+    return `<div class="meal-slot-r"><div class="meal-lbl">${lbl}${timeHtml}${pg ? ` <span class="pg">🥚 ${pg}g</span>` : ''}</div><div class="meal-row">${thumbs}</div></div>`;
   }).join('');
+  // 하루 단백질 합계 / 목표(직접 정한 값 없으면 최근 인바디 몸무게 kg → g)
+  const ptot = Object.values(mm.protein || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+  if(ptot){
+    const wrow = (inbody || []).filter(r => typeof r.weight === 'number' && r.weight > 0).sort((a, b) => b.date.localeCompare(a.date))[0];
+    const goal = proteinGoalR || (wrow ? Math.ceil(wrow.weight) : 70);
+    view.innerHTML = `<div class="meal-prot">🥚 단백질 <b>${Math.round(ptot)}g</b> / 목표 ${goal}g${wrow && !proteinGoalR ? ' (몸무게 ' + wrow.weight + 'kg)' : ''} ${ptot >= goal ? '<span class="ok">넘김 ✓</span>' : ''}</div>` + view.innerHTML;
+  }
   // 그날 운동 기록이 있으면 한 줄로 알려준다
   const en = entries.find(e => e.date === mealDayCur);
   if(en) view.innerHTML += `<div class="meal-also">🏋️ 이날 운동: ${en.pt ? 'PT 수업' : (en.group || '운동')}${(en.exercises || []).length ? ' · ' + en.exercises.length + '종목' : ''} (최근 기록 탭에서 자세히)</div>`;
@@ -1197,6 +1207,7 @@ function renderIbHistory(){
     inbody = data.inbody || [];
     dailyItems = Array.isArray(data.dailyItems) ? data.dailyItems : [];
     meals = data.meals || {};
+    proteinGoalR = (typeof data.proteinGoal === 'number' && data.proteinGoal > 0) ? data.proteinGoal : null;
     exOverrides = (data.exOverrides && typeof data.exOverrides === 'object') ? data.exOverrides : {};
     if(Array.isArray(data.masterExercises) && data.masterExercises.length){
       masterExercises = data.masterExercises;

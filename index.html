@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=111"></script>
+<script src="exinfo.js?v=112"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -687,7 +687,30 @@ if(!window.EXINFO) window.EXINFO = (function(){
   /* 식단 사진 */
   .meal-grid{display:flex;flex-direction:column;gap:12px;margin-top:4px;}
   .meal-slot{}
-  .meal-slot-label{font-size:12.5px;color:var(--ink-dim);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+  .meal-slot-label{font-size:12.5px;color:var(--ink-dim);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .pchip{flex:0 0 auto;padding:3px 9px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-faint);font-size:11.5px;cursor:pointer;font-family:inherit;}
+  .pchip.on{border-color:var(--accent-b);color:var(--accent-b);background:var(--accent-b-dim);font-weight:700;}
+  .prot-sum{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);}
+  .prot-sum .ps-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;}
+  .prot-sum .ps-top b{font-size:20px;color:var(--ink);} .prot-sum .ps-top .ok{color:#7FC08A;font-weight:700;}
+  .prot-sum .ps-goal{flex:1 1 100%;font-size:11px;color:var(--ink-faint);cursor:pointer;text-decoration:underline dotted;white-space:normal;}
+  .prot-sum .ps-bar{height:8px;border-radius:999px;background:var(--surface);border:1px solid var(--border);margin-top:7px;overflow:hidden;}
+  .prot-sum .ps-bar i{display:block;height:100%;background:var(--accent-b);border-radius:999px;transition:width .3s;} .prot-sum .ps-bar i.full{background:#7FC08A;}
+  .prot-sum .ps-slots{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:11px;color:var(--ink-dim);}
+  .prot-sheet{overflow:auto;}
+  .pt-total{display:flex;align-items:baseline;justify-content:center;gap:4px;} .pt-total b{font-size:34px;color:var(--accent-b);} .pt-total span{font-size:14px;color:var(--ink-dim);}
+  .pt-clear{margin-left:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--ink-faint);font-size:11px;cursor:pointer;font-family:inherit;}
+  .pt-list{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:18px;}
+  .pt-list span{font-size:11px;color:var(--ink-dim);background:var(--surface-2);border-radius:999px;padding:2px 8px;}
+  .pt-row{display:flex;gap:6px;} .pt-row input{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:9px;padding:10px;font-size:14px;font-family:inherit;}
+  .pt-row button,.pt-addform button{padding:10px 12px;border-radius:9px;border:1px solid var(--accent-b);background:var(--accent-b-dim);color:var(--accent-b);font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .pt-sec{font-size:12px;font-weight:700;color:var(--ink);margin-top:4px;} .pt-sec small{font-weight:400;color:var(--ink-faint);}
+  .pt-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .pt-chips button{padding:6px 10px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);font-size:12px;cursor:pointer;font-family:inherit;}
+  .pt-chips button b{color:var(--accent-b);margin-left:4px;} .pt-chips button i{font-style:normal;color:var(--ink-faint);margin-left:6px;font-size:11px;}
+  .pt-chips .empty{font-size:11.5px;color:var(--ink-faint);}
+  .pt-addform{display:flex;gap:6px;} .pt-addform input{min-width:0;background:var(--surface-2);border:1px solid var(--border);color:var(--ink);border-radius:9px;padding:9px;font-size:13px;font-family:inherit;}
+  .pt-addform input:first-child{flex:1;} .pt-addform input[type=number]{width:64px;}
   .meal-thumbs{display:flex;gap:8px;flex-wrap:wrap;}
   .meal-thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface-2);}
   .meal-thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;}
@@ -970,7 +993,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v111</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v112</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1177,6 +1200,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
         <input type="date" id="mealDate">
         <button class="meal-nav" id="mealNext">›</button>
       </div>
+      <!-- 단백질: 끼니마다 g 를 적고 하루 합계를 몸무게(g)와 비교 -->
+      <div class="prot-sum" id="protSum"></div>
       <div class="meal-grid" id="mealGrid" style="margin-top:14px;"></div>
     </div>
     <p class="section-label" style="text-align:center;">최근 4개월치 식단 사진이 보관돼요. 그 이전 사진은 자동으로 정리됩니다.</p>
@@ -1250,6 +1275,22 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <button class="ps-btn" id="psCamera">📷 카메라로 바로 찍기</button>
     <button class="ps-btn" id="psAlbum">🖼️ 앨범에서 고르기</button>
     <button class="ps-cancel" id="psCancel">취소</button>
+  </div>
+</div>
+<!-- 끼니 단백질 g 넣기 -->
+<div class="modal-backdrop" id="protSheet" style="display:none;">
+  <div class="modal photo-sheet prot-sheet">
+    <div class="ps-title" id="ptTitle">단백질</div>
+    <div class="pt-total"><b id="ptTotal">0</b><span>g</span><button class="pt-clear" id="ptClear">0으로</button></div>
+    <div class="pt-list" id="ptList"></div>
+    <div class="pt-row"><input type="number" id="ptInput" inputmode="decimal" placeholder="g 직접 넣기"><button id="ptAdd">+ 더하기</button></div>
+    <div class="pt-sec">내가 자주 먹는 것 <small>(누르면 더해져요)</small></div>
+    <div class="pt-chips" id="ptMine"></div>
+    <div class="pt-addform"><input id="ptNewName" placeholder="이름 (예: 닭가슴살 1팩)"><input id="ptNewG" type="number" inputmode="decimal" placeholder="g"><button id="ptNewAdd">목록에 추가</button></div>
+    <div class="pt-sec">일반 음식 <small>(1회분 어림값 · 제품은 포장 표기가 정확)</small></div>
+    <div class="pt-chips" id="ptGeneral"></div>
+    <button class="ps-btn" id="ptSave">저장</button>
+    <button class="ps-cancel" id="ptCancel">취소</button>
   </div>
 </div>
 <!-- 사진의 먹은 시각 고치기 (탭 바깥에 둔다) -->
@@ -1708,6 +1749,8 @@ async function loadAllData(){
 
   // ----- 설정: 물 컵 용량 -----
   if(typeof data.cupMl === 'number' && data.cupMl > 0) CUP_ML = data.cupMl;
+  proteinFoods = Array.isArray(data.proteinFoods) ? data.proteinFoods : [];
+  proteinGoal = (typeof data.proteinGoal === 'number' && data.proteinGoal > 0) ? data.proteinGoal : null;
   philosophy = (typeof data.philosophy === 'string' && data.philosophy.trim()) ? data.philosophy : '';
   renderPhilo();
 
@@ -1911,8 +1954,9 @@ function renderMeals(){
       timeHtml = ` <span class="mslot-time">${st}</span>${gap}`;
       if(cur != null) prevMin = cur;
     }
+    const pg = Number((m.protein || {})[s.key] || 0);
     return `<div class="meal-slot${s.multi?' snack':''}">
-      <div class="meal-slot-label">${s.label}${count}${timeHtml}</div>
+      <div class="meal-slot-label"><span>${s.label}${count}${timeHtml}</span><button class="pchip${pg ? ' on' : ''}" data-pslot="${s.key}">🥚 ${pg ? pg + 'g' : '단백질'}</button></div>
       <div class="meal-thumbs">${thumbs}${addBtn}</div>
     </div>`;
   }).join('');
@@ -1920,6 +1964,8 @@ function renderMeals(){
   grid.querySelectorAll('.meal-add').forEach(btn=>{
     btn.onclick = ()=> pickMealPhoto(btn.dataset.slot);
   });
+  grid.querySelectorAll('.pchip').forEach(btn=>{ btn.onclick = ()=> openProtSheet(btn.dataset.pslot); });
+  renderProtSum();
   grid.querySelectorAll('.mtime.edit').forEach(el=>{
     el.onclick = ()=> openTimeSheet(el.dataset.slot, +el.dataset.idx);
   });
@@ -2046,6 +2092,82 @@ function startMealPick(slot, useCamera){
   };
   mealFileInput.click();
 }
+// ---------- 끼니 단백질 ----------
+// 저장: meals[날짜].protein = { 끼니: g }. 목표 = proteinGoal(직접 정한 값) 없으면 최근 인바디 몸무게(kg) 숫자를 g 로 (몸무게보다 많이 먹기)
+let proteinFoods = [];      // 내가 자주 먹는 것 [{n, g}] — 설정에 저장
+let proteinGoal = null;
+// 일반 음식 1회분 어림값 (식품영양성분 DB 기준 대략치). 제품은 포장 표기가 정확
+const PROTEIN_GENERAL = [
+  ['계란 1개', 6], ['두부 반 모 (150g)', 12], ['두부 1모 (300g)', 24], ['밥 1공기', 5], ['닭가슴살 100g', 23], ['닭다리 1개', 15],
+  ['소고기 100g', 20], ['돼지고기 100g', 20], ['삼겹살 100g', 17], ['연어·고등어 100g', 20], ['참치캔 1캔 (100g)', 20], ['새우 100g', 20],
+  ['우유 200ml', 6], ['그릭요거트 100g', 9], ['치즈 1장', 4], ['검은콩 30g', 10], ['아몬드 10알', 2], ['식빵 1장', 3], ['라면 1봉', 9],
+];
+function latestWeight(){
+  const rows = (inbody || []).filter(r => typeof r.weight === 'number' && r.weight > 0).sort((a, b) => b.date.localeCompare(a.date));
+  return rows.length ? rows[0].weight : null;
+}
+function proteinGoalG(){ if(proteinGoal) return proteinGoal; const w = latestWeight(); return w ? Math.ceil(w) : 70; }
+function proteinTotal(m){ const p = (m && m.protein) || {}; return Object.values(p).reduce((a, b) => a + (Number(b) || 0), 0); }
+function renderProtSum(){
+  const el = document.getElementById('protSum'); if(!el) return;
+  const m = mealsForDate(mealDateStr()); const tot = Math.round(proteinTotal(m)); const goal = proteinGoalG(); const w = latestWeight();
+  const pct = Math.min(100, Math.round(tot / goal * 100));
+  const slots = MEAL_SLOTS.filter(s => (m.protein || {})[s.key]).map(s => `<span>${s.label} ${Math.round(m.protein[s.key])}g</span>`).join('');
+  el.innerHTML = `<div class="ps-top">🥚 단백질 <b>${tot}</b>g / ${goal}g ${tot >= goal ? '<span class="ok">목표 넘김 ✓</span>' : `<span>${goal - tot}g 더</span>`}
+      <span class="ps-goal" id="ptGoalEdit">목표 ${proteinGoal ? '직접 정함' : (w ? '= 몸무게 ' + w + 'kg' : '기본 70g')} ✎</span></div>
+    <div class="ps-bar"><i class="${tot >= goal ? 'full' : ''}" style="width:${pct}%"></i></div>
+    ${slots ? `<div class="ps-slots">${slots}</div>` : ''}`;
+  el.querySelector('#ptGoalEdit').onclick = async ()=>{
+    const v = prompt('하루 단백질 목표 (g). 비우면 몸무게(kg) 숫자로 돌아가요', proteinGoal || '');
+    if(v === null) return;
+    proteinGoal = (v.trim() && Number(v) > 0) ? Number(v) : null;
+    if(!saveBlocked()){ try{ await docRef.set({ proteinGoal: proteinGoal || firebase.firestore.FieldValue.delete() }, { merge:true }); }catch(e){ console.error(e); } }
+    renderProtSum();
+  };
+}
+let ptSlot = null, ptItems = [];   // 시트에서 더한 것 [{n, g}]
+function ptSum(){ return ptItems.reduce((a, x) => a + x.g, 0); }
+function ptRender(){
+  document.getElementById('ptTotal').textContent = Math.round(ptSum() * 10) / 10;
+  document.getElementById('ptList').innerHTML = ptItems.map(x => `<span>${x.n} ${x.g}g</span>`).join('');
+  const chip = (n, g, mine, i) => `<button data-n="${n.replace(/"/g, '&quot;')}" data-g="${g}">${n}<b>${g}g</b>${mine ? `<i data-del="${i}">×</i>` : ''}</button>`;
+  document.getElementById('ptMine').innerHTML = proteinFoods.length ? proteinFoods.map((f, i) => chip(f.n, f.g, true, i)).join('') : '<span class="empty">아직 없어요 — 아래에 이름과 g 를 넣고 "목록에 추가"</span>';
+  document.getElementById('ptGeneral').innerHTML = PROTEIN_GENERAL.map(([n, g]) => chip(n, g, false)).join('');
+  document.querySelectorAll('#ptMine button, #ptGeneral button').forEach(b => b.onclick = async e => {
+    const del = e.target.dataset && e.target.dataset.del;
+    if(del != null){ if(!confirm('"' + proteinFoods[+del].n + '" 를 목록에서 뺄까요?')) return; proteinFoods.splice(+del, 1); await saveProteinFoods(); ptRender(); return; }
+    ptItems.push({ n: b.dataset.n, g: Number(b.dataset.g) }); ptRender();
+  });
+}
+async function saveProteinFoods(){ if(saveBlocked()) return; try{ await docRef.set({ proteinFoods }, { merge:true }); }catch(e){ console.error('proteinFoods save failed', e); } }
+function openProtSheet(slot){
+  ptSlot = slot; const conf = MEAL_SLOTS.find(s => s.key === slot);
+  const m = mealsForDate(mealDateStr()); const cur = Number((m.protein || {})[slot] || 0);
+  ptItems = cur ? [{ n:'지금까지', g: cur }] : [];
+  document.getElementById('ptTitle').textContent = (conf ? conf.label : '식단') + ' · 단백질 (g)';
+  document.getElementById('ptInput').value = '';
+  ptRender();
+  document.getElementById('protSheet').style.display = 'flex';
+}
+function closeProtSheet(){ document.getElementById('protSheet').style.display = 'none'; ptSlot = null; }
+document.getElementById('ptAdd').onclick = ()=>{ const v = Number(document.getElementById('ptInput').value); if(!(v > 0)) return; ptItems.push({ n:'직접', g:v }); document.getElementById('ptInput').value = ''; ptRender(); };
+document.getElementById('ptClear').onclick = ()=>{ ptItems = []; ptRender(); };
+document.getElementById('ptNewAdd').onclick = async ()=>{
+  const n = document.getElementById('ptNewName').value.trim(), g = Number(document.getElementById('ptNewG').value);
+  if(!n || !(g > 0)){ showToast('이름과 g 를 넣어 주세요'); return; }
+  proteinFoods.push({ n, g }); document.getElementById('ptNewName').value = ''; document.getElementById('ptNewG').value = '';
+  await saveProteinFoods(); ptRender(); showToast('목록에 넣었어요');
+};
+document.getElementById('ptSave').onclick = async ()=>{
+  if(!ptSlot) return;
+  const m = mealsForDate(mealDateStr()); m.protein = m.protein || {};
+  const g = Math.round(ptSum() * 10) / 10;
+  if(g > 0) m.protein[ptSlot] = g; else delete m.protein[ptSlot];
+  closeProtSheet(); renderMeals();
+  const r = await persistMeals(); showToast(r.ok ? '단백질 저장했어요' : r.msg);
+};
+document.getElementById('ptCancel').onclick = closeProtSheet;
+document.getElementById('protSheet').addEventListener('click', e => { if(e.target.id === 'protSheet') closeProtSheet(); });
 // 식단 탭 날짜 이동
 function shiftMealDate(days){
   const el = document.getElementById('mealDate');
