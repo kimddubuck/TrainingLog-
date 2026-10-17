@@ -76,7 +76,7 @@ window.BODY_DATA = {
     { kind:'release',  name:'오른쪽 종아리', muscles:['R_gastroc','R_soleus'], note:'항상 뭉침 · (추론) 엉덩이가 약해 종아리가 과로',
       x:-0.09, y:0.3, z:-0.06, view:Math.PI - 0.4 },
     { kind:'release',  name:'목 (거북목)', muscles:['scm','upperTrap'], note:'목뼈 왼쪽 볼록 · 머리 오른쪽 2° 기울기',
-      x:0, y:1.6, z:0.08, view:Math.PI/2 },
+      x:0.03, y:1.5, z:0.06, view:Math.PI/2 },   // 목 앞 (예전엔 1.6 이라 눈 자리에 찍혔다)
     { kind:'release',  name:'어깨 (둥근어깨·굽은등)', muscles:['L_pec','R_pec'], note:'둥근어깨 2번 · 양쪽 올라감(왼쪽 더) · 굽은등',
       x:0.17, y:1.43, z:0.03, view:-Math.PI/2 },
     { kind:'strength', name:'골반 (전방경사 6.5°)', note:'오른쪽 ASIS 3° 낮음 · 허리 과한 앞굽음 → 엉덩이·깊은 복근으로 세우기',
