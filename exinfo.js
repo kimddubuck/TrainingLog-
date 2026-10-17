@@ -117,6 +117,8 @@
     '벽종아리스트레칭':   { for:'② 늘리기 — 오른쪽 종아리 (발목 가동성 → 무릎 부담 줄이기)', how:'벽 짚고 뒷다리 뒤꿈치를 바닥에 붙인 채 30초. 무릎 펴고 한 번, 살짝 굽히고 한 번', basis:'일반', src:null },
     '마사지볼풀기—종아리·정강이앞': { for:'① 풀기 — 종아리(비복근)·정강이 앞(전경골근)', how:'공 위에 종아리를 올려 천천히 굴리고, 정강이 바깥 근육도 손이나 공으로. 아픈 곳은 10초 머물기', basis:'강의', src:'lecture' },
     '밸런스리치(한발서서앞·뒤터치)': { for:'④ 통합 — 발목·무릎·엉덩이가 같이 균형 잡기', how:'한 발로 서서 엉덩이를 뒤로 빼며 다른 발로 앞·뒤를 최대한 멀리 터치. 서 있는 무릎은 두 번째 발가락 방향, 흔들리면 잡기', basis:'강의', src:'lecture' },
+    '플랭크':           { for:'코어 안티 모션 — 허리가 꺾이는 걸 막는 힘', how:'팔꿈치는 어깨 아래 일직선, 팔꿈치 고정한 채 무릎을 뒤로 당기는 느낌. 8~10초 하고 2초 쉬기 × 8~10번. 5분 버티기는 하지 않기 (강사: 10초 넘으면 다른 근육이 대신 쓴다)', basis:'강의', src:'lecture' },
+    '수트케이스캐리(한손케틀벨들고걷기)': { for:'코어 안티 모션 — 옆으로 쏠리는 걸 막는 힘 (골반 좌우 높이)', how:'한 손에 케틀벨을 들고 몸이 기울지 않게 똑바로 걷기. 어깨 높이 같게, 반대쪽 배가 당기면 맞게 하는 것. 좌우 바꿔서', basis:'강의', src:'lecture' },
     '책위밸런스(한발·일자서기)': { for:'④ 통합 — 좌우 차이 느끼기 (왼발목·오른 무릎)', how:'책 위에서 일자 서기(앞발 뒤꿈치에 뒷발 앞꿈치) 눈 뜨고 10초 → 눈 감고 20초 → 한 발 서기. 새끼발가락·골반·시선 정면, 무릎 안 굽히기. 흔들리면 잡는 연습', basis:'강의', src:'lecture' },
   };
   const FIX_SRC = {
@@ -179,6 +181,29 @@
     return `<div class="rh">${blocks}
       <div class="xi-src">근거: ${REHAB_SRC.map(s => s.url ? `<a href="${s.url}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name)).join(' · ')}<br>
       ※ 통증이 심하거나 붓기가 있으면 ①②(풀기·늘리기)까지만. 무릎은 정형외과·선생님 말씀이 먼저예요.</div></div>`;
+  }
+
+  // ----- 운동의 철학 · 목적 (메인 화면 맨 위). 앱에서 고치면 저장본(philosophy)이 이긴다 -----
+  const PHILO_DEFAULT = `🎯 목적 — 내 몸을 자유롭게 쓰고, 아프지 않게.
+근육을 키우는 건 그다음이다. 오른 무릎·허리를 고치고, 틀어진 몸(골반 앞기울기·둥근어깨)을 바로 세운다.
+
+🪜 순서 — 신체지도 (집짓기처럼 바닥부터)
+1. 바닥: 잘 먹고 · 잘 자고 · 마음이 편할 것
+2. 순환(심폐): 모든 운동의 1순위 — 서서 걷고 뛰기
+3. 코어: 힘을 내는 곳이 아니라 움직임을 막아 주는 곳 (안티 모션)
+4. 밸런스: 흔들리지 않는 게 아니라, 흔들렸을 때 잡는 것 · 좌우 차이 느끼기
+5. 재활: 풀기 → 늘리기 → 깨우기 → 통합. 마사지에서 멈추지 않는다
+6. 그 위에 근지구력 → 근육 → 힘 → 파워
+
+🤝 약속
+· 알고 하기(인지) · 목적을 정하고, 즐겁게
+· 같은 운동만 반복하지 않기 (운동 편식 금지) · 가끔은 새로운 운동
+· 한 시간 안 · 끝범위에서, 내가 통제할 수 있는 만큼
+· 앞은 풀고 뒤는 깨우기 · 아프면 멈추기 · 선생님 말씀이 먼저`;
+  // 줄글 → 화면 (빈 줄은 문단, 각 줄은 그대로)
+  function philoHTML(text){
+    const t = String(text || PHILO_DEFAULT).trim();
+    return t.split(/\n\s*\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
   }
 
   // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----
@@ -247,7 +272,7 @@
     if(/RMT/.test(n)) return W('RMT', '공식', 'RMT 클럽·로프 스윙은 WeckMethod 가 RMT 도구로 직접 든 것');
     if(/스플릿|런지/.test(n)) return W('CCT', '공식', '스플릿 스쿼트·런지는 WeckMethod 가 CCT 를 쓰는 예로 직접 든 것');
     if(/^스쿼트$|^벤치프레스$|^데드리프트$/.test(n)) return W('BTT', '공식', '전통 파워리프팅(스쿼트·벤치·데드)은 WeckMethod 가 BTT 예로 직접 든 것');
-    if(/플랭크|크런치|싯업|윗몸|레그레이즈|슈퍼맨|월싯/.test(n)) return W('일반', '공식', '버티는 코어 — WeckMethod 는 이걸 셋과 따로 "브레이싱 코어"라고 불러요');
+    if(/플랭크|크런치|싯업|윗몸|레그레이즈|슈퍼맨|월싯|캐리/.test(n)) return W('일반', '공식', '버티는 코어 — WeckMethod 는 이걸 셋과 따로 "브레이싱 코어"라고 불러요');
     if(FIX[n]){
       if(/레이즈$/.test(n)) return W('BTT', '정의', '양팔이 같이 똑같이 올라가 한쪽으로 꼴 수 없음 → BTT 정의 (교정 동작)');
       if(/백년척추/.test(n)) return W('BTT', '정의', '허리·목을 양쪽 같이 뒤로 젖힘 — 한쪽으로 꼬지 않음 → BTT 정의 (교정 동작)');
@@ -407,7 +432,7 @@
     const bar = `<div class="xh-bar"><span class="s1" style="flex:6">준비</span><span class="s2" style="flex:12">워밍업</span><span class="s3" style="flex:42">본 운동</span><span class="s4" style="flex:10">⏱</span></div>
       <div class="xh-bar-key"><span>0분</span><span>60분</span></div>`;
     return `<div class="xh">
-      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 회복날(월·토)은 <b>재활 4단계</b> 순서: ① 풀기(발바닥·마사지볼) → ② 늘리기(스트레칭·백년척추) → ③ 깨우기(T·W·Y·수건 잡기) → ④ 통합(선생님 동작·결·밸런스) → 심폐 20분. 마사지에서 멈추지 않고 통합까지')}
+      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 회복날(월·토)은 <b>재활 4단계</b> 순서: ① 풀기(발바닥·마사지볼) → ② 늘리기(스트레칭·백년척추) → ③ 깨우기(T·W·Y·수건 잡기) → ④ 통합(선생님 동작·결·밸런스·코어 안티 모션) → 심폐 20분. 운동날 끝에도 코어 한 자리. 모두 한 시간 안')}
       ${step(2, '🔥', '운동하는 날 맨 앞엔 워밍업', warm, 'PT 날에도 붙여요')}
       ${step(3, '🔄', '이번 주 결 — 3주에 한 바퀴', ring, '운동날·회복날 모두 ① 그 주 결의 기능성 한 자리가 들어가고 ② 다른 자리도 그 결에 맞는 종목을 먼저 골라요' + (th ? ` · 이번 주는 <b>${th}</b>` : ''))}
       ${step(4, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
@@ -452,6 +477,16 @@
     .xi-science{margin-top:6px;padding:10px 12px;border-radius:10px;background:rgba(79,168,160,.08);border:1px solid rgba(79,168,160,.25);}
     .xi-sci-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px;}
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
+    .philo{border-left:4px solid var(--accent-a);}
+    .philo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+    .philo-title{font-size:14px;font-weight:700;color:var(--ink);}
+    .philo-edit{background:none;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:4px 9px;font-size:12px;cursor:pointer;font-family:inherit;}
+    .philo-body p{margin:0 0 8px;font-size:13px;line-height:1.7;color:var(--ink);word-break:keep-all;white-space:normal;}
+    .philo-body p:last-child{margin-bottom:0;}
+    .philo textarea{width:100%;min-height:220px;box-sizing:border-box;border:1px solid var(--border-strong);border-radius:10px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:13px;line-height:1.6;padding:10px;resize:vertical;}
+    .philo-btns{display:flex;gap:8px;margin-top:8px;}
+    .philo-btns button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+    .philo-btns .ghost{flex:0 0 auto;padding:9px 14px;color:var(--ink-faint);font-weight:500;}
     .rh{display:flex;flex-direction:column;gap:12px;}
     .rh-part{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(255,255,255,.02);}
     .rh-head{font-size:14px;color:var(--ink);} .rh-head b{margin-right:6px;} .rh-head span{font-size:11.5px;color:var(--ink-dim);word-break:keep-all;}
@@ -510,5 +545,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
