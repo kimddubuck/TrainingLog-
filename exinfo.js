@@ -231,6 +231,62 @@
     return t.split(/\n\s*\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
   }
 
+  // ----- 철학 접기 카드: 제목 밑 두 줄(요약)을 누르면 자세한 그림이 펼쳐진다 -----
+  // 근거: 신체지도 강의(2026-10-16) 정리 — 신체지도 6단계 · 관절마다 맡은 일 · 손가락 스트레칭 3종 · 끝범위 원칙 · 파워 5단계
+  //       내 몸 문제(어깨·허리·무릎 통증, 어깨·고관절·등 가동성)는 상필님이 말한 것. 요일표는 index.html WEEK_PLAN 과 같게.
+  const PF = {
+    house: [ // 위(지붕)에서 아래(바닥)로 그린다
+      { ic:'🚀', n:'파워', d:'안정화 → 근지구력 → (근육) → (힘) → 파워 · 근육·최대근력은 옵션, 꼭 필요한 건 근지구력', app:'선생님 근력 운동' },
+      { ic:'🩹', n:'재활', d:'풀기 → 늘리기 → 깨우기 → 통합 · 마사지에서 멈추지 않기, 근력(통합)까지', app:'운동날 그 부위 재활 · 회복날 4단계' },
+      { ic:'⚖️', n:'밸런스', d:'흔들리지 않는 게 아니라 흔들릴 때 잡는 것 · 좌우 차이 느끼기', app:'책 위 밸런스 · 밸런스 리치' },
+      { ic:'🧱', n:'코어', d:'힘을 내는 곳이 아니라 움직임을 막는 곳(안티 모션) · 8초가 한계', app:'8초 버티고 2초 쉬기 × 8' },
+      { ic:'🫀', n:'순환', d:'모든 운동의 1순위 · 앉아서 말고 서서 움직이기', app:'슬로우 조깅 ↔ 수영 · 몸풀기 끝 점프' },
+      { ic:'🍚', n:'바닥', d:'잘 먹고 · 잘 자고 · 마음이 편할 것', app:'식단 · 물 · 잠 7시간' },
+    ],
+    joints: [ // 위에서 아래로 (몸 모양 그대로)
+      { n:'목·어깨', r:'가동성', me:'어깨 가동성 부족 · 통증' },
+      { n:'등(흉추)', r:'가동성', me:'등 가동성 부족' },
+      { n:'허리', r:'안정성', me:'허리 통증' },
+      { n:'고관절', r:'가동성', me:'고관절 가동성 부족' },
+      { n:'무릎', r:'안정성', me:'오른 무릎 통증' },
+      { n:'발목', r:'가동성', me:'왼발 아치' },
+    ],
+    mob: [ ['늘리기', '패시브 — 30초 늘리기'], ['끝에서 버티기', '아이소메트릭 — 끝에서 5초 밀기'], ['끝에서 움직이기', '액티브 — 넓힌 범위를 내 힘으로'] ],
+    week: [ ['일','하체','무릎 · 고관절'], ['월','회복','슬로우 조깅'], ['화','PT',''], ['수','가슴·등','허리 · 등'], ['목','어깨·팔','어깨'], ['금','PT',''], ['토','회복','수영'] ],
+  };
+  function philoFoldHTML(text){
+    const t = String(text || '').trim();
+    const custom = t && t !== PHILO_DEFAULT.trim();
+    const sec = (ic, title, body) => `<div class="pf-sec"><div class="pf-h">${ic} ${esc(title)}</div>${body}</div>`;
+    const house = `<div class="pf-house">${PF.house.map((h, i) => `<div class="pf-floor" style="--w:${80 + i * 4}%">
+        <div class="pf-fn">${h.ic} <b>${esc(h.n)}</b></div>
+        <div class="pf-fd">${esc(h.d)}<span class="pf-app">📱 ${esc(h.app)}</span></div></div>`).join('')}
+      <div class="pf-base">밑에 깔린 두 가지 — 💡 <b>인지</b>(알고 하기) · 🎯 <b>목적</b>(왜 하는지 정하기)</div></div>`;
+    const joints = `<div class="pf-joints">${PF.joints.map(j => `<div class="pf-j ${j.r === '가동성' ? 'mob' : 'stb'}">
+        <span class="pf-jn">${esc(j.n)}</span><span class="pf-jr">${j.r === '가동성' ? '↔ 가동성' : '■ 안정성'}</span><span class="pf-me">${esc(j.me)}</span></div>`).join('')}</div>
+      <div class="pf-note">가동성 자리는 <b>넓히고</b>, 안정성 자리는 <b>버티게</b>. 무릎이 아픈 건 위(고관절)·아래(발목)가 굳어서인 경우가 많아요.</div>`;
+    const mob = `<div class="pf-mob">${PF.mob.map((m, i) => `<div class="pf-m"><b>${i + 1}</b><span>${esc(m[0])}</span><small>${esc(m[1])}</small></div>`).join('<i>→</i>')}</div>
+      <div class="pf-note">다치는 곳은 늘 <b>가동범위의 끝</b> → 운동은 끝범위에서, 내가 통제할 수 있는 만큼.</div>`;
+    const week = `<div class="pf-week">${PF.week.map(w => `<div class="pf-d ${w[1] === 'PT' ? 'pt' : (w[1] === '회복' ? 'rest' : 'work')}"><b>${w[0]}</b><span>${esc(w[1])}</span><small>${esc(w[2])}</small></div>`).join('')}</div>
+      <div class="pf-note">매일 아침 기상 루틴 · 운동 전엔 <b>내 몸풀기 4분</b>(하체부터 → WGS → 점프) · 운동날은 한 시간 안</div>`;
+    const prom = `<div class="pg-prom">${PHILO.promises.map(p => `<span>${esc(p)}</span>`).join('')}</div>`;
+    const mine = custom ? `<div class="pf-mine">${t.split(/\n\s*\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('')}</div>` : '';
+    return `<details class="pf">
+      <summary>${philoMiniHTML(text)}<span class="pf-more">자세히 보기</span></summary>
+      <div class="pf-body">
+        ${mine}
+        <div class="pf-goal"><div class="pf-gt">🎯 ${esc(PHILO.goal)}</div>
+          <div class="pf-gs">근육을 키우는 건 그다음</div>
+          <div class="pf-tags"><span><em>고칠 곳</em>오른 무릎 · 허리 · 어깨</span><span><em>넓힐 곳</em>어깨 · 고관절 · 등</span><span><em>바로 세울 것</em>골반 앞기울기 · 둥근어깨</span></div></div>
+        ${sec('🏠', '신체지도 — 집짓기처럼 바닥부터', house)}
+        ${sec('🦴', '관절마다 맡은 일 — 내 몸에 대 보기', joints)}
+        ${sec('🔁', '가동성 넓히는 3단계 (손가락 스트레칭처럼)', mob)}
+        ${sec('📅', '한 주는 이렇게', week)}
+        ${sec('🤝', '나와의 약속', prom)}
+        <div class="pf-src">근거: 신체지도 강의(2026-10-16) 정리 · 선생님 루틴 · 내 몸 상태</div>
+      </div></details>`;
+  }
+
   // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----
   // 출처: 유튜브 '바디해킹트레이너' — 신경계 체조/필수 준비운동/뉴로 웜업, 센서리 웜업 (https://youtu.be/CDY3DKA37cU)
   // 순서·이름은 영상 화면 목록 그대로. 요령은 영상 자막에서 들리는 만큼만 적었다 (자세한 건 영상).
@@ -700,6 +756,49 @@
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
     .pm{margin:6px 0 2px;}
+    .pf summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    .pf summary::-webkit-details-marker{display:none;}
+    .pf-more{display:inline-block;margin-top:5px;font-size:11px;color:var(--accent-a);border:1px solid var(--accent-a-dim);border-radius:999px;padding:1px 9px;}
+    .pf-more::after{content:' ▾';} .pf[open] .pf-more::after{content:' ▴';}
+    .pf[open] .pf-more{font-size:0;padding:1px 9px;} .pf[open] .pf-more::before{content:'접기';font-size:11px;}
+    .pf-body{margin-top:10px;display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;}
+    .pf-goal{text-align:center;padding:4px 0 2px;}
+    .pf-gt{font-size:16px;font-weight:800;color:var(--accent-a);word-break:keep-all;}
+    .pf-gs{font-size:11.5px;color:var(--ink-faint);margin:2px 0 8px;}
+    .pf-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;}
+    .pf-tags span{font-size:11px;color:var(--ink);background:rgba(242,240,234,0.05);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
+    .pf-tags em{font-style:normal;color:var(--ink-faint);margin-right:5px;font-size:10px;}
+    .pf-h{font-size:12.5px;font-weight:800;color:var(--ink);margin-bottom:7px;}
+    .pf-house{display:flex;flex-direction:column;align-items:center;gap:3px;}
+    .pf-floor{width:var(--w);min-width:0;display:grid;grid-template-columns:58px 1fr;gap:6px;align-items:center;background:var(--accent-b-dim);border-radius:8px;padding:5px 8px;box-sizing:border-box;}
+    .pf-floor:first-child{background:var(--accent-a-dim);border-radius:16px 16px 8px 8px;}
+    .pf-floor:nth-last-child(2){background:rgba(242,240,234,0.07);}
+    .pf-fn{font-size:12px;color:var(--ink);white-space:nowrap;}
+    .pf-fd{font-size:10.5px;color:var(--ink-dim);line-height:1.35;word-break:keep-all;}
+    .pf-app{display:block;color:var(--accent-b);font-size:10px;margin-top:1px;}
+    .pf-floor:first-child .pf-app{color:var(--accent-a);}
+    .pf-base{width:100%;text-align:center;font-size:10.5px;color:var(--ink-dim);border-top:2px solid var(--border-strong);padding-top:5px;margin-top:2px;}
+    .pf-joints{display:flex;flex-direction:column;gap:3px;}
+    .pf-j{display:grid;grid-template-columns:62px 66px 1fr;align-items:center;gap:6px;font-size:11px;border-radius:8px;padding:4px 8px;border-left:4px solid;}
+    .pf-j.mob{border-color:var(--accent-b);background:var(--accent-b-dim);} .pf-j.stb{border-color:var(--accent-a);background:var(--accent-a-dim);}
+    .pf-jn{color:var(--ink);font-weight:700;} .pf-j.mob .pf-jr{color:var(--accent-b);} .pf-j.stb .pf-jr{color:var(--accent-a);}
+    .pf-me{color:var(--ink-dim);font-size:10.5px;}
+    .pf-note{font-size:10.5px;color:var(--ink-dim);line-height:1.45;margin-top:6px;word-break:keep-all;}
+    .pf-note b{color:var(--ink);}
+    .pf-mob{display:grid;grid-template-columns:1fr 12px 1fr 12px 1fr;align-items:stretch;}
+    .pf-mob>i{font-style:normal;color:var(--ink-faint);font-size:11px;align-self:center;text-align:center;}
+    .pf-m{display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(242,240,234,0.05);border:1px solid var(--border);border-radius:8px;padding:6px 3px;}
+    .pf-m b{width:18px;height:18px;line-height:18px;border-radius:50%;background:var(--accent-b);color:var(--bg);font-size:11px;}
+    .pf-m span{font-size:11.5px;color:var(--ink);font-weight:700;margin-top:3px;word-break:keep-all;}
+    .pf-m small{font-size:9.5px;color:var(--ink-faint);line-height:1.3;margin-top:2px;word-break:keep-all;}
+    .pf-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+    .pf-d{display:flex;flex-direction:column;align-items:center;text-align:center;border-radius:8px;padding:5px 1px;min-width:0;}
+    .pf-d b{font-size:11px;color:var(--ink-faint);} .pf-d span{font-size:11px;color:var(--ink);font-weight:700;margin-top:1px;word-break:keep-all;line-height:1.2;}
+    .pf-d small{font-size:9px;color:var(--ink-dim);line-height:1.2;margin-top:2px;word-break:keep-all;}
+    .pf-d.work{background:var(--accent-a-dim);} .pf-d.pt{background:var(--accent-pt-dim);} .pf-d.rest{background:var(--accent-b-dim);}
+    .pf-mine{font-size:12px;color:var(--ink);line-height:1.5;border-left:3px solid var(--accent-a);padding-left:8px;}
+    .pf-mine p{margin:0 0 6px;}
+    .pf-src{font-size:10px;color:var(--ink-faint);text-align:right;}
     .pm-goal{font-size:14.5px;font-weight:700;color:var(--accent-a);line-height:1.4;word-break:keep-all;}
     .pm-ladder{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin-top:4px;font-size:11px;color:var(--ink-dim);}
     .pm-ladder span{white-space:nowrap;} .pm-ladder i{font-style:normal;color:var(--ink-faint);font-size:10px;}
@@ -779,5 +878,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
