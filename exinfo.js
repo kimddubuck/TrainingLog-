@@ -596,33 +596,26 @@
   // "하루 5분" (@5min_dailymove) — 맨몸 가동성 채널. 개인 채널이라 근거는 '일반' (강의·NASM 과는 다름). sh:true = 짧은 영상
   const HB2 = {
     channel:'https://www.youtube.com/@5min_dailymove', name:'하루 5분',
-    tip:'맨몸으로 하는 가동성 영상이 많은 개인 채널이에요.\n관절마다 1편 2편으로 나눠 가르쳐요.\n근거는 "일반"이에요. 강의나 NASM 과는 달라요.\n제목으로 골랐고 영상을 다 본 건 아니에요.',
+    tip:'맨몸으로 하는 가동성 영상이 많은 개인 채널이에요.\n회원 전용 영상은 뺐어요. 누구나 볼 수 있는 것만이에요.\n근거는 "일반"이에요. 강의나 NASM 과는 달라요.\n제목으로 골랐고 영상을 다 본 건 아니에요.',
     groups:[
       { t:'🫱 어깨 · 목 · 굽은등', items:[
         { id:'Qz0U8GHs9_Q', n:'어깨 필수 가동성 동작 5가지', sh:true, pick:true }, { id:'wWUC_a8QnUk', n:'30년간 굳은 말린 어깨 되돌리는 동작', sh:true },
-        { id:'7-boBAcgoC4', n:'내 승모근이 계속 뭉치는 이유', sh:true }, { id:'GRA80jmVydQ', n:'목 불편하신 분 꼭 보세요', sh:true },
+        { id:'7-boBAcgoC4', n:'내 승모근이 계속 뭉치는 이유', sh:true },
         { id:'Mey2Myd1BPw', n:'겨드랑이 옆이 뻣뻣하면 생기는 문제 (광배근)', sh:true },
-        { id:'MM4Sf7C618U', n:'목·어깨가 뻐근하고 등이 굽는다면 하루 5분' }, { id:'NamfKGJD9vs', n:'척추에 매일 아침 필요한 동작', sh:true },
         { id:'nYhI5J3khuc', n:'굽은 몸 한 번에 펴주는 동작', sh:true }, { id:'ypmLu6CrgyI', n:'캣카우 스트레칭 제대로', sh:true },
       ] },
       { t:'🍑 골반 · 고관절 · 허벅지', items:[
-        { id:'-v-ZDIrVg0E', n:'하체 필수 가동성 동작 5가지', sh:true, pick:true },
-        { id:'DK5yLrPTQc0', n:'고관절을 부드럽게 만드는 기본 움직임 7가지 (1편)' }, { id:'8rGQzOeemRI', n:'고관절 스트레칭만 하면 안 되는 이유 — 90/90 루틴' },
+        { id:'-v-ZDIrVg0E', n:'하체 필수 가동성 동작 5가지', sh:true, pick:true }, { id:'8rGQzOeemRI', n:'고관절 스트레칭만 하면 안 되는 이유 — 90/90 루틴' },
         { id:'fBByTVXCONA', n:'고관절·골반 뻐근할 때 이 동작', sh:true }, { id:'KJdm8eXAKFM', n:'허벅지 앞이 짧아지고 뻣뻣해지면?', sh:true },
         { id:'hrZQxlNijRU', n:'햄스트링은 늘어난 범위를 기억하지 않습니다', note:'햄스트링은 늘리기보다 쓰기 — 앱 설명과 같은 쪽' },
         { id:'YkAA-X5Lp64', n:'하체가 뻣뻣하다면 스트레칭 말고 바닥에서 움직여보세요' },
       ] },
-      { t:'🦵 무릎 · 발목 · 발', items:[
-        { id:'UR7Rse9mUVQ', n:'무릎을 부드럽게 움직이는 기본 움직임 9가지 (무릎 1편)' }, { id:'9m2pCtqeW94', n:'무릎을 안정적으로 만드는 움직임 4가지 (무릎 2편)' },
-        { id:'1xpHkNuWP5A', n:'무릎을 강하게 만드는 움직임 6가지 (무릎 3편)', note:'붓기 없을 때만' }, { id:'V_8s9gQGd18', n:'무릎 통증 없애는 하루 5분 루틴', sh:true },
+      { t:'🦵 무릎 · 발목 · 발', items:[ { id:'V_8s9gQGd18', n:'무릎 통증 없애는 하루 5분 루틴', sh:true },
         { id:'KPOvkM_y020', n:'무릎 바깥쪽 통증, 장경인대만 풀고 있나요?', sh:true },
-        { id:'1PY-Nh9hR8E', n:'발목을 부드럽게 만드는 기본 움직임 6가지 (발목 1편)' }, { id:'Bzlhi8S8nQI', n:'약한 발목을 튼튼하게 만드는 움직임 7가지 (발목 2편)' },
-        { id:'FD5G7WpnIaY', n:'발을 깨우는 기본 움직임 9가지', note:'왼발 아치 — 수건 잡기와 같은 쪽' },
       ] },
       { t:'🧱 몸통 · 아침 · 자기 전', items:[
         { id:'ZmLCJy5gFCs', n:'하루 1분, 몸통을 돌려보세요', sh:true }, { id:'dPrXUac3Njc', n:'복근 운동 딱 하나만 — 할로우 바디', sh:true },
-        { id:'Z1O7kwObK8s', n:'몸통이 단단히 굳은 느낌이라면', sh:true }, { id:'0eKeKBjP8NI', n:'통나무 같은 몸 풀어주는 전신 동작', sh:true },
-        { id:'n9u8G5BHV4I', n:'기상 직후 몸이 무겁다면 — 아침 스트레칭 루틴' }, { id:'MkqMew92om4', n:'자기 전 5분 전신 이완 루틴', sh:true },
+        { id:'Z1O7kwObK8s', n:'몸통이 단단히 굳은 느낌이라면', sh:true }, { id:'0eKeKBjP8NI', n:'통나무 같은 몸 풀어주는 전신 동작', sh:true }, { id:'MkqMew92om4', n:'자기 전 5분 전신 이완 루틴', sh:true },
         { id:'9uRP2_KQR3M', n:'러닝 전 최고의 5분 운동 루틴', sh:true, note:'슬로우 조깅 전에' },
       ] },
     ],
@@ -636,8 +629,11 @@
       <div class="hb-tip">${esc(ch.tip).replace(/\n/g, '<br>')}</div>${g}</details>`;
   }
   // 회복날 자리용: 날짜마다 다른 영상 하나 (하루 5분 채널을 차례로 돌린다. 같은 날은 늘 같은 영상)
-  function mobVideo(ds){
-    const all = []; HB2.groups.forEach(g => g.items.forEach(it => all.push(it)));
+  // key = 그날 운동 (legs·chestback·shoulderarm·pt). 그 부위 묶음에서만 고른다. 회복날(key 없음)은 전체에서
+  const MOB_PICK = { legs:[1, 2], chestback:[0, 3], shoulderarm:[0], pt:[0, 1, 2, 3] };
+  function mobVideo(ds, key){
+    const gi = MOB_PICK[key];
+    const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => all.push(it)); });
     const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
     const it = all[((d * 7) % all.length + all.length) % all.length];   // 7칸씩 건너뛰어 묶음이 섞이게
     return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
