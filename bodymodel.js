@@ -160,6 +160,8 @@
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, W / H, 0.1, 20);
     camera.position.set(0, 1.05, 3.9); camera.lookAt(0, 0.98, 0);
+    const CAM0 = { y:0.98, dist:3.9 };
+    const cam = { y:CAM0.y, dist:CAM0.dist, ty:CAM0.y, tdist:CAM0.dist };   // 지금 값 · 목표값
     scene.add(new THREE.HemisphereLight(0xFFFFFF, 0x445566, 1.0));
     const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(2, 3, 2.5); scene.add(key);
     const fill = new THREE.DirectionalLight(0xDDE8FF, 0.5); fill.position.set(-2, 1, -2); scene.add(fill);
@@ -236,16 +238,87 @@
     });
     const lines = buildLines(F, J); body.add(lines);
 
+    // ----- 근육 보기: 부위별 근육만 색 입혀 보여 주고 확대, 누르면 설명 -----
+    const REGIONS = window.BODY_REGIONS || {};
+    const TCOL = { r:0xD9534F, g:0x3FA35B, p:0xE8A33D };
+    const boneMeshes = meshesOf(mid).concat(meshesOf(right), meshesOf(left));
+    const origMat = new Map();
+    [].concat(boneMeshes, legMuscleMeshes).forEach(m => origMat.set(m, m.material));
+    const dimBone = new THREE.MeshStandardMaterial({ color:0xBFC5CC, transparent:true, opacity:0.18, depthWrite:false });
+    const dimMus  = new THREE.MeshStandardMaterial({ color:0x6E7B86, transparent:true, opacity:0.12, depthWrite:false });
+    let region = null, regionMeshes = [], pickHL = [], pickT = 0;
+    // 부위마다 근육 덩어리 중심(회전 전에 잰다)
+    const regionBox = {};
+    Object.keys(REGIONS).forEach(k => {
+      const names = [].concat(...Object.values(REGIONS[k].groups));
+      const ms = legMuscleMeshes.filter(m => names.includes(norm(m.userData.orig)));
+      const bx = new THREE.Box3(); ms.forEach(m => bx.expandByObject(m));
+      regionBox[k] = bx;
+    });
+    function restoreAll(){
+      [].concat(boneMeshes, legMuscleMeshes).forEach(m => { m.material = origMat.get(m); m.visible = true; delete m.userData.anatK; });
+    }
+    window.body3dRegion = function(key){
+      pickHL = []; region = REGIONS[key] ? key : null;
+      if(!region){
+        restoreAll(); markers.forEach(s => s.visible = true); lines.visible = linesOn;
+        cam.ty = CAM0.y; cam.tdist = CAM0.dist; auto = true; targetX = 0;
+        return null;
+      }
+      const R = REGIONS[region];
+      const anat = (window.EXINFO && EXINFO.ANAT && EXINFO.ANAT[region]) || { muscles:[] };
+      const byK = {}; anat.muscles.forEach(m => byK[m.k] = m);
+      boneMeshes.forEach(m => { m.material = dimBone; m.visible = true; });
+      regionMeshes = [];
+      legMuscleMeshes.forEach(m => { m.material = dimMus; m.visible = true; delete m.userData.anatK; });
+      Object.keys(R.groups).forEach(k => {
+        const info = byK[+k]; const col = new THREE.Color(TCOL[(info && info.t) || 'r']);
+        R.groups[k].forEach(nm => legMuscleMeshes.filter(m => norm(m.userData.orig) === nm).forEach(m => {
+          m.material = new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.18, roughness:0.6 });
+          m.userData.anatK = +k; regionMeshes.push(m);
+        }));
+      });
+      markers.forEach(s => s.visible = false); lines.visible = false;
+      const bx = regionBox[region]; const c = bx.getCenter(new THREE.Vector3()); const sz = bx.getSize(new THREE.Vector3());
+      cam.ty = (R.camY != null) ? R.camY : c.y; cam.tdist = (R.dist != null) ? R.dist : Math.max(1.1, Math.min(3.9, Math.max(sz.x, sz.y, sz.z) * 2.4));
+      auto = false; targetX = 0; targetY = R.lookFrom || 0;
+      return { name:R.name, count:regionMeshes.length };
+    };
+    window.body3dZoom = function(f){ cam.tdist = Math.max(0.6, Math.min(5, cam.tdist * f)); auto = false; };
+    window.body3dHighlight = function(k){
+      pickHL = regionMeshes.filter(m => m.userData.anatK === k); pickT = 0;
+    };
+    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    function pickAt(x, y){
+      if(!region || !regionMeshes.length) return null;
+      const r = renderer.domElement.getBoundingClientRect();
+      ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      const hit = ray.intersectObjects(regionMeshes, false)[0];
+      if(!hit) return null;
+      const k = hit.object.userData.anatK; window.body3dHighlight(k);
+      return { part: region, k, orig: hit.object.userData.orig };
+    }
+
     // ----- 돌리기 -----
-    let rotY = 0, rotX = 0, targetY = 0, targetX = 0, dragging = false, lastX = 0, lastY = 0, auto = true;
+    let rotY = 0, rotX = 0, targetY = 0, targetX = 0, dragging = false, lastX = 0, lastY = 0, auto = true, linesOn = true;
     const el = renderer.domElement; el.style.touchAction = 'none';
-    el.addEventListener('pointerdown', e=>{ dragging = true; auto = false; lastX = e.clientX; lastY = e.clientY; el.setPointerCapture(e.pointerId); });
-    el.addEventListener('pointermove', e=>{ if(!dragging) return; targetY += (e.clientX - lastX) * 0.012; targetX = Math.max(-0.6, Math.min(0.6, targetX + (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
-    el.addEventListener('pointerup', ()=>{ dragging = false; });
-    el.addEventListener('pointercancel', ()=>{ dragging = false; });
+    const ptrs = new Map(); let pinchD = 0, moved = 0, downX = 0, downY = 0;
+    el.addEventListener('pointerdown', e=>{ ptrs.set(e.pointerId, [e.clientX, e.clientY]); dragging = true; auto = false; lastX = e.clientX; lastY = e.clientY; downX = e.clientX; downY = e.clientY; moved = 0; el.setPointerCapture(e.pointerId);
+      if(ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a[0]-b[0], a[1]-b[1]); } });
+    el.addEventListener('pointermove', e=>{
+      if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+      if(ptrs.size === 2){ const [a, b] = [...ptrs.values()]; const d = Math.hypot(a[0]-b[0], a[1]-b[1]); if(pinchD) cam.tdist = Math.max(0.6, Math.min(5, cam.tdist * (pinchD / d))); pinchD = d; return; }
+      if(!dragging) return;
+      moved += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
+      targetY += (e.clientX - lastX) * 0.012; targetX = Math.max(-0.6, Math.min(0.6, targetX + (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
+    el.addEventListener('pointerup', e=>{ ptrs.delete(e.pointerId); pinchD = 0; dragging = false;
+      if(moved < 8){ const hit = pickAt(e.clientX, e.clientY); if(hit && opt.onPick) opt.onPick(hit); } });
+    el.addEventListener('pointercancel', e=>{ ptrs.delete(e.pointerId); pinchD = 0; dragging = false; });
+    el.addEventListener('wheel', e=>{ e.preventDefault(); window.body3dZoom(e.deltaY > 0 ? 1.12 : 0.89); }, { passive:false });
     window.body3dView = function(name){ auto = false; targetX = 0; targetY = { front:0, right:Math.PI/2, back:Math.PI, left:-Math.PI/2 }[name] || 0; };
     window.body3dAuto = ()=>{ auto = !auto; return auto; };
-    window.body3dLines = ()=>{ lines.visible = !lines.visible; return lines.visible; };
+    window.body3dLines = ()=>{ linesOn = !linesOn; lines.visible = linesOn && !region; return linesOn; };
     let blink = null, blinkT = 0, blinkMeshes = [];
     window.body3dFocus = function(i){
       const m = markers[i]; if(!m) return;
@@ -260,6 +333,9 @@
       if(auto) targetY += dt * 0.35;
       rotY += (targetY - rotY) * 0.12; rotX += (targetX - rotX) * 0.12;
       body.rotation.y = rotY; body.rotation.x = rotX;
+      cam.y += (cam.ty - cam.y) * 0.1; cam.dist += (cam.tdist - cam.dist) * 0.1;
+      camera.position.set(0, cam.y + 0.07 * (cam.dist / CAM0.dist), cam.dist); camera.lookAt(0, cam.y, 0);
+      if(pickHL.length){ pickT += dt; const p = Math.abs(Math.sin(pickT * 5)); pickHL.forEach(m => m.material.emissiveIntensity = 0.18 + 0.6 * p); if(pickT > 2.2){ pickHL.forEach(m => m.material.emissiveIntensity = 0.18); pickHL = []; } }
       if(blink){
         blinkT += dt; const p = Math.abs(Math.sin(blinkT * 6)); const s = 1 + 0.7 * p;
         blink.scale.set(s, s, s); blinkMeshes.forEach(x=> x.material.emissiveIntensity = 0.15 + 0.7 * p);
@@ -270,6 +346,6 @@
     }
     requestAnimationFrame(tick);
     window.addEventListener('resize', ()=>{ const w = mount.clientWidth || W, h = Math.max(380, Math.round(w * 1.15)); renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); });
-    window.__body3d = { scene, body, J, REG, markers };   // 확인용
+    window.__body3d = { scene, body, J, REG, markers, regionBox, cam, camera };   // 확인용
   };
 })();

@@ -1,6 +1,30 @@
 // ===== 내 몸 상태 자료 =====
 // 출처: 2022-12-28 바퍼 체형분석 결과지 (KIM EUN YOUNG) + 2026-10 증상
 // 각도는 결과지 숫자 그대로. 숫자가 없는 항목(거북목, 머리 회전)은 보이게끔 작게 잡았다.
+// 3D "근육 보기": 부위마다 보여 줄 근육 (모델 속 이름, 소문자·기호 제거) → 근육 지도(EXINFO.ANAT[part].muscles 의 k)
+// 다리 모델(leg-right.glb)은 오른쪽만 있다. 어깨·목 근육은 모델이 아직 없다 (Open3DModel 팔·어깨 묶음을 받으면 추가)
+window.BODY_REGIONS = {
+  back: { name:'허리 · 골반 · 고관절', lookFrom:0.55, camY:0.92, dist:1.45, groups:{
+    1:['psoasmajor.r','psoasminor.r','iliacusmuscle.r'],
+    2:['rectusfemoris.r'],
+    3:['tensorfasciaelatae.r'],
+    5:['piriformismuscle.r'],
+    6:['gluteusmaximusmuscle.r'],
+    7:['gluteusmediusmuscle.r','gluteusminimusmuscle.r'],
+    9:['semitendinosusmuscle.r','semimembranosusmuscle.r','longheadofbicepsfemoris.r'],
+  } },
+  knee: { name:'무릎 · 발목 · 발', lookFrom:0.4, camY:0.42, dist:1.55, groups:{
+    1:['adductorlongus.r','adductormagnus.r','adductorbrevis.r','gracilismuscle.r','pectineusmuscle.r'],
+    2:['tensorfasciaelatae.r'],
+    3:['medialheadofgastrocnemius.r','lateralheadofgastrocnemius.r','soleusmuscle.r'],
+    4:['shortheadofbicepsfemoris.r','longheadofbicepsfemoris.r'],
+    5:['gluteusmediusmuscle.r','gluteusminimusmuscle.r'],
+    6:['vastusmedialismuscle.r'],
+    7:['tibialisanteriormuscle.r','tibialisposteriormuscle.r'],
+    8:['plantaraponeurosis.r','abductorhallucis.r','flexordigitorumbrevis.r'],
+    9:['pesanserinuscommontendon.r'],
+  } },
+};
 window.BODY_DATA = {
   measuredAt: '2022-12-28',
   findings: {

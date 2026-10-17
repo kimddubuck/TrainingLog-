@@ -229,6 +229,7 @@
         <div class="rh-head"><b>${r.icon} ${esc(r.name)}</b> <span>${esc(r.why)}</span></div>
         <div class="rh-note">${esc(r.note)}</div>
         ${(r.vids || []).length ? `<div class="rh-vids">📺 ${r.vids.map(v => `<a href="${ytWatch(v[0])}" target="_blank" rel="noopener">${esc(v[1])}</a>`).join(' · ')}</div>` : ''}
+        ${anatHTML(k)}
         ${stages}
         ${opt.addBtn ? `<button class="rh-add" data-rhadd="${k}">${esc(r.name)} 4단계 오늘 기록에 담기</button>` : ''}
       </div>`;
@@ -429,6 +430,87 @@
       <div class="tr-trunk">${groups}${etc}</div>
       <div class="tr-legend"><span class="tr-b t">쌤</span> 선생님이 가르쳐 준 것 · <span class="tr-b l">강의</span> 신체지도 강의 · <span class="tr-b w" style="--wk:#888">BTT</span> 비틀기 결</div>
     </div>`;
+  }
+
+  // ----- 근육 지도 (재활 카드 위): 해부도 + 풀 근육 🔴 / 깨울 근육 🟢 -----
+  // 근거: NASM 둥근어깨·거북목 글, NASM 골반 기울기 글, NASM 오버헤드 스쿼트 글 (풀 근육·깨울 근육 목록)
+  //       NASM 교과(간접) = 공식 글엔 없고 교과 요약 자료에 있는 것. 강의 = 신체지도 강의(2026-10-16). 일반 = 해부학 상식
+  // 그림: 위키미디어 공용 해부도 (파일·라이선스는 img/anat/CREDITS.md). pins 는 그림 위 % 좌표
+  const ANAT = {
+    shoulder: {
+      title:'어깨 · 목 근육 지도', sub:'둥근어깨 · 거북목 · 팔이 머리 위로 안 올라감',
+      link:'💡 연결: 어깨는 위팔뼈 + 쇄골 + 날개뼈가 한 덩어리(어깨 복합체, 강의). 앞(가슴)이 짧아지면 뒤(날개뼈 근육)가 늘어난 채 약해져요 → 앞은 풀고 뒤는 깨우기. 광배근은 골반까지 내려가서 허리와도 이어져요',
+      imgs:[], // [{f, by, lic, url, pins:[{m:번호, x, y}]}]
+      muscles:[
+        { k:1, n:'큰가슴근 · 작은가슴근', en:'pectoralis major/minor', t:'r', where:'가슴 앞 · 쇄골 아래 오목한 곳', does:'어깨를 앞으로 말아 당겨요 (둥근어깨의 주범)', fix:'🔴 마사지볼 쇄골 아래 → 문틀 가슴 스트레칭', src:'NASM' },
+        { k:2, n:'위 승모근', en:'upper trapezius', t:'r', where:'목과 어깨 사이 두툼한 곳', does:'어깨를 귀 쪽으로 올려요 (왼쪽 어깨 4° 올라감)', fix:'🔴 위 승모근 스트레칭 (목 옆 늘리기)', src:'NASM' },
+        { k:3, n:'어깨올림근 (견갑거근)', en:'levator scapulae', t:'r', where:'목 옆에서 날개뼈 위 안쪽 모서리까지', does:'날개뼈를 위로 끌어올리고 거북목과 짝을 이뤄요', fix:'🔴 고개를 반대쪽 겨드랑이 보듯 숙여 늘리기', src:'NASM' },
+        { k:4, n:'목빗근 (흉쇄유돌근)', en:'sternocleidomastoid', t:'r', where:'목 옆 비스듬한 굵은 줄 (이마를 손으로 밀면 튀어나옴)', does:'턱을 앞으로 내밀어요 (거북목) · 강의: 뒷골 당김의 원인', fix:'🔴 손·볼로 살살 풀기', src:'NASM' },
+        { k:5, n:'넓은등근 (광배근)', en:'latissimus dorsi', t:'r', where:'겨드랑이 뒤에서 허리·골반까지 넓게', does:'팔을 아래·안쪽으로 당겨요 → 짧으면 팔이 머리 위로 못 올라가요. 골반까지 이어져 허리와 연결', fix:'🔴 폼롤러 겨드랑이 → 광배근 스트레칭', src:'NASM' },
+        { k:6, n:'중·아래 승모근', en:'middle/lower trapezius', t:'g', where:'날개뼈 사이 · 날개뼈 아래 등 가운데', does:'날개뼈를 모으고 아래로 내려요 (어깨 올라감 잡기)', fix:'🟢 Y·T·W 레이즈 · 승모근 아래 깨우기', src:'NASM' },
+        { k:7, n:'마름근 (능형근)', en:'rhomboids', t:'g', where:'날개뼈 안쪽 모서리와 척추 사이', does:'날개뼈를 척추 쪽으로 모아요', fix:'🟢 T 레이즈 · 로우', src:'NASM' },
+        { k:8, n:'앞톱니근 (전거근)', en:'serratus anterior', t:'g', where:'겨드랑이 아래 갈비뼈 옆 톱니 모양', does:'날개뼈를 갈비뼈에 붙이고, 팔 올릴 때 날개뼈를 위로 돌려요', fix:'🟢 월 슬라이드', src:'NASM' },
+        { k:9, n:'깊은 목 굽힘근', en:'deep cervical flexors (longus colli)', t:'g', where:'목뼈 바로 앞 깊은 곳', does:'턱을 당겨 목을 곧게 세워요 (거북목 반대 힘)', fix:'🟢 턱 당기기', src:'NASM' },
+        { k:10, n:'회전근개 (가시아래근 등)', en:'rotator cuff (infraspinatus)', t:'g', where:'날개뼈 뒷면 · 어깨 뒤 관절 아래', does:'어깨 공을 소켓 가운데에 잡아 둬요', fix:'🟢 로우 (어깨 내리고) · 케틀벨 암바', src:'NASM' },
+      ] },
+    back: {
+      title:'허리 · 골반 · 고관절 근육 지도', sub:'골반 앞기울기 6.5° · 오른쪽 허리 아래 욱신 · 오른쪽 장요근 당김',
+      link:'💡 연결: 강의의 코어 = 허리뼈 + 골반 + 고관절 한 덩어리(LPHC). 광배근은 골반에, 뒷벅지는 고관절에 붙어서 모든 근육이 여기로 모여요. 앞(고관절 굽힘근)이 짧아지면 골반이 앞으로 기울고 허리가 대신 일해요 → 앞은 풀고 뒤(엉덩이·코어)는 깨우기',
+      imgs:[],
+      muscles:[
+        { k:1, n:'장요근 (큰허리근 + 엉덩근)', en:'iliopsoas', t:'r', where:'허리뼈 앞 깊은 곳에서 골반 안쪽을 지나 허벅지 뼈 안쪽까지', does:'다리를 들어 올려요. 짧아지면 골반을 앞으로 기울이고 허리를 당겨요 (오른쪽 당김)', fix:'🔴 반무릎 장요근 스트레칭 — 골반 말고 엉덩이 조이기', src:'NASM' },
+        { k:2, n:'넙다리곧은근 (대퇴직근)', en:'rectus femoris', t:'r', where:'허벅지 앞 한가운데 (골반 앞 뼈에서 시작)', does:'허벅지 앞 네 근육 중 유일하게 골반에서 시작해 골반 앞기울기를 거들어요', fix:'🔴 마사지볼 허벅지 앞', src:'NASM' },
+        { k:3, n:'넙다리근막긴장근 (TFL) + 장경인대', en:'tensor fasciae latae / IT band', t:'r', where:'골반 옆 바지 주머니 자리 → 허벅지 바깥 띠 → 무릎 바깥', does:'골반 옆을 당기고 무릎 바깥까지 이어져요 (허리와 무릎 둘 다 관여)', fix:'🔴 마사지볼 골반 옆', src:'강의' },
+        { k:4, n:'척추세움근 (허리 부분)', en:'lumbar erector spinae', t:'r', where:'허리뼈 양옆 세로 근육 기둥', does:'허리를 뒤로 젖혀요. 골반이 앞으로 기울면 과하게 일해서 뻐근해요 (오른쪽 허리 아래 욱신)', fix:'🔴 아기 자세', src:'NASM' },
+        { k:5, n:'궁둥구멍근 (이상근)', en:'piriformis', t:'r', where:'엉덩이 깊은 곳, 꼬리뼈 옆에서 허벅지 뼈 윗부분까지', does:'고관절을 바깥으로 돌려요. 뭉치면 엉덩이·허리 통증', fix:'🔴 마사지볼 엉덩이 깊은 곳', src:'강의' },
+        { k:6, n:'큰볼기근 (대둔근)', en:'gluteus maximus', t:'g', where:'엉덩이 전체 가장 큰 근육', does:'고관절을 펴고 골반을 뒤로 말아 세워요 (골반 앞기울기 반대 힘)', fix:'🟢 글루트 브릿지 · 힌지 · 스쿼트', src:'NASM' },
+        { k:7, n:'중간볼기근 (중둔근)', en:'gluteus medius', t:'g', where:'엉덩이 위 바깥쪽 (골반 뼈 바로 아래)', does:'한 발로 설 때 골반이 옆으로 떨어지지 않게 잡아요', fix:'🟢 클램쉘 · 캐리', src:'NASM' },
+        { k:8, n:'배가로근 · 깊은 코어', en:'transversus abdominis', t:'g', where:'배 가장 안쪽, 허리를 띠처럼 감싸는 층', does:'허리가 움직이는 걸 막아 줘요 (안티 모션)', fix:'🟢 데드버그 · 플랭크 8초', src:'NASM' },
+        { k:9, n:'뒷벅지 (햄스트링)', en:'hamstrings', t:'g', where:'허벅지 뒤 (골반 뒤 앉는 뼈에서 시작)', does:'골반을 뒤로 당겨요. 골반이 앞으로 기울면 늘어난 채 약해져요', fix:'🟢 힌지 · 스티프 데드리프트', src:'NASM 교과(간접)' },
+      ] },
+    knee: {
+      title:'무릎 · 발목 · 발 근육 지도', sub:'오른 무릎 안쪽 통증 · 무릎 바깥돌림 · 왼발목 안으로 무너짐',
+      link:'💡 연결: 무릎은 안정성 관절 — 위(고관절)와 아래(발목)가 굳으면 무릎이 대신 돌아가요 (강의). 무릎이 안으로 모이는 건 허벅지 안쪽·바깥 띠가 당기고 엉덩이 옆이 못 잡아 줘서예요 (NASM). 무릎 안쪽 통증 자리는 거위발(허벅지 안쪽 세 근육이 붙는 곳)일 수 있어요 — 진단은 정형외과',
+      imgs:[],
+      muscles:[
+        { k:1, n:'모음근 (내전근)', en:'adductors', t:'r', where:'허벅지 안쪽', does:'짧아지면 무릎을 안으로 끌어당겨요', fix:'🔴 내전근 스트레칭', src:'NASM' },
+        { k:2, n:'TFL + 장경인대', en:'TFL / IT band', t:'r', where:'골반 옆 → 허벅지 바깥 띠 → 무릎 바깥', does:'무릎 바깥을 당겨 무릎이 돌아가게 해요', fix:'🔴 마사지볼 골반 옆', src:'NASM' },
+        { k:3, n:'장딴지근 · 가자미근 (종아리)', en:'gastrocnemius / soleus', t:'r', where:'종아리 뒤 (겉·속 두 층)', does:'굳으면 발목이 안 젖혀져 발·무릎이 안으로 무너져요', fix:'🔴 종아리 폼롤러 → 벽 종아리 스트레칭', src:'NASM 교과(간접)' },
+        { k:4, n:'넙다리두갈래근 (대퇴이두근)', en:'biceps femoris', t:'r', where:'허벅지 뒤 바깥쪽', does:'무릎을 바깥으로 돌려요 (오른 무릎 바깥돌림)', fix:'🔴 폼롤러 허벅지 뒤 바깥', src:'NASM 교과(간접)' },
+        { k:5, n:'중간볼기근 (중둔근)', en:'gluteus medius', t:'g', where:'엉덩이 위 바깥쪽', does:'무릎이 안으로 모이는 걸 위에서 막아 줘요', fix:'🟢 클램쉘 · 밸런스 리치', src:'NASM' },
+        { k:6, n:'안쪽넓은근 (내측광근)', en:'vastus medialis', t:'g', where:'무릎 바로 위 안쪽 물방울 모양', does:'무릎뼈가 안쪽으로 잘 미끄러지게 잡아요', fix:'🟢 월싯 (아프지 않은 각도)', src:'NASM 교과(간접)' },
+        { k:7, n:'앞정강근 · 뒤정강근', en:'tibialis anterior / posterior', t:'g', where:'정강이 앞 · 종아리 속 깊은 곳', does:'발 아치를 세우고 발목을 젖혀요 (왼발목 안으로 무너짐)', fix:'🟢 카프 레이즈(끝까지 내려) · 수건 잡기', src:'NASM 교과(간접)' },
+        { k:8, n:'발바닥 근막 · 발 안쪽 근육', en:'plantar fascia / intrinsic foot', t:'g', where:'발바닥 뒤꿈치에서 발가락까지', does:'아치를 받쳐요. 뭉치면 종아리까지 당겨요', fix:'🔴 발바닥 마사지 → 🟢 수건 잡기', src:'강의' },
+        { k:9, n:'거위발 (무릎 안쪽)', en:'pes anserinus', t:'p', where:'무릎 안쪽 아래 정강이 뼈에 세 근육(넙다리빗근·두덩정강근·반힘줄근)이 붙는 곳', does:'무릎 안쪽 통증이 자주 생기는 자리 — 내전근·햄스트링이 당기면 여기가 아파요', fix:'⚠ 붓거나 아프면 ①② 까지만 · 정형외과', src:'일반' },
+      ] },
+  };
+
+  // 근육 지도 그리기: 해부도 + 번호 핀 + 근육 목록 (🔴 풀고 늘리기 · 🟢 깨우기 · ⚠ 조심)
+  function anatHTML(part){
+    const a = ANAT[part]; if(!a) return '';
+    const byK = {}; a.muscles.forEach(m => byK[m.k] = m);
+    const figs = (a.imgs || []).map(im => `<figure class="an-fig">
+        <div class="an-wrap"><img src="${im.f}" alt="" loading="lazy">
+          ${(im.pins || []).map(p => { const m = byK[p.m]; return m ? `<button type="button" class="an-pin ${m.t}" style="left:${p.x}%;top:${p.y}%" data-anpin="${part}-${m.k}" title="${esc(m.n)}">${m.k}</button>` : ''; }).join('')}
+        </div>
+        <figcaption>${esc(im.cap || '')}<a class="xi-credit" href="${im.url}" target="_blank" rel="noopener">${esc(im.by)} · ${esc(im.lic)}</a></figcaption>
+      </figure>`).join('');
+    const row = m => `<div class="an-m ${m.t}" id="an-${part}-${m.k}">
+        <span class="an-k">${m.k}</span>
+        <div class="an-body"><div class="an-n">${esc(m.n)} <small>${esc(m.en)}</small><span class="xi-basis b-${m.src === 'NASM' ? '수정' : (m.src === '강의' ? '수정' : '정의')}">${esc(m.src)}</span></div>
+          <div class="an-where">📍 ${esc(m.where)}</div>
+          <div class="an-does">${esc(m.does)}</div>
+          <div class="an-fix">${esc(m.fix)}</div></div></div>`;
+    const red = a.muscles.filter(m => m.t === 'r'), green = a.muscles.filter(m => m.t === 'g'), other = a.muscles.filter(m => m.t !== 'r' && m.t !== 'g');
+    return `<details class="an"><summary><span class="an-title">🫀 ${esc(a.title)}</span><small>${esc(a.sub)}</small><span class="an-more">근육 보기 ▾</span></summary>
+      <div class="an-body-wrap">
+        <div class="an-link">${esc(a.link)}</div>
+        ${figs}
+        <div class="an-legend"><span class="r">🔴 풀고 늘리기 — 너무 일하는 근육 (①②)</span><span class="g">🟢 깨우기 — 쉬고 있는 근육 (③④)</span></div>
+        <div class="an-h r">🔴 풀고 늘리기</div>${red.map(row).join('')}
+        <div class="an-h g">🟢 깨우기</div>${green.map(row).join('')}
+        ${other.length ? `<div class="an-h p">⚠ 조심할 자리</div>${other.map(row).join('')}` : ''}
+      </div></details>`;
   }
 
   // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
@@ -965,6 +1047,29 @@
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
     .pm{margin:6px 0 2px;}
+    .an{margin:0 0 10px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);}
+    .an>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:10px 12px;-webkit-tap-highlight-color:transparent;}
+    .an>summary::-webkit-details-marker{display:none;}
+    .an-title{font-size:13.5px;font-weight:700;color:var(--ink);} .an>summary small{flex:1;font-size:11px;color:var(--ink-dim);word-break:keep-all;}
+    .an-more{font-size:11px;color:var(--accent-a);border:1px solid var(--accent-a-dim);border-radius:999px;padding:1px 9px;white-space:nowrap;}
+    .an[open] .an-more{font-size:0;} .an[open] .an-more::before{content:'접기 ▴';font-size:11px;}
+    .an-body-wrap{padding:0 12px 12px;display:flex;flex-direction:column;gap:10px;}
+    .an-link{font-size:11.5px;color:var(--ink);line-height:1.5;background:var(--accent-b-dim);border-radius:8px;padding:8px 10px;word-break:keep-all;}
+    .an-fig{margin:0;} .an-wrap{position:relative;display:block;background:#fff;border-radius:10px;overflow:hidden;}
+    .an-wrap img{display:block;width:100%;height:auto;}
+    .an-pin{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;border:2px solid #fff;color:#fff;font-size:11px;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.45);padding:0;font-family:inherit;}
+    .an-pin.r{background:#D9534F;} .an-pin.g{background:#3FA35B;} .an-pin.p{background:#E8A33D;color:#1B1F23;}
+    .an-fig figcaption{font-size:10px;color:var(--ink-faint);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 8px;} .an-fig .xi-credit{display:inline;width:auto;margin:0;}
+    .an-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-dim);}
+    .an-h{font-size:12px;font-weight:800;margin-top:4px;} .an-h.r{color:#E07A80;} .an-h.g{color:#7FC08A;} .an-h.p{color:var(--accent-a);}
+    .an-m{display:grid;grid-template-columns:24px 1fr;gap:8px;padding:7px 8px;border-radius:9px;border:1px solid var(--border);border-left:4px solid;background:var(--surface);}
+    .an-m.r{border-left-color:#D9534F;} .an-m.g{border-left-color:#3FA35B;} .an-m.p{border-left-color:#E8A33D;}
+    .an-m.hit{box-shadow:0 0 0 2px var(--accent-a) inset;}
+    .an-k{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+    .an-m.r .an-k{background:#D9534F;} .an-m.g .an-k{background:#3FA35B;} .an-m.p .an-k{background:#E8A33D;color:#1B1F23;}
+    .an-body{min-width:0;display:flex;flex-direction:column;gap:2px;font-size:11.5px;line-height:1.45;word-break:keep-all;}
+    .an-n{font-size:12.5px;font-weight:700;color:var(--ink);} .an-n small{font-weight:400;color:var(--ink-faint);font-size:10px;margin-left:4px;}
+    .an-where{color:var(--ink-dim);} .an-does{color:var(--ink);} .an-fix{color:var(--accent-b);}
     .tr{display:flex;flex-direction:column;gap:8px;}
     .tr-root{align-self:center;text-align:center;background:var(--accent-a-dim);color:var(--ink);border-radius:14px;padding:8px 16px;font-size:14px;font-weight:700;}
     .tr-root b{color:var(--accent-a);margin-left:4px;} .tr-root small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-dim);margin-top:2px;}
@@ -1131,5 +1236,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
