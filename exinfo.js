@@ -471,13 +471,47 @@
   }
   // 근육 하나의 "내 증상 + ① 풀기 ② 늘리기 ③ 깨우기 ④ 통합" (앱 3D 설명 상자와 재활 카드가 같이 씀)
   const br = t => esc(t).replace(/\n/g, '<br>');
+  // 글 속 운동 이름 → 사진이 있는 앱 종목 (긴 것부터 맞춘다)
+  const EX_ALIAS = [
+    [/마사지볼[^\n]*(쇄골|겨드랑이)/, '마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤'],
+    [/마사지볼[^\n]*(골반|허벅지 앞|엉덩이)/, '마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이'],
+    [/마사지볼[^\n]*(종아리|정강이)|종아리를 풀어/, '마사지볼 풀기 — 종아리·정강이 앞'],
+    [/발바닥 마사지/, '발바닥 마사지'],
+    [/폼롤러[^\n]*(겨드랑이|광배근)/, '폼롤러 광배근 풀기'],
+    [/광배근 스트레칭/, '광배근 스트레칭 (짐볼·벤치)'],
+    [/문틀 가슴/, '문틀 가슴 스트레칭'],
+    [/목 옆 늘리기|위 승모근 스트레칭/, '위 승모근 스트레칭 (목 옆 늘리기)'],
+    [/승모근 아래 깨우기/, '승모근 아래 깨우기 (손바닥 뒤로 내리기)'],
+    [/Y 레이즈/, 'Y 레이즈'], [/T 레이즈|T와 W/, 'T 레이즈'], [/W 레이즈/, 'W 레이즈'],
+    [/코브라/, '엎드려 코브라'], [/월 슬라이드/, '월 슬라이드'], [/턱 당기기/, '턱 당기기 (깊은 목 근육)'],
+    [/케틀벨 암바/, '케틀벨 암바'], [/원암 회전 로우|회전 로우/, '원암 케이블 회전 로우 (불균형 교정)'], [/덤벨 로우|로우를|로우 끝|로우는|로우와/, '덤벨 로우'],
+    [/후면 리어/, '후면 리어 델토이드 플라이'], [/오버헤드프레스|프레스 꼭대기|프레스 때/, '오버헤드프레스'],
+    [/반무릎/, '반무릎 장요근 스트레칭'], [/아기 자세/, '아기 자세 (차일드 포즈)'], [/글루트 브릿지/, '글루트 브릿지'],
+    [/클램쉘/, '클램쉘'], [/크랩워킹/, '크랩워킹'], [/토터치/, '토터치'], [/데드버그/, '데드버그'], [/플랭크/, '플랭크'], [/악어호흡/, '악어호흡'],
+    [/캐리/, '수트케이스 캐리 (한 손 케틀벨 들고 걷기)'], [/책 위 밸런스/, '책 위 밸런스 (한 발·일자 서기)'], [/밸런스 리치/, '밸런스 리치 (한 발 서서 앞·뒤 터치)'],
+    [/런지/, '런지'], [/힌지/, '고관절 힌지 보조운동'], [/가블릿 스쿼트/, '가블릿 스쿼트'], [/스쿼트/, '스쿼트'], [/케틀벨 스윙/, '케틀벨 스윙'], [/케틀벨 굿모닝/, '케틀벨 굿모닝'],
+    [/스티프 데드리프트/, '스티프 데드리프트'], [/의자 햄스트링/, '의자 햄스트링 스트레칭'], [/내전근 스트레칭/, '내전근 스트레칭'], [/이너타이/, '이너타이 머신'],
+    [/벽 종아리/, '벽 종아리 스트레칭'], [/카프 레이즈/, '카프 레이즈'], [/수건 잡기/, '발가락 수건 잡기'], [/월싯/, '월싯(벽 스쿼트)'], [/레그프레스/, '레그프레스'],
+    [/바디컨트롤/, '바디컨트롤 전면 코어'], [/4자/, '이상근 스트레칭 (4자)'],
+  ];
+  // 글 한 토막에 나오는 운동들의 사진 (사진 있는 것만, 겹치지 않게)
+  function exPicsHTML(text){
+    const seen = new Set(); const out = [];
+    EX_ALIAS.forEach(([re, name]) => {
+      if(seen.has(name) || !re.test(text)) return;
+      const im = imgOf(name); if(!im) return;
+      seen.add(name);
+      out.push(`<a class="an-ex" href="${im.credit ? im.a : videoUrl(name)}" target="_blank" rel="noopener" title="${esc(name)}"><img src="${im.a}" loading="lazy" alt=""><small>${esc(name.replace(/\s*\(.*?\)\s*|\s*—.*$/g, ''))}</small></a>`);
+    });
+    return out.length ? `<div class="an-exs">${out.join('')}</div>` : '';
+  }
   function anatPlanHTML(m){
     const L = [];
     if(m.me)  L.push(`<div class="an-me"><b>🙋 내 증상</b>${br(m.me)}</div>`);
-    if(m.rel) L.push(`<div class="an-step r"><b>① 풀기</b>${br(m.rel)}</div>`);
-    if(m.str) L.push(`<div class="an-step r"><b>② 늘리기</b>${br(m.str)}</div>`);
-    if(m.act) L.push(`<div class="an-step g"><b>③ 깨우기</b>${br(m.act)}</div>`);
-    if(m.int) L.push(`<div class="an-step i"><b>④ 통합</b>${br(m.int)}</div>`);
+    if(m.rel) L.push(`<div class="an-step r"><b>① 풀기</b>${br(m.rel)}${exPicsHTML(m.rel)}</div>`);
+    if(m.str) L.push(`<div class="an-step r"><b>② 늘리기</b>${br(m.str)}${exPicsHTML(m.str)}</div>`);
+    if(m.act) L.push(`<div class="an-step g"><b>③ 깨우기</b>${br(m.act)}${exPicsHTML(m.act)}</div>`);
+    if(m.int) L.push(`<div class="an-step i"><b>④ 통합</b>${br(m.int)}${exPicsHTML(m.int)}</div>`);
     if(!L.length && m.fix) L.push(`<div class="an-fix">${esc(m.fix)}</div>`);
     return `<div class="an-plan">${L.join('')}</div>`;
   }
@@ -498,7 +532,7 @@
     const byK = {}; a.muscles.forEach(m => byK[m.k] = m);
     const figs = (a.imgs || []).map(im => `<figure class="an-fig">
         <div class="an-wrap"><img src="${im.f}" alt="" loading="lazy">
-          ${(im.pins || []).map(p => { const m = byK[p.m]; return m ? `<button type="button" class="an-pin ${m.t}" style="left:${p.x}%;top:${p.y}%" data-anpin="${part}-${m.k}" title="${esc(m.n)}">${m.k}<span class="an-pl">${esc(m.s || m.n)}</span></button>` : ''; }).join('')}
+          ${(im.pins || []).map(p => { const m = byK[p.m]; return m ? `<button type="button" class="an-pin ${m.t}${p.x > 66 ? ' flip' : ''}${p.y < 12 ? ' low' : ''}" style="left:${p.x}%;top:${p.y}%" data-anpin="${part}-${m.k}" title="${esc(m.n)}"><i class="dot"></i><span class="an-pl">${m.k} ${esc(m.s || m.n)}</span></button>` : ''; }).join('')}
         </div>
         <figcaption>${esc(im.cap || '')}<a class="xi-credit" href="${im.url}" target="_blank" rel="noopener">${esc(im.by)} · ${esc(im.lic)}</a></figcaption>
       </figure>`).join('');
@@ -1066,10 +1100,15 @@
     .an-link{font-size:11.5px;color:var(--ink);line-height:1.5;background:var(--accent-b-dim);border-radius:8px;padding:8px 10px;word-break:keep-all;}
     .an-fig{margin:0;} .an-wrap{position:relative;display:block;background:#fff;border-radius:10px;overflow:hidden;}
     .an-wrap img{display:block;width:100%;height:auto;}
-    .an-pin{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;border:2px solid #fff;color:#fff;font-size:11px;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.45);padding:0;font-family:inherit;}
-    .an-pin.r{background:#D9534F;} .an-pin.g{background:#3FA35B;} .an-pin.p{background:#E8A33D;color:#1B1F23;}
-    .an-pl{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:3px;padding:1px 5px;border-radius:5px;background:rgba(20,24,28,.82);color:#fff;font-size:10px;font-weight:700;white-space:nowrap;pointer-events:none;}
+    .an-pin{position:absolute;transform:translate(-50%,-50%);width:12px;height:12px;border:0;padding:0;background:transparent;cursor:pointer;font-family:inherit;}
+    .an-pin .dot{display:block;width:12px;height:12px;border-radius:50%;background:currentColor;border:2px solid #fff;box-sizing:border-box;box-shadow:0 0 0 1.5px currentColor;}
+    .an-pin.r{color:#D9534F;} .an-pin.g{color:#3FA35B;} .an-pin.p{color:#E8A33D;}
+    .an-pin::before{content:'';position:absolute;left:5px;bottom:9px;width:2px;height:16px;background:#fff;transform:rotate(-42deg);transform-origin:bottom center;box-shadow:0 0 0 .5px rgba(0,0,0,.35);}
+    .an-pl{position:absolute;left:12px;bottom:18px;padding:1px 4px;border-radius:4px;background:rgba(20,24,28,.85);color:#fff;font-size:9px;font-weight:700;line-height:1.4;white-space:nowrap;pointer-events:none;}
     .an-pin.r .an-pl{color:#FFB3B0;} .an-pin.g .an-pl{color:#A8E6B5;} .an-pin.p .an-pl{color:#FFD9A0;}
+    .an-pin.flip::before{left:auto;right:5px;transform:rotate(42deg);} .an-pin.flip .an-pl{left:auto;right:12px;}
+    .an-pin.low::before{bottom:auto;top:9px;transform:rotate(42deg);transform-origin:top center;} .an-pin.low .an-pl{bottom:auto;top:18px;}
+    .an-pin.flip.low::before{transform:rotate(-42deg);}
     .an-fig figcaption{font-size:10px;color:var(--ink-faint);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 8px;} .an-fig .xi-credit{display:inline;width:auto;margin:0;}
     .an-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-dim);}
     .an-tip{font-size:10.5px;color:var(--ink-faint);word-break:keep-all;}
@@ -1091,6 +1130,10 @@
     .an-me{color:var(--accent-a);font-size:12px;word-break:keep-all;line-height:1.55;} .an-me b{display:block;}
     .an-step{font-size:12px;color:var(--ink);word-break:keep-all;line-height:1.55;} .an-step b{display:block;margin-top:2px;}
     .an-step.r b{color:#E07A80;} .an-step.g b{color:#7FC08A;} .an-step.i b{color:var(--accent-b);}
+    .an-exs{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 2px;}
+    .an-ex{display:flex;flex-direction:column;align-items:center;width:58px;text-decoration:none;}
+    .an-ex img{width:54px;height:54px;object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--border-strong);}
+    .an-ex small{font-size:9.5px;color:var(--ink-dim);text-align:center;line-height:1.2;margin-top:2px;word-break:keep-all;}
     .tr{display:flex;flex-direction:column;gap:8px;}
     .tr-root{align-self:center;text-align:center;background:var(--accent-a-dim);color:var(--ink);border-radius:14px;padding:8px 16px;font-size:14px;font-weight:700;}
     .tr-root b{color:var(--accent-a);margin-left:4px;} .tr-root small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-dim);margin-top:2px;}
