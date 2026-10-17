@@ -441,6 +441,13 @@
       title:'어깨 · 목 근육 지도', sub:'둥근어깨 · 거북목 · 팔이 머리 위로 안 올라감',
       link:'💡 연결: 어깨는 위팔뼈 + 쇄골 + 날개뼈가 한 덩어리(어깨 복합체, 강의). 앞(가슴)이 짧아지면 뒤(날개뼈 근육)가 늘어난 채 약해져요 → 앞은 풀고 뒤는 깨우기. 광배근은 골반까지 내려가서 허리와도 이어져요',
       imgs:[{f:'img/anat/girdle.jpg',cap:'앞(왼쪽) · 뒤(오른쪽)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1118_Muscles_that_Position_the_Pectoral_Girdle.jpg',pins:[{m:1,x:26,y:36},{m:8,x:28,y:52},{m:2,x:68,y:25},{m:6,x:74,y:70},{m:7,x:86,y:52}]},{f:'img/anat/trapezius.jpg',cap:'승모근 — 주황 위 · 빨강 가운데 · 자주 아래 (뒤에서)',by:'BodyParts3D © DBCLS',lic:'CC BY-SA 2.1 JP',url:'https://commons.wikimedia.org/wiki/File:Trapezius_back.png',pins:[{m:2,x:50,y:30},{m:6,x:50,y:62}]},{f:'img/anat/humerus.jpg',cap:'광배근 · 회전근개 · 앞톱니근',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1119_Muscles_that_Move_the_Humerus.jpg',pins:[{m:1,x:22,y:7},{m:5,x:65,y:25},{m:8,x:30,y:74},{m:10,x:79,y:62}]},{f:'img/anat/neck.jpg',cap:'목 옆(왼쪽) · 뒤(가운데)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1111_Posterior_and_Side_Views_of_the_Neck.jpg',pins:[{m:4,x:12,y:38},{m:2,x:17,y:57},{m:3,x:46,y:33}]},{f:'img/anat/longus-colli.jpg',cap:'목뼈 앞 깊은 근육 (빨강) — 앞에서',by:'Gray 해부학 1918 · Uwe Gille',lic:'퍼블릭 도메인',url:'https://commons.wikimedia.org/wiki/File:Longus_colli.png',pins:[{m:9,x:57,y:55}]}],
+      nerves:[
+        { n:'상완신경총', en:'brachial plexus', mesh:['superiortrunkofbrachialplexus.r','middletrunkofbrachialplexus.r','inferiortrunkofbrachialplexus.r','anteriordivisionsofbrachialplexus.r','posteriordivisionsofbrachialplexus.r','lateralcordofbrachialplexus.r','medialcordofbrachialplexus.r','posteriorcordofbrachialplexus.r'],
+          where:'목 옆 사각근 사이로 나와 쇄골 아래 · 작은가슴근 아래를 지나 팔로', why:'팔 전체의 신경 다발. 작은가슴근이 짧아져(둥근어깨) 어깨가 앞으로 말리면 이 통로가 좁아져 팔 저림이 올 수 있어요 (흉곽출구 증후군)', src:'교과' },
+        { n:'긴가슴신경', en:'long thoracic nerve', mesh:['longthoracicnerve.r'], where:'겨드랑이 옆 갈비뼈 위를 세로로', why:'앞톱니근을 움직이는 신경. 앞톱니근이 약하면 날개뼈가 들떠요 — 월 슬라이드로 깨우는 근육', src:'교과' },
+        { n:'등쪽어깨신경', en:'dorsal scapular nerve', mesh:['dorsalscapularnerve.r'], where:'목 옆에서 날개뼈 안쪽 모서리를 따라', why:'마름근·어깨올림근을 움직이는 신경 (어깨올림근은 풀 근육, 마름근은 깨울 근육)', src:'교과' },
+        { n:'어깨위신경', en:'suprascapular nerve', mesh:['suprascapularnerve.r'], where:'어깨뼈 위 홈(패임)을 지나 뒷면으로', why:'가시위근·가시아래근(회전근개)을 움직여요. 어깨뼈 위 홈에서 눌리면 회전근개가 약해지고 어깨 뒤가 아파요', src:'교과' },
+      ],
       muscles:[
         { k:1, n:'큰가슴근 · 작은가슴근', en:'pectoralis major/minor', t:'r', where:'가슴 앞 · 쇄골 아래 오목한 곳', does:'어깨를 앞으로 말아 당겨요 (둥근어깨의 주범)', fix:'🔴 마사지볼 쇄골 아래 → 문틀 가슴 스트레칭', src:'NASM' },
         { k:2, n:'위 승모근', en:'upper trapezius', t:'r', where:'목과 어깨 사이 두툼한 곳', does:'어깨를 귀 쪽으로 올려요 (왼쪽 어깨 4° 올라감)', fix:'🔴 위 승모근 스트레칭 (목 옆 늘리기)', src:'NASM' },
@@ -457,6 +464,12 @@
       title:'허리 · 골반 · 고관절 근육 지도', sub:'골반 앞기울기 6.5° · 오른쪽 허리 아래 욱신 · 오른쪽 장요근 당김',
       link:'💡 연결: 강의의 코어 = 허리뼈 + 골반 + 고관절 한 덩어리(LPHC). 광배근은 골반에, 뒷벅지는 고관절에 붙어서 모든 근육이 여기로 모여요. 앞(고관절 굽힘근)이 짧아지면 골반이 앞으로 기울고 허리가 대신 일해요 → 앞은 풀고 뒤(엉덩이·코어)는 깨우기',
       imgs:[{f:'img/anat/hip-thigh.jpg',cap:'오른 다리 앞(위) · 뒤(아래 오른쪽)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1122_Gluteal_Muscles_that_Move_the_Femur.jpg',pins:[{m:1,x:21,y:13},{m:3,x:15,y:20},{m:2,x:18,y:27},{m:7,x:79,y:56},{m:5,x:78,y:62},{m:6,x:71,y:65},{m:9,x:75,y:79}]},{f:'img/anat/abdomen.jpg',cap:'배 근육(위) · 허리 앞 깊은 근육(아래)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1112_Muscles_of_the_Abdomen.jpg',pins:[{m:8,x:85,y:18},{m:1,x:40,y:74}]},{f:'img/anat/neck-back.jpg',cap:'등 깊은 근육 — 척추세움근 (아래 가운데)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1117_Muscles_of_the_Neck_and_Back.jpg',pins:[{m:4,x:45,y:68}]}],
+      nerves:[
+        { n:'좌골신경', en:'sciatic nerve', mesh:['sciaticnerve.r'], where:'엉덩이 깊은 곳, 이상근 바로 아래로 나와 허벅지 뒤로', why:'몸에서 가장 굵은 신경. 이상근이 뭉치면 그 아래 신경이 눌려 엉덩이·다리 뒤가 저려요 (이상근 증후군 — 오래 앉으면 저림). 허리 디스크로도 같은 자리가 저릴 수 있어 구분은 검사로', src:'교과' },
+        { n:'위볼기신경 · 아래볼기신경', en:'superior / inferior gluteal nerve', mesh:['superiorglutealnerve.r','inferiorglutealnerve.r'], where:'이상근 위·아래로 나와 엉덩이 근육으로', why:'중둔근(위)·대둔근(아래)을 움직이는 신경 — 깨울 근육에 명령을 보내는 줄', src:'교과' },
+        { n:'대퇴신경', en:'femoral nerve', mesh:['femoralnerve.r','femoralnervemuscularbranches.r'], where:'허리뼈에서 큰허리근과 엉덩근 사이로 내려와 사타구니 앞으로', why:'허벅지 앞 근육을 움직여요. 장요근 사이를 지나므로 장요근이 굳으면 영향을 줄 수 있다는 설명이 있지만, 근거는 약해요', src:'추정' },
+        { n:'폐쇄신경', en:'obturator nerve', mesh:['obturatornerve.r','obturatornerveanteriorbranch.r','obturatornerveposteriorbranch.r'], where:'골반 안쪽 구멍을 지나 내전근 사이로', why:'내전근을 움직이는 신경 — 선생님이 말한 "내전근 사이 신경이 지나는 터널"', src:'쌤' },
+      ],
       muscles:[
         { k:1, n:'장요근 (큰허리근 + 엉덩근)', en:'iliopsoas', t:'r', where:'허리뼈 앞 깊은 곳에서 골반 안쪽을 지나 허벅지 뼈 안쪽까지', does:'다리를 들어 올려요. 짧아지면 골반을 앞으로 기울이고 허리를 당겨요 (오른쪽 당김)', fix:'🔴 반무릎 장요근 스트레칭 — 골반 말고 엉덩이 조이기', src:'NASM' },
         { k:2, n:'넙다리곧은근 (대퇴직근)', en:'rectus femoris', t:'r', where:'허벅지 앞 한가운데 (골반 앞 뼈에서 시작)', does:'허벅지 앞 네 근육 중 유일하게 골반에서 시작해 골반 앞기울기를 거들어요', fix:'🔴 마사지볼 허벅지 앞', src:'NASM' },
@@ -472,6 +485,12 @@
       title:'무릎 · 발목 · 발 근육 지도', sub:'오른 무릎 안쪽 통증 · 무릎 바깥돌림 · 왼발목 안으로 무너짐',
       link:'💡 연결: 무릎은 안정성 관절 — 위(고관절)와 아래(발목)가 굳으면 무릎이 대신 돌아가요 (강의). 무릎이 안으로 모이는 건 허벅지 안쪽·바깥 띠가 당기고 엉덩이 옆이 못 잡아 줘서예요 (NASM). 무릎 안쪽 통증 자리는 거위발(허벅지 안쪽 세 근육이 붙는 곳)일 수 있어요 — 진단은 정형외과',
       imgs:[{f:'img/anat/hip-thigh.jpg',cap:'오른 다리 앞(위) · 뒤(아래 오른쪽)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1122_Gluteal_Muscles_that_Move_the_Femur.jpg',pins:[{m:1,x:23,y:20},{m:2,x:15,y:20},{m:6,x:23,y:32},{m:5,x:79,y:56},{m:4,x:77,y:76}]},{f:'img/anat/lower-leg.jpg',cap:'종아리 앞(왼쪽) · 뒤(가운데) · 뒤 깊은 곳(오른쪽)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1123_Muscles_of_the_Leg_that_Move_the_Foot_and_Toes.jpg',pins:[{m:7,x:23,y:25},{m:3,x:61,y:45},{m:7,x:93,y:43}]},{f:'img/anat/foot.jpg',cap:'발바닥 — 발바닥 근막 (아래 왼쪽)',by:'OpenStax 해부생리학',lic:'CC BY 4.0',url:'https://commons.wikimedia.org/wiki/File:1124_Intrinsic_Muscles_of_the_Foot.jpg',pins:[{m:8,x:17,y:58}]},{f:'img/anat/pes-anserinus.jpg',cap:'거위발 — 무릎 안쪽 아래 동그라미',by:'M. Häggström · Gray 434',lic:'퍼블릭 도메인',url:'https://commons.wikimedia.org/wiki/File:Pes_anserinus.png',pins:[{m:9,x:37,y:91}]}],
+      nerves:[
+        { n:'총비골신경', en:'common fibular nerve', mesh:['commonfibularnerve.r','superficialfibularnerve.r','deepfibularnerve.r'], where:'무릎 뒤에서 바깥쪽 비골 머리를 감고 정강이 앞·바깥으로', why:'무릎 바깥 뼈 바로 옆을 지나 눌리기 쉬워요. 눌리면 발등이 저리고 발목을 못 들어요 (다리 꼬고 앉기 주의)', src:'교과' },
+        { n:'경골신경', en:'tibial nerve', mesh:['tibialnerve.r'], where:'무릎 뒤 가운데에서 종아리 속 깊이', why:'종아리·발바닥 근육을 움직여요. 종아리가 굳어 뭉치면 그 속을 지나는 이 신경이 같이 불편할 수 있어요', src:'교과' },
+        { n:'복재신경 (무릎 안쪽)', en:'saphenous nerve', mesh:['saphenousbranchoffemoralisnerve.r','saphenousnervemedialcruralcutaneousbranches.r','infrapatellarbranchofsaphenousnerve.r'], where:'내전근 터널을 지나 무릎 안쪽 → 정강이 안쪽 피부', why:'무릎 안쪽·정강이 안쪽 피부 감각 신경. 거위발 근처를 지나서 무릎 안쪽 통증과 섞여 보일 수 있어요 — 원인 구분은 정형외과', src:'교과' },
+        { n:'발바닥 신경', en:'medial / lateral plantar nerve', mesh:['medialplantarnerve.r','lateralplantarnerve.r'], where:'발목 안쪽 복사뼈 뒤를 돌아 발바닥으로', why:'발 아치 근육을 움직이고 발바닥 감각을 맡아요 — 수건 잡기로 깨우는 근육에 명령을 보내는 줄', src:'교과' },
+      ],
       muscles:[
         { k:1, n:'모음근 (내전근)', en:'adductors', t:'r', where:'허벅지 안쪽', does:'짧아지면 무릎을 안으로 끌어당겨요', fix:'🔴 내전근 스트레칭', src:'NASM' },
         { k:2, n:'TFL + 장경인대', en:'TFL / IT band', t:'r', where:'골반 옆 → 허벅지 바깥 띠 → 무릎 바깥', does:'무릎 바깥을 당겨 무릎이 돌아가게 해요', fix:'🔴 마사지볼 골반 옆', src:'NASM' },
@@ -522,6 +541,7 @@
         <div class="an-h r">🔴 풀고 늘리기</div>${red.map(row).join('')}
         <div class="an-h g">🟢 깨우기</div>${green.map(row).join('')}
         ${other.length ? `<div class="an-h p">⚠ 조심할 자리</div>${other.map(row).join('')}` : ''}
+        ${(a.nerves || []).length ? `<div class="an-h n">⚡ 이 근육들 곁을 지나는 신경</div><div class="an-tip">신경이 실제로 눌리는지는 검사로만 알 수 있어요. 여기선 "어디를 지나서 어떤 근육과 엮이는지"만</div>${a.nerves.map(nv => `<div class="an-m n"><span class="an-k">⚡</span><div class="an-body"><div class="an-n">${esc(nv.n)} <small>${esc(nv.en)}</small><span class="xi-basis b-${nv.src === '교과' ? '수정' : (nv.src === '쌤' ? '공식' : '확인')}">${esc(nv.src)}</span></div><div class="an-where">📍 ${esc(nv.where)}</div><div class="an-does">${esc(nv.why)}</div></div></div>`).join('')}` : ''}
       </div></details>`;
   }
 
@@ -1074,7 +1094,8 @@
     .an-fig figcaption{font-size:10px;color:var(--ink-faint);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 8px;} .an-fig .xi-credit{display:inline;width:auto;margin:0;}
     .an-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-dim);}
     .an-tip{font-size:10.5px;color:var(--ink-faint);word-break:keep-all;}
-    .an-h{font-size:12px;font-weight:800;margin-top:4px;} .an-h.r{color:#E07A80;} .an-h.g{color:#7FC08A;} .an-h.p{color:var(--accent-a);}
+    .an-h{font-size:12px;font-weight:800;margin-top:4px;} .an-h.r{color:#E07A80;} .an-h.g{color:#7FC08A;} .an-h.p{color:var(--accent-a);} .an-h.n{color:#FFD54A;}
+    .an-m.n{border-left-color:#FFD54A;} .an-m.n .an-k{background:#FFD54A;color:#1B1F23;font-size:12px;}
     .an-m{display:grid;grid-template-columns:24px 1fr;gap:8px;padding:7px 8px;border-radius:9px;border:1px solid var(--border);border-left:4px solid;background:var(--surface);}
     .an-m.r{border-left-color:#D9534F;} .an-m.g{border-left-color:#3FA35B;} .an-m.p{border-left-color:#E8A33D;}
     .an-m.hit{box-shadow:0 0 0 2px var(--accent-a) inset;}

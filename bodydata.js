@@ -2,7 +2,8 @@
 // 출처: 2022-12-28 바퍼 체형분석 결과지 (KIM EUN YOUNG) + 2026-10 증상
 // 각도는 결과지 숫자 그대로. 숫자가 없는 항목(거북목, 머리 회전)은 보이게끔 작게 잡았다.
 // 3D "근육 보기": 부위마다 보여 줄 근육 (모델 속 이름, 소문자·기호 제거) → 근육 지도(EXINFO.ANAT[part].muscles 의 k)
-// 다리 모델(leg-right.glb)은 오른쪽만 있다. 어깨·목 근육은 모델이 아직 없다 (Open3DModel 팔·어깨 묶음을 받으면 추가)
+// 모델은 오른쪽만 있다 (leg-right.glb · shoulder-right.glb). 전체 보기의 왼쪽 근육은 오른쪽을 거울로 복사한 것.
+// 신경은 EXINFO.ANAT[부위].nerves (이름·설명·근거) — 3D 파일은 nerves-leg-right.glb · nerves-shoulder-right.glb (⚡ 누를 때만 받음)
 window.BODY_REGIONS = {
   // 어깨 모델(shoulder-right.glb)엔 '승모근 전체'·'삼각근 전체'·'큰가슴근 전체' 덩어리와 그 부분 덩어리가 같이 들어 있어 전체 덩어리는 숨긴다(hide)
   shoulder: { name:'어깨 · 목', lookFrom:2.6, camY:1.33, dist:1.35, hide:['trapeziusmuscle.r','deltoidmuscle.r','pectoralismajor.r'], groups:{

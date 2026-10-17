@@ -204,7 +204,6 @@
     if(sh){ let shMus = null; sh.scene.traverse(o => { if(!shMus && o.userData.orig === 'Pectoral girdle - muscles') shMus = o; }); if(!shMus) shMus = sh.scene; shGroup.add(shMus); }   // GLTFLoader 가 이름의 공백·기호를 지우므로 원래 이름(userData.orig)으로 찾는다
     body.add(shGroup);
     const shMuscleMeshes = meshesOf(shGroup);
-    shMuscleMeshes.forEach(m => { m.visible = false; });
     const legMuscleMeshes = meshesOf(legGroup).concat(shMuscleMeshes);   // 자세 기울이기에서 다른 묶음으로 옮겨가기 전에 잡아 둔다 (어깨 근육 포함)
     // 뼈대의 오른쪽 다리뼈는 근육 속에 묻히니 그대로 두되, 골반·발은 보이게 둔다
 
@@ -228,6 +227,10 @@
     J.headTop = fb.max.y; J.headY = (fb.min.y + fb.max.y) / 2 - 0.02;
 
     // 자세 기울이기 (오른쪽 -1, 왼쪽 +1). 가운데 뼈(두개골 등)는 오른쪽 묶음과 같이 처리
+    // 왼쪽 근육은 오른쪽을 거울로 (left 묶음은 x 가 뒤집혀 있어 그냥 넣으면 거울이 된다). 모델엔 오른쪽만 있어서 왼쪽은 "같다고 치고" 보여 주는 것
+    const legMirror = legGroup.clone(true), shMirror = shGroup.clone(true);
+    left.add(legMirror); left.add(shMirror);
+    const mirrorMeshes = meshesOf(legMirror).concat(meshesOf(shMirror));
     const midAndRight = new THREE.Group(); body.add(midAndRight); midAndRight.attach(mid); midAndRight.attach(right); midAndRight.attach(legGroup); midAndRight.attach(shGroup);
     pose(midAndRight, F, -1);
     pose(left, F, +1);
@@ -265,8 +268,38 @@
       regionBox[k] = bx;
     });
     function restoreAll(){
-      [].concat(boneMeshes, legMuscleMeshes).forEach(m => { m.material = origMat.get(m); m.visible = !shMuscleMeshes.includes(m); delete m.userData.anatK; });
+      [].concat(boneMeshes, legMuscleMeshes).forEach(m => { m.material = origMat.get(m); m.visible = true; delete m.userData.anatK; });
+      mirrorMeshes.forEach(m => { m.visible = true; });
+      nerveOn = false; nerveMeshes.forEach(m => { m.visible = false; }); nervePick = [];
     }
+    // ----- 신경: 부위 보기에서 ⚡ 를 누르면 그때 받는다 (다리 1.5MB · 어깨 0.4MB) -----
+    const NERVE_FILE = { shoulder:'nerves-shoulder-right.glb', back:'nerves-leg-right.glb', knee:'nerves-leg-right.glb' };
+    const nerveLoaded = {};   // 파일 → 묶음
+    let nerveOn = false, nerveMeshes = [], nervePick = [];
+    const nerveMat = new THREE.MeshStandardMaterial({ color:0xFFD54A, emissive:0xFFD54A, emissiveIntensity:0.45, roughness:0.5, depthTest:false, depthWrite:false });   // 근육을 뚫고 보이게 (엑스레이처럼)
+    async function loadNerves(file){
+      if(nerveLoaded[file]) return nerveLoaded[file];
+      status('신경 불러오는 중…');
+      const g = await loadGLB(loader, base + file); tagNames(g);
+      const grp = new THREE.Group(); grp.add(g.scene); midAndRight.add(grp);
+      meshesOf(grp).forEach(m => { m.visible = false; m.material = nerveMat; m.renderOrder = 12; });
+      nerveLoaded[file] = grp; status('');
+      return grp;
+    }
+    window.body3dNerves = async function(on){
+      nerveOn = !!on;
+      nerveMeshes.forEach(m => { m.visible = false; }); nerveMeshes = []; nervePick = [];
+      regionMeshes.forEach(m => { m.material.transparent = !!nerveOn; m.material.opacity = nerveOn ? 0.45 : 1; m.material.needsUpdate = true; });
+      if(!nerveOn || !region) return { on:false, count:0 };
+      const anat = (window.EXINFO && EXINFO.ANAT && EXINFO.ANAT[region]) || {};
+      const list = anat.nerves || []; if(!list.length) return { on:false, count:0 };
+      let grp; try{ grp = await loadNerves(NERVE_FILE[region]); }catch(e){ console.warn('nerves', e); status(''); return { on:false, count:0, error:true }; }
+      if(!nerveOn || !region) return { on:false, count:0 };
+      const all = meshesOf(grp);
+      list.forEach((nv, i) => (nv.mesh || []).forEach(nm => all.filter(m => norm(m.userData.orig) === nm).forEach(m => { m.visible = true; m.userData.nerveIdx = i; nerveMeshes.push(m); })));
+      nervePick = nerveMeshes.slice();
+      return { on:true, count:list.length };
+    };
     window.body3dRegion = function(key){
       pickHL = []; region = REGIONS[key] ? key : null;
       if(!region){
@@ -289,6 +322,8 @@
         }));
       });
       markers.forEach(s => s.visible = false); lines.visible = false;
+      mirrorMeshes.forEach(m => { m.visible = false; });
+      nerveOn = false; nerveMeshes.forEach(m => { m.visible = false; }); nerveMeshes = []; nervePick = [];
       const bx = regionBox[region]; const c = bx.getCenter(new THREE.Vector3()); const sz = bx.getSize(new THREE.Vector3());
       cam.ty = (R.camY != null) ? R.camY : c.y; cam.tdist = (R.dist != null) ? R.dist : Math.max(1.1, Math.min(3.9, Math.max(sz.x, sz.y, sz.z) * 2.4));
       auto = false; targetX = 0; targetY = R.lookFrom || 0;
@@ -304,8 +339,10 @@
       const r = renderer.domElement.getBoundingClientRect();
       ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      const hit = ray.intersectObjects(regionMeshes, false)[0];
+      const hitN = nervePick.length ? ray.intersectObjects(nervePick, false)[0] : null;   // 신경이 켜져 있으면 신경 먼저 (근육 속에 묻혀 있어서)
+      const hit = hitN || ray.intersectObjects(regionMeshes, false)[0];
       if(!hit) return null;
+      if(hit.object.userData.nerveIdx != null) return { part: region, nerve: hit.object.userData.nerveIdx, orig: hit.object.userData.orig };
       const k = hit.object.userData.anatK; window.body3dHighlight(k);
       return { part: region, k, orig: hit.object.userData.orig };
     }
