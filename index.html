@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=79"></script>
+<script src="exinfo.js?v=80"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -562,6 +562,19 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .daily-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .daily-manage-btn,.daily-manage-btn:visited{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer;}
   .daily-item{padding:12px 0;border-top:1px solid var(--border);}
+  /* 아침 기상 루틴 */
+  .mo-link{font-size:12px;color:var(--accent-b);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:4px 9px;}
+  .mo-sum{font-size:12.5px;color:var(--ink-dim);margin:-2px 0 8px;} .mo-sum b{color:var(--ink);}
+  .mo-grp{font-size:11px;color:var(--ink-faint);letter-spacing:.04em;margin:10px 0 2px;}
+  .mo-item{display:flex;gap:10px;align-items:flex-start;padding:7px 2px;border-top:1px solid var(--border);cursor:pointer;}
+  .mo-item input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--accent-b);flex:none;}
+  .mo-item .mo-n{font-size:13.5px;color:var(--ink);font-weight:600;}
+  .mo-item .mo-h{font-size:11.5px;color:var(--ink-faint);line-height:1.45;margin-top:1px;word-break:keep-all;}
+  .mo-item.on .mo-n{color:var(--ink-dim);text-decoration:line-through;}
+  .mo-foot{display:flex;gap:8px;margin-top:12px;}
+  .mo-btn{flex:1;padding:10px;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .mo-btn.ghost{flex:0 0 auto;padding:10px 14px;color:var(--ink-faint);font-weight:500;}
+  .mo-note{font-size:11.5px;color:var(--ink-faint);line-height:1.55;margin:10px 0 0;word-break:keep-all;}
   .daily-item:first-child{border-top:none;padding-top:2px;}
   .daily-item .di-name{font-weight:600;font-size:14px;margin-bottom:8px;}
   .daily-item .di-name .di-type{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--ink-dim);margin-left:6px;font-weight:400;}
@@ -921,7 +934,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
-    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v79</span></p>
+    <p class="sub">화·금 PT · 일 하체 · 수 가슴·등 · 목 어깨·팔 · 월·토 회복 · 운동 날엔 공통 워밍업 <span style="color:var(--ink-faint);">· v80</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -991,6 +1004,21 @@ if(!window.EXINFO) window.EXINFO = (function(){
           <div class="mpanel active" id="mpanel-master"></div>
         </div>
       </div>
+    </div>
+
+    <!-- 아침 기상 루틴: 뉴로 웜업 21단계 체크 (단계 목록은 exinfo.js 의 MORNING) -->
+    <div class="card" id="morningCard">
+      <div class="daily-head">
+        <span class="field-label" style="margin:0;">🌅 아침 기상 루틴 — 뉴로 웜업</span>
+        <a class="mo-link" href="https://youtu.be/CDY3DKA37cU" target="_blank" rel="noopener">영상 ↗</a>
+      </div>
+      <div class="mo-sum" id="moSum"></div>
+      <div id="moList"></div>
+      <div class="mo-foot">
+        <button class="mo-btn" id="moAll">다 했어요 ✓</button>
+        <button class="mo-btn ghost" id="moClear">지우기</button>
+      </div>
+      <p class="mo-note">일어나서 15분. 위에서 아래로, 감각을 깨우는 순서예요. 순서·이름은 영상 그대로, 요령은 영상에서 들리는 만큼만 적었어요.</p>
     </div>
 
     <div class="card">
@@ -2750,6 +2778,7 @@ function renderDayTypeAndForm(){
   // 예전엔 이 줄이 renderDaily 뒤에 있어서, 되살린 매일 루틴 시각이 지워진 채로 저장됐다
   setTimes = {}; dailyTimes = {};
   renderDaily(existing);
+  renderMorning(existing);
 
   if(pt){
     banner.innerHTML = `<div class="daytype-banner pt"><div><div class="big">PT 받는 날</div><p>선생님과 세션 진행 · 배운 운동을 검색해서 기록해두세요</p></div></div>`;
@@ -3583,6 +3612,7 @@ function buildEntryFromForm(){
     group: pt ? 'PT' : '운동', // 기록 보기 태그 표시용
     exercises: exData,
     daily: daily,
+    morning: collectMorning(),
     note: note
   };
 }
@@ -3754,6 +3784,49 @@ function dailyTimesText(sets){
   return ' <span class="dt-time">⏱ ' + ts.join(' → ')
        + (gaps.length ? ' <span class="rest">쉼 ' + gaps.join(', ') + '</span>' : '') + '</span>';
 }
+// ---------- 아침 기상 루틴 (뉴로 웜업 21단계) ----------
+// 저장 모양: entry.morning = { steps:{ 단계키:true }, t:'HH:MM'(마지막으로 체크한 시각) }. 하나도 안 했으면 저장하지 않는다.
+let morningTime = '';
+function renderMorning(existing){
+  const list = document.getElementById('moList'); if(!list || !window.EXINFO) return;
+  const saved = (existing && existing.morning) || {};
+  const steps = saved.steps || {};
+  morningTime = saved.t || '';
+  let g = '', html = '';
+  EXINFO.MORNING.steps.forEach(s=>{
+    if(s.g !== g){ g = s.g; html += `<div class="mo-grp">${g}</div>`; }
+    html += `<label class="mo-item${steps[s.k] ? ' on' : ''}"><input type="checkbox" data-mo="${s.k}"${steps[s.k] ? ' checked' : ''}>
+      <span><span class="mo-n">${s.n}</span><div class="mo-h">${s.h}</div></span></label>`;
+  });
+  list.innerHTML = html;
+  list.querySelectorAll('input[data-mo]').forEach(cb=> cb.addEventListener('change', ()=>{
+    cb.closest('.mo-item').classList.toggle('on', cb.checked);
+    morningTime = nowHHMM();
+    updateMorningSum(); autoSave();
+  }));
+  updateMorningSum();
+}
+function collectMorning(){
+  const cbs = [...document.querySelectorAll('#moList input[data-mo]')];
+  if(!cbs.length) return undefined;
+  const steps = {}; cbs.forEach(cb=>{ if(cb.checked) steps[cb.dataset.mo] = true; });
+  if(!Object.keys(steps).length) return undefined;
+  return { steps, t: morningTime || nowHHMM() };
+}
+function updateMorningSum(){
+  const el = document.getElementById('moSum'); if(!el) return;
+  const n = document.querySelectorAll('#moList input[data-mo]:checked').length, all = EXINFO.MORNING.steps.length;
+  el.innerHTML = n ? `<b>${n}</b> / ${all} 단계${n === all ? ' — 오늘 기상 루틴 끝 ✓' : ''}${morningTime ? ` · ${morningTime}` : ''}` : '아직 안 했어요 — 하나씩 체크하거나 "다 했어요"';
+}
+document.getElementById('moAll').addEventListener('click', ()=>{
+  document.querySelectorAll('#moList input[data-mo]').forEach(cb=>{ cb.checked = true; cb.closest('.mo-item').classList.add('on'); });
+  morningTime = nowHHMM(); updateMorningSum(); autoSave(); showToast('기상 루틴 완료 · ' + morningTime);
+});
+document.getElementById('moClear').addEventListener('click', ()=>{
+  document.querySelectorAll('#moList input[data-mo]').forEach(cb=>{ cb.checked = false; cb.closest('.mo-item').classList.remove('on'); });
+  morningTime = ''; updateMorningSum(); autoSave();
+});
+
 function dailyToText(e){
   // 신형 daily 우선, 없으면 구형 wgs/cardio 대응
   const parts = [];
@@ -3787,6 +3860,8 @@ function entryCardHTML(e){
   const w = water[e.date] || 0;
   const dailyTxt = dailyToText(e);
   if(dailyTxt) body += `<div style="margin-top:6px;">${dailyTxt}</div>`;
+  const moTxt = window.EXINFO ? EXINFO.morningText(e) : '';
+  if(moTxt) body += `<div style="margin-top:4px;">${moTxt}</div>`;
   body += `<div style="margin-top:2px;"><b>💧 수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
   return `
     <div class="hist-entry">

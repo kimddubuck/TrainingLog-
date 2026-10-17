@@ -119,6 +119,44 @@
   };
   function fixTip(name){ return FIX[norm(name)] || null; }
 
+  // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----
+  // 출처: 유튜브 '바디해킹트레이너' — 신경계 체조/필수 준비운동/뉴로 웜업, 센서리 웜업 (https://youtu.be/CDY3DKA37cU)
+  // 순서·이름은 영상 화면 목록 그대로. 요령은 영상 자막에서 들리는 만큼만 적었다 (자세한 건 영상).
+  // 원리(영상 설명): 만성통증을 줄이려면 잘 움직여야 하고, 잘 움직이려면 감각을 먼저 깨워야 근육을 잘 쓴다.
+  const MORNING = {
+    url: 'https://youtu.be/CDY3DKA37cU', src: '유튜브 바디해킹트레이너 — 뉴로 웜업·센서리 웜업',
+    steps: [
+      { k:'teeth',  g:'머리·얼굴', n:'치아 치기',      h:'위아래 이를 가볍게 딱딱' },
+      { k:'tongue', g:'머리·얼굴', n:'혀 – 잇몸',      h:'혀로 잇몸 안팎 훑기' },
+      { k:'face',   g:'머리·얼굴', n:'얼굴 세수',      h:'세수하듯 구석구석 문지르기, 최대한 부드럽게' },
+      { k:'eyes',   g:'머리·얼굴', n:'눈 주변',        h:'눈 주변 뼈·근육만 가볍게, 눈 안쪽(눈물샘 자리)까지' },
+      { k:'scalp',  g:'머리·얼굴', n:'두피',           h:'손가락 끝으로 골고루, 뒤 끝까지' },
+      { k:'subocc', g:'머리·얼굴', n:'후두하근',       h:'뒤통수 아래 오목한 곳을 엄지로 눌러주기' },
+      { k:'ear',    g:'머리·얼굴', n:'귀',             h:'누르고 당기고 접기 — 연골·귓구멍 쪽까지. 아프지 않고 야들야들해야 좋은 상태' },
+      { k:'neck',   g:'몸통',     n:'목',             h:'목 앞·옆·뒤 피부를 따라 쓸기' },
+      { k:'chest',  g:'몸통',     n:'가슴',           h:'가슴을 원 그리며 문지르기' },
+      { k:'arm',    g:'몸통',     n:'팔',             h:'팔 안쪽→바깥쪽 쓸기 (팔이 힘들면 팔을 내리고)' },
+      { k:'rib',    g:'몸통',     n:'갈비뼈',         h:'갈비뼈 사이를 문지르기' },
+      { k:'belly',  g:'몸통',     n:'복부',           h:'배를 둥글게 문지르기' },
+      { k:'waist',  g:'몸통',     n:'허리 (요방형근)', h:'허리 옆·뒤를 눌러주기' },
+      { k:'leg',    g:'다리·발',  n:'엉덩이 ~ 발목',   h:'엉덩이→허벅지 안쪽→종아리→사타구니, 뒤쪽 오금·종아리까지. 허리가 불편하면 끝까지 숙이지 말고 아프지 않은 만큼만' },
+      { k:'top',    g:'다리·발',  n:'발등',           h:'뒤꿈치 → 발가락 → 발등에 체중 실어 밟기' },
+      { k:'sole',   g:'다리·발',  n:'발바닥 – 발가락', h:'발바닥·발가락 눌러 자극' },
+      { k:'tiptoe', g:'다리·발',  n:'까치발 털기',     h:'까치발로 가볍게 털기' },
+      { k:'twist',  g:'마무리',   n:'몸통 회전',       h:'다리까지 써서 끝까지 비틀기 — 어지러우면 천천히, 통증은 참지 않기' },
+      { k:'aero',   g:'마무리',   n:'에어로빅',        h:'팔다리 가볍게 흔들며 풀기' },
+      { k:'eyemv',  g:'마무리',   n:'눈',             h:'손가락을 눈으로 따라가기 (눈 운동)' },
+      { k:'breath', g:'마무리',   n:'심호흡',          h:'코로 들이마시고 내쉬기를 더 길게 (입으로 뱉어도 됨)' },
+    ],
+  };
+  // 기록 글: "🌅 기상 루틴 15/21 · 07:12"
+  function morningText(e){
+    const m = e && e.morning; if(!m || !m.steps) return '';
+    const done = MORNING.steps.filter(s => m.steps[s.k]).length;
+    if(!done) return '';
+    return `<b>🌅 기상 루틴</b> ${done}/${MORNING.steps.length}${done === MORNING.steps.length ? ' ✓' : ''}${m.t ? ` <span class="mslot-time">${esc(m.t)}</span>` : ''}`;
+  }
+
   // ----- 이름 → 기구 · 쪽 · 결 -----
   const norm = s => String(s || '').replace(/\s+/g, '');
   function toolOf(n, type){
@@ -397,5 +435,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
