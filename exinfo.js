@@ -200,9 +200,26 @@
 · 같은 운동만 반복하지 않기 (운동 편식 금지) · 가끔은 새로운 운동
 · 한 시간 안 · 끝범위에서, 내가 통제할 수 있는 만큼
 · 앞은 풀고 뒤는 깨우기 · 아프면 멈추기 · 선생님 말씀이 먼저`;
-  // 줄글 → 화면 (빈 줄은 문단, 각 줄은 그대로)
+  // 기본 글은 짧은 인포그래픽으로: 한 줄 목적 → 신체지도 사다리(가로) → 약속 딱지
+  const PHILO = {
+    goal: '내 몸을 자유롭게 쓰고, 아프지 않게',
+    sub: '근육은 그다음 · 무릎·허리 고치고 틀어진 몸 바로 세우기',
+    ladder: [ ['🍚', '바닥', '먹고·자고·마음'], ['🫀', '순환', '1순위'], ['🧱', '코어', '막는 힘'],
+              ['⚖️', '밸런스', '흔들릴 때 잡기'], ['🩹', '재활', '풀→늘→깨→통합'], ['🚀', '파워', '지구력→근육→힘'] ],
+    promises: ['알고 하기', '목적 정하고 즐겁게', '편식 금지', '한 시간 안', '끝범위 · 통제되는 만큼', '앞은 풀고 뒤는 깨우기', '아프면 멈춤', '선생님 먼저'],
+  };
+  function philoGraphic(){
+    return `<div class="pg">
+      <div class="pg-goal">🎯 ${esc(PHILO.goal)}</div>
+      <div class="pg-sub">${esc(PHILO.sub)}</div>
+      <div class="pg-ladder">${PHILO.ladder.map((s, i) => `<div class="pg-step" style="--k:${i}"><span class="pg-ic">${s[0]}</span><b>${esc(s[1])}</b><small>${esc(s[2])}</small></div>`).join('')}</div>
+      <div class="pg-prom">${PHILO.promises.map(p => `<span>${esc(p)}</span>`).join('')}</div>
+    </div>`;
+  }
+  // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
   function philoHTML(text){
-    const t = String(text || PHILO_DEFAULT).trim();
+    const t = String(text || '').trim();
+    if(!t || t === PHILO_DEFAULT.trim()) return philoGraphic();
     return t.split(/\n\s*\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
   }
 
@@ -478,6 +495,15 @@
     .xi-sci-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px;}
     .xi-sci{font-size:12px;line-height:1.6;color:var(--ink-dim);margin-top:4px;word-break:keep-all;} .xi-sci b{color:var(--ink);}
     .philo{border-left:4px solid var(--accent-a);}
+    .pg-goal{font-size:15px;font-weight:800;color:var(--ink);line-height:1.35;word-break:keep-all;}
+    .pg-sub{font-size:11.5px;color:var(--ink-faint);margin:2px 0 10px;word-break:keep-all;}
+    .pg-ladder{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;align-items:end;}
+    .pg-step{display:flex;flex-direction:column;align-items:center;text-align:center;border-radius:8px;padding:6px 2px 5px;
+      background:color-mix(in srgb, var(--accent-a) calc(8% + var(--k) * 4%), transparent);border-bottom:2px solid color-mix(in srgb, var(--accent-a) calc(30% + var(--k) * 10%), transparent);}
+    .pg-ic{font-size:15px;line-height:1.1;} .pg-step b{font-size:11.5px;color:var(--ink);margin-top:2px;}
+    .pg-step small{font-size:9px;color:var(--ink-faint);line-height:1.25;margin-top:1px;word-break:keep-all;}
+    .pg-prom{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;}
+    .pg-prom span{font-size:10.5px;color:var(--ink-dim);border:1px solid var(--border);border-radius:999px;padding:2px 8px;white-space:nowrap;}
     .philo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
     .philo-title{font-size:14px;font-weight:700;color:var(--ink);}
     .philo-edit{background:none;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:4px 9px;font-size:12px;cursor:pointer;font-family:inherit;}
