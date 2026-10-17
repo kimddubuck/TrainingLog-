@@ -584,6 +584,9 @@
     '백년척추 디스크 예방 (허리·목 뒤로 젖히기)': { f:'img/rehab/standing-extension.jpg', approx:false, by:'Sakaguchi 외, J Clin Med 2024 (일부 자름)', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11122457/' },
     '승모근 아래 깨우기 (손바닥 뒤로 내리기)': { f:'img/rehab/lowtrap.jpg', approx:true, by:'Levine·Rigby, Healthcare 2018', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC6023437/' },
     'Y 레이즈': { f:'img/rehab/prone-y.jpg', approx:false, by:'Liu 외, Medicine 2025 (일부 자름)', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12440407/' },
+    '턱 당기기 (깊은 목 근육)': { f:'img/rehab/chintuck.jpg', approx:false, by:'Kim·Park, Medicina 2026', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC13609262/' },
+    '월 슬라이드': { f:'img/rehab/wallslide.jpg', approx:false, by:'Ruiz Ibán 외, Open Orthop J 2017 (일부 자름)', lic:'CC BY 4.0', url:'https://openorthopaedicsjournal.com/VOLUME/11/PAGE/812/' },
+    '폼롤러 등 펴기 (흉추)': { f:'img/rehab/tspine-foamroll.jpg', approx:false, by:'Bayram·Kaya, BMC Sports Sci Med Rehabil 2026 (일부 자름·얼굴 흐림)', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC13094134/' },
     '고관절 힌지 보조운동': { f:'img/rehab/hiphinge-dowel.jpg', approx:true, by:'Michaud 외, Sensors 2021', lic:'CC BY 4.0', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC8402067/' },
   };
   function imgOf(name){

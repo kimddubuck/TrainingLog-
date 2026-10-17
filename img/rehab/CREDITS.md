@@ -14,5 +14,8 @@
 | lowtrap.jpg | 승모근 아래 깨우기 (손바닥 뒤로 내리기) | Levine NA, Rigby BR. Healthcare (Basel) 2018, Fig. 2. doi:10.3390/healthcare6020068 — https://pmc.ncbi.nlm.nih.gov/articles/PMC6023437/ | CC BY 4.0 | 크기 줄임 |
 | prone-y.jpg | Y 레이즈 | Liu B, Wang B, Tian K, Chen G, Zhang W. Medicine (Baltimore) 2025, Fig. 2C. doi:10.1097/MD.0000000000044286 — https://pmc.ncbi.nlm.nih.gov/articles/PMC12440407/ | CC BY 4.0 | C 칸만 자름 |
 | hiphinge-dowel.jpg | 고관절 힌지 보조운동 | Michaud F, Pérez Soto M, Lugrís U, Cuadrado J. Sensors 2021, Fig. 1. doi:10.3390/s21165487 — https://pmc.ncbi.nlm.nih.gov/articles/PMC8402067/ | CC BY 4.0 | 크기 줄임 |
+| chintuck.jpg | 턱 당기기 (깊은 목 근육) | Kim C, Park D. Medicina (Kaunas) 2026;62(9):1666, Fig. 2. doi:10.3390/medicina62091666 — https://pmc.ncbi.nlm.nih.gov/articles/PMC13609262/ | CC BY 4.0 | 크기 줄임 |
+| wallslide.jpg | 월 슬라이드 | Ruiz Ibán MA, Díaz Heredia J, García Navlet M, Serrano F, Santos Oliete M. Open Orthop J 2017;11:812-825, Fig. 2b. doi:10.2174/1874325001711010812 — https://openorthopaedicsjournal.com/VOLUME/11/PAGE/812/ | CC BY 4.0 (출판사 쪽 기준. PMC 사본에는 비상업 문구도 있음 — 이 앱은 비상업 개인용) | b 칸만 자름 |
+| tspine-foamroll.jpg | 폼롤러 등 펴기 (흉추) | Bayram K, Kaya DÖ. BMC Sports Sci Med Rehabil 2026;18:207, Fig. 1a. doi:10.1186/s13102-026-01633-9 — https://pmc.ncbi.nlm.nih.gov/articles/PMC13094134/ | CC BY 4.0 | a 칸만 자름, 얼굴 흐림 처리 |
 
 확인: 2026-10-17, 각 논문 쪽의 라이선스 문구와 위키미디어 파일 정보에서 직접 확인.
