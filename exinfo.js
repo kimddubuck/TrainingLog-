@@ -404,10 +404,10 @@
           ${x.info ? `<div class="tr-row tr-dim">${esc(x.info.icon)} ${esc(x.info.toolText)} · ${esc(x.info.sideText)} · ${esc(w.key === '?' ? '선생님 확인' : (w.key === '일반' ? '셋 다 아님' : w.key))} — ${esc(w.why)}</div>` : ''}
         </div></details>`;
     };
-    const branch = (g, rows) => {
+    const branch = (g, rows, vids) => {
       const count = rows.filter(r => typeof r !== 'string').length;
       if(!count) return '';
-      const body = rows.map(r => typeof r === 'string' ? `<div class="tr-sub">${esc(r)}</div>` : leaf(r)).join('');
+      const body = rows.map(r => typeof r === 'string' ? `<div class="tr-sub">${esc(r)}</div>` : leaf(r)).join('') + (vids || '');
       return `<details class="tr-group" style="--gc:${g.c}"><summary><span class="tr-gi">${g.ic}</span><span class="tr-gn">${esc(g.n)}<small>${esc(g.sub)}</small></span><span class="tr-gc">${count}</span></summary>
         <div class="tr-branch">${body}</div></details>`;
     };
@@ -420,7 +420,7 @@
       });
       // 작은 제목 뒤에 종목이 하나도 없으면 그 제목은 지운다
       const clean = rows.filter((r, i) => typeof r !== 'string' || (rows[i + 1] && typeof rows[i + 1] !== 'string'));
-      return branch(g, clean);
+      return branch(g, clean, opt.vids === false ? '' : treeVidsHTML(g.k));
     }).join('');
     const rest = items.filter(x => !used.has(norm(x.name)));
     const total = items.length - rest.length;
@@ -636,7 +636,7 @@
   };
   const GEAR_TXT = { bw:'맨몸으로도 가능', cable:'필라케이블·코어케이블 필요', band:'라쿠다 밴드 필요' };
   function hbChannelHTML(ch, showGear){
-    const g = ch.groups.map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.map(it => `
+    const g = ch.groups.filter(gr => gr.items.some(it => !it.wait)).map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.filter(it => !it.wait).map(it => `
       <a class="hb-i" href="https://www.youtube.com/${it.sh ? 'shorts/' : 'watch?v='}${it.id}" target="_blank" rel="noopener">
         <img src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" loading="lazy" alt="">
         <span class="hb-x"><span class="hb-n">${it.pick ? '⭐ ' : ''}${esc(it.n)}</span>${(showGear || it.gear) ? `<span class="hb-gear ${it.gear}">${GEAR_TXT[it.gear] || it.gear}</span>` : (it.sh ? '<span class="hb-gear bw">짧은 영상 · 맨몸</span>' : '<span class="hb-gear bw">맨몸</span>')}${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
@@ -653,9 +653,129 @@
     const it = all[((d * 7) % all.length + all.length) % all.length];   // 7칸씩 건너뛰어 묶음이 섞이게
     return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
   }
+  // 뻔더 (@fundamental_kr) — 맨몸 움직임 개인 채널. 쇼츠(1분 안팎)만. 근거는 '일반'
+  // wait:true = 회원 전용인지 아직 확인 전 → 화면에 안 나온다. _temp/영상확인/batch.js 가 며칠에 나눠 확인해서 wait 를 지우거나(무료) 줄을 지운다(회원 전용)
+  const BD = {
+    channel:'https://www.youtube.com/@fundamental_kr/playlists', name:'뻔더',
+    tip:'맨몸 움직임을 1분 안팎으로 짧게 알려 주는 개인 채널이에요.\n회원 전용이 아닌지 하나씩 확인한 것만 보여요.\n나머지는 며칠에 나눠 확인하고 있어요.\n근거는 "일반"이에요. 강의나 NASM 과는 달라요.',
+    groups:[
+      { t:'🫱 굽은 등 · 말린 어깨', items:[
+        { id:'lCSf9FuBm20', n:'굽은 등, 어깨 이렇게 펴보세요', sh:true, wait:true },
+        { id:'hCC3jNlJv24', n:'굽은 등의 원인 — 이곳이 움직여야 해요', sh:true, wait:true },
+        { id:'s5P9UN_ujkM', n:'굽은 등과 거북목 데일리 스트레칭', sh:true, wait:true },
+        { id:'DU3pVnoEcd8', n:'굽은등·라운드숄더 1분 따라 하기', sh:true, wait:true },
+        { id:'EqCgw8BPbTM', n:'말린 어깨 펴는 운동 10가지', sh:true, wait:true },
+        { id:'qQwUoq8ya3M', n:'말린 어깨·굽은 등 운동 TOP 1', sh:true, wait:true },
+        { id:'er7l9X-eHdY', n:'말린 어깨를 위한 팔돌리기 팁 3가지', sh:true, wait:true },
+        { id:'LvpDob9qYIY', n:'나쁜 굽은 등, 좋은 굽은 등 구별법', sh:true, wait:true },
+        { id:'JsF8lersqxk', n:'상체 운동 전 필수 동작 (흉추 회전)', sh:true, wait:true },
+        { id:'a8eNvDkLDZw', n:'턱걸이 전 꼭 해야 하는 준비운동', sh:true, wait:true },
+      ] },
+      { t:'🙆 어깨 가동성', items:[
+        { id:'oQ9z0LXsFbI', n:'어깨 운동 전 이 동작부터', sh:true, wait:true },
+        { id:'8cN6ln6VxZ0', n:'어깨는 돌려야 합니다', sh:true, wait:true },
+        { id:'uYdWoooEqpc', n:'팔을 180도로 들 수 없다면', sh:true, wait:true },
+        { id:'48gD-RW-jjg', n:'병든 어깨를 치료해 줄 5가지 동작', sh:true, wait:true },
+        { id:'mGjTgOyZDh0', n:'팔이 몸 뒤로 잘 올라가지 않는다면', sh:true, wait:true },
+        { id:'tpkXdXxSRC0', n:'어깨가 뻣뻣하고 자주 아프다면', sh:true, wait:true },
+        { id:'rKsSbDY6-Mc', n:'혼자 등을 못 긁는다면', sh:true, wait:true },
+      ] },
+      { t:'🐢 목 · 거북목', items:[
+        { id:'sMcn4jZMg9M', n:'목과 승모근이 뻐근하다면', sh:true, wait:true },
+        { id:'7fUwH-QySlA', n:'뻐근한 목, 스트레칭만 하지 마세요', sh:true, wait:true },
+        { id:'jc7kfGBZZFI', n:'자라목 바로 집어넣지 마세요', sh:true, wait:true },
+        { id:'_55XoEBleRc', n:'목 통증, 스트레칭만 하셨나요?', sh:true, wait:true },
+        { id:'Ymkkv72R8FM', n:'평소 목이 자주 불편하다면', sh:true, wait:true },
+        { id:'cp2DkTN7nEs', n:'휴대폰 볼 때 최악의 자세', sh:true, wait:true },
+      ] },
+      { t:'🍑 고관절 · 골반 · 허리', items:[
+        { id:'xLd9UK2J3b8', n:'고관절이 뻣뻣하다면', sh:true, wait:true },
+        { id:'cPQXOtISCJk', n:'유연하고 강한 고관절을 위한 한 가지 동작', sh:true, wait:true },
+        { id:'hhqPzF12cAI', n:'고관절 기름칠하기', sh:true, wait:true },
+        { id:'rC_TK21aFdw', n:'고관절 내·외회전 스트레칭 3가지', sh:true, wait:true },
+        { id:'BwUgrlnzhpg', n:'스쿼트 전 고관절 필수 웜업', sh:true, wait:true },
+        { id:'XparnX9xSRc', n:'힙힌지 단계별 접근법 (데드리프트)', sh:true, wait:true },
+        { id:'HbMsD1deA6k', n:'골반 움직임 느끼기 (앞·뒤 기울기)', sh:true, wait:true },
+        { id:'10ZNiEjRee8', n:'골반 한쪽이 자꾸 떨어진다면', sh:true, wait:true },
+        { id:'LSJuhzT-00Y', n:'뻣뻣한 허리를 움직여 보세요', sh:true, wait:true },
+        { id:'MqtsvXYEZ_w', n:'허리가 아픈데 오래 앉아있다면', sh:true, wait:true },
+        { id:'yx0o3fzVFvU', n:'앉아있다 일어날 때 허리가 아프다면', sh:true, wait:true },
+        { id:'U3Uo3G6IApw', n:'코어 운동 후 허리가 더 아프다면', sh:true, wait:true },
+        { id:'dJaBp1AxCs8', n:'복근운동할 때 허리만 아프다면', sh:true, wait:true },
+        { id:'4ctg0QU4XaY', n:'코어에 힘주라는 건 어떤 뜻일까', sh:true, wait:true },
+        { id:'XcIFjvUIVxo', n:'허리 아프지 않게 햄스트링 유연성 늘리기', sh:true, wait:true },
+      ] },
+      { t:'🦵 무릎 · 발 · 발목', items:[
+        { id:'R-y8PiIrL10', n:'계단 내려갈 때 무릎이 아프다면', sh:true, wait:true },
+        { id:'xayphsXCvmw', n:'스쿼트할 때 무릎이 아프다면', sh:true, wait:true },
+        { id:'CQ-y9pVp__Q', n:'계단을 이용한 무릎 강화 동작 2가지', sh:true, wait:true },
+        { id:'yetSXpXQolA', n:'무릎 건강을 지키는 4가지 운동', sh:true, wait:true },
+        { id:'DAwIKTGlSSE', n:'티타늄 무릎 만드는 법', sh:true, wait:true },
+        { id:'m91Pdesc0W8', n:'발의 아치가 무너졌다면', sh:true, note:'왼발 아치', wait:true },
+        { id:'f8kekYD0M2I', n:'발 아치가 무너지면 생기는 일', sh:true, wait:true },
+        { id:'avOcecxNWTg', n:'발가락 운동 6가지', sh:true, wait:true },
+        { id:'9Olfw9_EATU', n:'발·발목 강화 운동 10가지', sh:true, wait:true },
+        { id:'5UGwiN_yabI', n:'발목이 계속 삔다면', sh:true, wait:true },
+        { id:'kQGutIiivw0', n:'러닝 후 종아리·발목이 아프다면', sh:true, wait:true },
+      ] },
+      { t:'🌀 전신 · 웜업', items:[
+        { id:'0YGv8gP8yjc', n:'관절 움직이기 8가지', sh:true, wait:true },
+        { id:'-VnE2Mz_xvY', n:'하루 6시간 이상 앉아 있다면', sh:true, wait:true },
+        { id:'PD5mohzZAio', n:'하루 6시간 이상 앉아있다면 (어깨)', sh:true, wait:true },
+        { id:'LZKlQ9o3lMw', n:'골반·흉추·목을 한 번에 푸는 스트레칭', sh:true, wait:true },
+        { id:'FTKSSdtT8FY', n:'아침 스트레칭 루틴', sh:true, wait:true },
+        { id:'Gaw3d6-8ICg', n:'운동 전 필수 웜업 5가지', sh:true, wait:true },
+        { id:'-HkyGYT18kc', n:'운동 전 이 동작 1분만', sh:true, wait:true },
+      ] },
+    ],
+  };
+  // ----- 종목 탭: 묶음마다 따라 할 영상 (휴먼밸런스·하루 5분·뻔더·라쿠다를 부위별로 섞음). id 만 적고 이름·채널은 위 목록에서 찾는다
+  // '#' 로 시작하면 작은 제목. 2026-10-18 상필님: 재활 영상을 가슴·등 같은 부위로 종목에 나눠서
+  const TREE_VIDS = {
+    chest:['#가슴 앞이 짧아져 어깨가 말릴 때','EqCgw8BPbTM','wWUC_a8QnUk','zQH_78wNBIc','DU3pVnoEcd8','qQwUoq8ya3M','er7l9X-eHdY'],
+    back:['#굽은 등 · 흉추','lCSf9FuBm20','hCC3jNlJv24','s5P9UN_ujkM','LvpDob9qYIY','JsF8lersqxk','nYhI5J3khuc','k0JNOQrsE0c','Zxz_wTYJbyk','ypmLu6CrgyI','DupZZ8XbGFY','harTIZ8JMNg',
+          '#당기기 · 광배근','Mey2Myd1BPw','a8eNvDkLDZw','QjtX9qWHNjA'],
+    shoulder:['#어깨 가동성','Qz0U8GHs9_Q','8cN6ln6VxZ0','uYdWoooEqpc','48gD-RW-jjg','mGjTgOyZDh0','tpkXdXxSRC0','rKsSbDY6-Mc','oQ9z0LXsFbI','QAKFxXsNmtU',
+              '#목 · 거북목 · 승모근','sMcn4jZMg9M','7fUwH-QySlA','jc7kfGBZZFI','_55XoEBleRc','Ymkkv72R8FM','cp2DkTN7nEs','7-boBAcgoC4','-mfsp5J4nHc','TQLowdplsvc'],
+    leg:['#무릎','R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM',
+         '#발 · 발목 (왼발 아치)','m91Pdesc0W8','f8kekYD0M2I','avOcecxNWTg','9Olfw9_EATU','5UGwiN_yabI'],
+    hip:['#고관절','-v-ZDIrVg0E','xLd9UK2J3b8','cPQXOtISCJk','hhqPzF12cAI','rC_TK21aFdw','8rGQzOeemRI','fBByTVXCONA','BwUgrlnzhpg','XparnX9xSRc',
+         '#골반 · 좌우 균형','HbMsD1deA6k','10ZNiEjRee8','h0-wfLOVWtQ','w4pr9HllpNg','hr2kAA9Q5KE',
+         '#뒷벅지','hrZQxlNijRU','XcIFjvUIVxo','YkAA-X5Lp64'],
+    core:['#허리','LSJuhzT-00Y','MqtsvXYEZ_w','yx0o3fzVFvU','U3Uo3G6IApw','dJaBp1AxCs8',
+          '#코어','4ctg0QU4XaY','dPrXUac3Njc','NVQwOXqupi8','TJKc2HcPt-g','PUZx2jNkxUU','KP3TEt6mxKM'],
+    move:['#전신 · 하루 루틴','0YGv8gP8yjc','-VnE2Mz_xvY','PD5mohzZAio','FTKSSdtT8FY','MkqMew92om4','ZmLCJy5gFCs','Z1O7kwObK8s','0eKeKBjP8NI','LZKlQ9o3lMw',
+          '#운동 전 웜업','Gaw3d6-8ICg','-HkyGYT18kc',
+          '#흐르는 움직임','HhPQyRbcuvc','28DORKDR0ps','7lAgzztkF6k','ss4poKZMDk4',
+          '#라쿠다 밴드','PV08L0Dqq9k','Fn98cfpmzuk','VAvBed5lB5A'],
+    cardio:['9uRP2_KQR3M','kQGutIiivw0'],
+  };
+  const CH_TAG = { HB:'휴먼밸런스', HB2:'하루 5분', HB3:'라쿠다', BD:'뻔더' };
+  let vidMap = null;
+  function vidLookup(){
+    if(vidMap) return vidMap;
+    vidMap = new Map();
+    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!it.wait && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
+    return vidMap;
+  }
+  // 종목 묶음 하나의 영상 목록 (없으면 '')
+  function treeVidsHTML(k){
+    const L = TREE_VIDS[k]; if(!L) return '';
+    const m = vidLookup(); const rows = []; let n = 0;
+    L.forEach(x => {
+      if(x[0] === '#'){ rows.push(`<div class="tv-sub">${esc(x.slice(1))}</div>`); return; }
+      const v = m.get(x); if(!v) return; n++;
+      const gear = v.gear && v.gear !== 'bw' ? GEAR_TXT[v.gear] : '맨몸';
+      rows.push(`<a class="tv-i" href="https://www.youtube.com/${v.sh ? 'shorts/' : 'watch?v='}${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" loading="lazy" alt=""><span class="tv-x"><span class="tv-n">${esc(v.n)}</span><span class="tv-m"><b class="tv-ch ${v.ch}">${CH_TAG[v.ch]}</b> · ${esc(gear)}${v.sh ? ' · 1분' : ''}</span></span></a>`);
+    });
+    if(!n) return '';
+    // 영상이 없는 작은 제목은 지운다
+    const body = rows.filter((r, i) => !r.startsWith('<div class="tv-sub"') || (rows[i + 1] && rows[i + 1].startsWith('<a'))).join('');
+    return `<details class="tr-leaf tr-vids"><summary><span class="tr-ln">📺 따라 할 영상 ${n}개</span><span class="tr-tag">재활·가동성</span></summary><div class="tv">${body}</div></details>`;
+  }
   function hbHTML(){
     HB.tip = '신체지도 강의를 한 곳의 채널이에요.\n내 문제 부위에 맞는 영상만 골랐어요.\n제목으로 고른 거라 영상을 다 본 건 아니에요.\n대부분 그 회사 기구를 써요. 맨몸으로 되는 건 표시했어요.';
-    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}${hbChannelHTML(HB3, false)}</div>`;
+    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}${hbChannelHTML(HB3, false)}${hbChannelHTML(BD, false)}</div>`;
   }
 
   // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
@@ -1264,6 +1384,13 @@
     .tr-leaf::before{content:'';position:absolute;left:-16px;top:15px;width:14px;height:2px;background:var(--gc);opacity:.55;}
     .tr-leaf>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;padding:6px 10px;border-radius:9px;background:rgba(242,240,234,0.04);border:1px solid var(--border);-webkit-tap-highlight-color:transparent;}
     .tr-leaf[open]>summary{border-color:var(--gc);}
+    .tr-vids>summary{background:color-mix(in srgb, var(--gc) 10%, transparent);border-style:dashed;}
+    .tv{display:flex;flex-direction:column;gap:5px;margin:5px 0 6px;}
+    .tv-sub{font-size:10.5px;font-weight:700;color:var(--gc);margin-top:4px;}
+    .tv-i{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;text-decoration:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;}
+    .tv-i img{width:64px;height:36px;object-fit:cover;border-radius:5px;background:#000;}
+    .tv-x{display:flex;flex-direction:column;gap:1px;min-width:0;} .tv-n{font-size:11.5px;color:var(--ink);font-weight:600;line-height:1.35;word-break:keep-all;}
+    .tv-m{font-size:10px;color:var(--ink-dim);} .tv-ch{font-weight:700;} .tv-ch.HB{color:var(--accent-b);} .tv-ch.HB2{color:#7FC08A;} .tv-ch.BD{color:#C98BD6;} .tv-ch.HB3{color:var(--accent-a);}
     .tr-ln{font-size:12.5px;color:var(--ink);font-weight:600;word-break:keep-all;}
     .tr-tag{font-size:10px;color:var(--ink-dim);border:1px solid var(--border-strong);border-radius:999px;padding:0 6px;margin-left:auto;}
     .tr-b{font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 4px;line-height:1.3;}
@@ -1409,5 +1536,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, HB2, HB3, hbHTML, mobVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
