@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=87"></script>
+<script src="exinfo.js?v=88"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -940,7 +940,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
     <h1>김상필 트레이닝 로그</h1>
     <!-- 요일 설명은 요일 단추·프로그램 탭에 있어서 뺐다. 버전만 작게 (배포 확인용) -->
-    <p class="sub" style="margin-top:0;"><span style="color:var(--ink-faint);font-size:10.5px;">· v87</span></p>
+    <p class="sub" style="margin-top:0;"><span style="color:var(--ink-faint);font-size:10.5px;">· v88</span></p>
     <button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
@@ -953,8 +953,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
 
   <div class="tabs">
     <div class="tab active" data-tab="log">오늘 기록</div>
-    <div class="tab" data-tab="routine">프로그램</div>
     <div class="tab" data-tab="history">기록 보기</div>
+    <div class="tab" data-tab="routine">프로그램</div>
     <div class="tab" data-tab="graph">그래프</div>
     <div class="tab" data-tab="inbody">인바디</div>
     <div class="tab" data-tab="meal">식단</div>
