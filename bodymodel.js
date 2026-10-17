@@ -181,6 +181,9 @@
     status('다리 근육 불러오는 중…');
     const leg = await loadGLB(loader, base + 'leg-right.glb');
     tagNames(leg);
+    status('어깨 근육 불러오는 중…');
+    let sh = null;
+    try{ sh = await loadGLB(loader, base + 'shoulder-right.glb'); tagNames(sh); }catch(e){ console.warn('shoulder model', e); }
     status('');
 
     // 뼈대: 가운데(척추 등) + 오른쪽 + 거울로 만든 왼쪽
@@ -196,7 +199,13 @@
     const legMus = leg.scene.getObjectByName('Muscles');
     const legGroup = new THREE.Group(); if(legMus) legGroup.add(legMus);
     body.add(legGroup);
-    const legMuscleMeshes = meshesOf(legGroup);   // 자세 기울이기에서 다른 묶음으로 옮겨가기 전에 잡아 둔다
+    // 오른쪽 어깨 근육 — 평소엔 숨기고 "근육 보기 › 어깨"에서만 보인다 (전신 보기에서 뼈대를 가리지 않게)
+    const shGroup = new THREE.Group();
+    if(sh){ let shMus = null; sh.scene.traverse(o => { if(!shMus && o.userData.orig === 'Pectoral girdle - muscles') shMus = o; }); if(!shMus) shMus = sh.scene; shGroup.add(shMus); }   // GLTFLoader 가 이름의 공백·기호를 지우므로 원래 이름(userData.orig)으로 찾는다
+    body.add(shGroup);
+    const shMuscleMeshes = meshesOf(shGroup);
+    shMuscleMeshes.forEach(m => { m.visible = false; });
+    const legMuscleMeshes = meshesOf(legGroup).concat(shMuscleMeshes);   // 자세 기울이기에서 다른 묶음으로 옮겨가기 전에 잡아 둔다 (어깨 근육 포함)
     // 뼈대의 오른쪽 다리뼈는 근육 속에 묻히니 그대로 두되, 골반·발은 보이게 둔다
 
     // 관절 자리 (선 그릴 때) — 기울이기 전에 잰다
@@ -219,7 +228,7 @@
     J.headTop = fb.max.y; J.headY = (fb.min.y + fb.max.y) / 2 - 0.02;
 
     // 자세 기울이기 (오른쪽 -1, 왼쪽 +1). 가운데 뼈(두개골 등)는 오른쪽 묶음과 같이 처리
-    const midAndRight = new THREE.Group(); body.add(midAndRight); midAndRight.attach(mid); midAndRight.attach(right); midAndRight.attach(legGroup);
+    const midAndRight = new THREE.Group(); body.add(midAndRight); midAndRight.attach(mid); midAndRight.attach(right); midAndRight.attach(legGroup); midAndRight.attach(shGroup);
     pose(midAndRight, F, -1);
     pose(left, F, +1);
 
@@ -256,7 +265,7 @@
       regionBox[k] = bx;
     });
     function restoreAll(){
-      [].concat(boneMeshes, legMuscleMeshes).forEach(m => { m.material = origMat.get(m); m.visible = true; delete m.userData.anatK; });
+      [].concat(boneMeshes, legMuscleMeshes).forEach(m => { m.material = origMat.get(m); m.visible = !shMuscleMeshes.includes(m); delete m.userData.anatK; });
     }
     window.body3dRegion = function(key){
       pickHL = []; region = REGIONS[key] ? key : null;
@@ -270,7 +279,8 @@
       const byK = {}; anat.muscles.forEach(m => byK[m.k] = m);
       boneMeshes.forEach(m => { m.material = dimBone; m.visible = true; });
       regionMeshes = [];
-      legMuscleMeshes.forEach(m => { m.material = dimMus; m.visible = true; delete m.userData.anatK; });
+      const hide = R.hide || [];
+      legMuscleMeshes.forEach(m => { m.material = dimMus; m.visible = !hide.includes(norm(m.userData.orig)); delete m.userData.anatK; });
       Object.keys(R.groups).forEach(k => {
         const info = byK[+k]; const col = new THREE.Color(TCOL[(info && info.t) || 'r']);
         R.groups[k].forEach(nm => legMuscleMeshes.filter(m => norm(m.userData.orig) === nm).forEach(m => {

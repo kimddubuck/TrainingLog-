@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=112"></script>
+<script src="exinfo.js?v=113"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -993,7 +993,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <h1>김상필 트레이닝 로그</h1>
     <!-- 운동 철학: 두 줄 요약을 누르면 자세한 그림이 펼쳐진다 (exinfo.js philoFoldHTML) -->
     <div class="pm" id="hdPhilo"></div>
-    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v112</span></div>
+    <div class="hd-row"><button class="share-btn" id="shareReportBtn">🔗 선생님 열람용 링크 공유</button><span class="hd-ver">· v113</span></div>
     <div class="share-fallback" id="shareFallback">
       <p>아래 주소를 길게 눌러 복사해서 보내주세요.</p>
       <input type="text" id="shareUrlBox" readonly>
@@ -1231,7 +1231,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
         <button class="body-btn on" data-reg="all">전체</button>
         <button class="body-btn" data-reg="back">🫁 허리·골반·고관절</button>
         <button class="body-btn" data-reg="knee">🦵 무릎·발목</button>
-        <button class="body-btn" data-reg="shoulder" disabled title="어깨·목 근육 모델 준비 중">🫱 어깨·목</button>
+        <button class="body-btn" data-reg="shoulder">🫱 어깨·목</button>
       </div>
       <div class="body-btns body-zoom">
         <button class="body-btn" data-zoom="0.8">🔍 확대</button>
@@ -3125,8 +3125,8 @@ async function openBodyTab(){
     if(!window.THREE)      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
     if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
     if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
-    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=110');
-    if(!window.initBody3D) await loadScript('bodymodel.js?v=110');
+    if(!window.BODY_DATA)  await loadScript('bodydata.js?v=113');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=113');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';

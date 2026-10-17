@@ -4,6 +4,17 @@
 // 3D "근육 보기": 부위마다 보여 줄 근육 (모델 속 이름, 소문자·기호 제거) → 근육 지도(EXINFO.ANAT[part].muscles 의 k)
 // 다리 모델(leg-right.glb)은 오른쪽만 있다. 어깨·목 근육은 모델이 아직 없다 (Open3DModel 팔·어깨 묶음을 받으면 추가)
 window.BODY_REGIONS = {
+  // 어깨 모델(shoulder-right.glb)엔 '승모근 전체'·'삼각근 전체'·'큰가슴근 전체' 덩어리와 그 부분 덩어리가 같이 들어 있어 전체 덩어리는 숨긴다(hide)
+  shoulder: { name:'어깨 · 목', lookFrom:2.6, camY:1.33, dist:1.35, hide:['trapeziusmuscle.r','deltoidmuscle.r','pectoralismajor.r'], groups:{
+    1:['clavicularheadofpectoralismajormuscle.r','sternocostalheadofpectoralismajormuscle.r','abdominalheadofpectoralismajormuscle.r','pectoralisminormuscle.r'],
+    2:['descendingpartoftrapeziusmuscle.r'],
+    3:['levatorscapulae.r'],
+    5:['latissimusdorsi.r'],
+    6:['transversepartoftrapeziusmuscle.r','ascendingpartoftrapeziusmuscle.r'],
+    7:['rhomboidmajormuscle.r','rhomboidminormuscle.r'],
+    8:['serratusanteriormuscle.r'],
+    10:['infraspinatusmuscle.r','supraspinatusmuscle.r','subscapularismuscle.r','teresminormuscle.r'],
+  } },
   back: { name:'허리 · 골반 · 고관절', lookFrom:0.55, camY:0.92, dist:1.45, groups:{
     1:['psoasmajor.r','psoasminor.r','iliacusmuscle.r'],
     2:['rectusfemoris.r'],
