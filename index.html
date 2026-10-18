@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=135"></script>
+<script src="exinfo.js?v=136"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -207,6 +207,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
     color:var(--ink-dim);white-space:nowrap;text-align:right;
   }
   .pe-vid{color:var(--accent-b);text-decoration:none;font-weight:700;} .pe-vid:active{opacity:.7;}
+  .pc-stage{font-size:11.5px;font-weight:800;color:var(--accent-a);margin:10px 0 2px;padding-bottom:2px;border-bottom:1px dashed var(--border);}
+  .pc-stage:first-child{margin-top:2px;}
   .plan-card .pe-why{
     grid-column:1 / -1;font-size:11px;color:var(--ink-faint);line-height:1.45;
     word-break:keep-all;overflow-wrap:anywhere;
@@ -1007,7 +1009,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v135</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v136</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -2263,34 +2265,63 @@ function themeOf(ds){
 //  ① 풀기(억제: 뭉친 곳을 볼·손으로) → ② 늘리기(스트레칭·가동) → ③ 깨우기(약한 근육 활성화) → ④ 통합(동작·밸런스) → 심폐
 //  마사지에서 멈추지 않고 통합까지 간다. 앞쪽은 풀고 뒤쪽은 깨운다. 무게 없이, 숨이 안 찰 만큼.
 const RECOVERY_ROUTINE = [
-  { why:'호흡 — 배로 천천히', sets:1, reps:'3분', label:'3분',
+  // 회복날 = 재활 4단계 한 바퀴 (2026-10-18 상필님: 재활은 회복날에만, 전날 운동한 부위로)
+  //   focus:'knee'  = 하체 다음날 — 무릎 + 이어진 고관절·발목·발
+  //   focus:'upper' = 가슴등·어깨팔 다음날 — 허리 + 어깨 + 이어진 목·골반
+  //   focus 가 없는 자리는 회복날마다 나온다. 어느 쪽인지는 focusOf(날짜) 가 정한다
+  { why:'준비 — 호흡: 배로 천천히', sets:1, reps:'3분', label:'3분',
     options:['악어호흡'] },
-  { why:'① 풀기 — 발바닥 (공 굴리기)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+  // ① 풀기
+  { focus:'knee', why:'① 풀기 — 발바닥 (공 굴리기 · 왼발 아치)', sets:1, reps:'좌우 1분', label:'좌우 1분',
     options:['발바닥 마사지'] },
-  { why:'① 풀기 — 앞쪽 뭉친 곳 (골반 옆·허벅지 앞·엉덩이 / 쇄골 아래·어깨 뒤)', sets:1, reps:'좌우 2분', label:'좌우 2분',
-    options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤','고관절 운동(폼롤러)'] },
-  { why:'② 늘리기 — 허벅지 안쪽·뒤', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  { focus:'knee', why:'① 풀기 — 종아리·정강이 앞 (무릎은 발목이 굳으면 고생)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+    options:['마사지볼 풀기 — 종아리·정강이 앞'] },
+  { focus:'knee', why:'① 풀기 — 골반 옆·허벅지 앞 (무릎 바깥으로 당기는 곳)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+    options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','고관절 운동(폼롤러)'] },
+  { focus:'upper', why:'① 풀기 — 쇄골 아래·겨드랑이·어깨 뒤 (둥근어깨)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+    options:['마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤'] },
+  { focus:'upper', why:'① 풀기 — 겨드랑이 옆 광배근 (팔 올리기 막는 곳)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+    options:['폼롤러 광배근 풀기'] },
+  { focus:'upper', why:'① 풀기 — 골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+    options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','고관절 운동(폼롤러)'] },
+  // ② 늘리기
+  { focus:'knee', why:'② 늘리기 — 고관절 앞 (골반 말고 엉덩이 조이기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['반무릎 장요근 스트레칭'] },
+  { focus:'knee', why:'② 늘리기 — 허벅지 안쪽·뒤', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['내전근 스트레칭','의자 햄스트링 스트레칭'] },
-  { why:'② 늘리기 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
+  { focus:'knee', why:'② 늘리기 — 종아리 (발목 끝범위)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['벽 종아리 스트레칭'] },
+  { focus:'upper', why:'② 늘리기 — 가슴 앞 (둥근어깨 펴기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['문틀 가슴 스트레칭'] },
+  { focus:'upper', why:'② 늘리기 — 광배근 · 목 옆', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['광배근 스트레칭 (짐볼·벤치)','위 승모근 스트레칭 (목 옆 늘리기)'] },
+  { focus:'upper', why:'② 늘리기 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
     options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
-  { why:'③ 깨우기 — 어깨 뒤·등 T', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['T 레이즈'] },
-  { why:'③ 깨우기 — 어깨 뒤·등 W', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['W 레이즈'] },
-  { why:'③ 깨우기 — 어깨 뒤·등 Y', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['Y 레이즈'] },
-  { why:'③ 깨우기 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
+  // ③ 깨우기
+  { focus:'knee', why:'③ 깨우기 — 엉덩이 옆 (무릎 안쪽 쏠림 잡기)', sets:2, reps:'좌우 12회', label:'좌우 12회 × 2세트',
+    options:['클램쉘','토터치','크랩워킹'] },
+  { focus:'knee', why:'③ 깨우기 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
     options:['발가락 수건 잡기'] },
-  { why:'④ 통합 — 선생님 동작 (움직임으로 연결)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
-    options:['겟업동작','그라운드 소통','크랩워킹','케틀벨 암바','고관절 힌지 보조운동','리버스 노드릭컬'] },
-  { theme:true },
-  { why:'④ 통합 — 밸런스 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
+  { focus:'upper', why:'③ 깨우기 — 어깨 뒤·등 (Y·T·W 돌아가며 · 끝에서 2초)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['Y 레이즈','T 레이즈','W 레이즈'] },
+  { focus:'upper', why:'③ 깨우기 — 날개뼈 아래로 · 깊은 목 (거북목)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라','턱 당기기 (깊은 목 근육)'],
+    labels:{ '엎드려 코브라':'10초 × 5' } },
+  { focus:'upper', why:'③ 깨우기 — 깊은 코어·엉덩이 (허리 대신 일할 근육)', sets:2, reps:'10회', label:'10회 × 2세트',
+    options:['데드버그','글루트 브릿지'] },
+  // ④ 통합
+  { focus:'knee', why:'④ 통합 — 한 발 균형 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
     options:['밸런스 리치 (한 발 서서 앞·뒤 터치)'] },
+  { focus:'knee', why:'④ 통합 — 선생님 동작 (고관절·무릎·발목을 한 줄로)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
+    options:['고관절 힌지 보조운동','리버스 노드릭컬','크랩워킹'] },
+  { focus:'upper', why:'④ 통합 — 선생님 동작 (어깨·몸통·골반을 한 몸으로)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
+    options:['겟업동작','그라운드 소통','케틀벨 암바'] },
+  { theme:true },
   { why:'④ 통합 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
     options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
     labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
-  // 2026-10-18 상필님: 하루 5분 채널 가동성 영상들을 회복날에 랜덤으로. 날짜마다 다른 영상 하나가 ▶ 링크로 붙는다
-  { why:'가동성 — 영상 보며 따라하기 (맨몸 · 날마다 다른 영상)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
+  // 2026-10-18 상필님: 하루 5분 채널 가동성 영상들을 회복날에 랜덤으로 — 그날 재활 부위에 맞는 묶음에서
+  { why:'가동성 — 영상 보며 따라하기 (맨몸 · 그날 재활 부위)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
     options:['가동성 영상 따라하기'] },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
     // 슬로우 조깅 ↔ 수영을 번갈아 (2026-10-17 상필님: 수영·슬로우 조깅 같은 유산소를 주 1~2번).
@@ -2335,87 +2366,81 @@ const PLAN = {
   //       (늘리기 → 끝에서 버티기 → 끝에서 움직이기), "운동은 끝범위에서, 통제할 수 있는 만큼"
   // 운동날 순서 (2026-10-18 상필님): 🔥 열 내기(풀기·늘리기·가동성) → ⚡ 자극(그날 부위 깨우기 · 가볍게, 느끼는 게 목적) → 🏋️ 본운동(무게) → 🧩 마무리(통합·코어)
   // 재활 4단계(풀기 → 늘리기 → 깨우기 → 통합)는 그날 부위에 맞춰: 하체=무릎, 가슴·등=허리, 어깨·팔=어깨
-  legs:    { tag:'하체', kind:'B', title:'하체 · 무릎 재활 · 고관절 가동성',
-             tip:'공통 워밍업 먼저 · 🔥 열 내고 → ⚡ 엉덩이·발 깨워서 자극 느끼고 → 🏋️ 무게 · 근력은 통제되는 깊이까지 · 끝나면 우유·바나나',
+  legs:    { tag:'하체', kind:'B', title:'하체 · 고관절 가동성 · 기능성 → 중량',
+             tip:'공통 워밍업 먼저 · 🔥 열 내고 → 🧩 기능성으로 자극 찾고 → 🏋️ 중량 · 무릎 재활은 다음날(월) 회복날에 · 끝나면 우유·바나나',
              routine:[
-               { why:'🔥 열 내기 ① 풀기 — 무릎 재활: 종아리·발바닥 (무릎은 발목이 굳으면 고생)', sets:1, reps:'좌우 2분', label:'좌우 2분',
-                 options:['마사지볼 풀기 — 종아리·정강이 앞','발바닥 마사지'] },
-               { why:'🔥 열 내기 ② 고관절 가동성 — 늘리고(30초) 그 끝에서 바닥 5초 누르기 × 3', sets:2, reps:'좌우 30초', label:'좌우 30초 → 끝 5초×3 · 2세트',
+               { why:'🔥 열 내기 — 고관절 가동성: 늘리고(30초) 그 끝에서 바닥 5초 누르기 × 3', sets:2, reps:'좌우 30초', label:'좌우 30초 → 끝 5초×3 · 2세트',
                  options:['내전근 스트레칭'] },
-               { why:'🔥 열 내기 ② 고관절 가동성 — 넓힌 범위를 내 힘으로 움직이기', sets:2, reps:'10회', label:'10회 × 2세트',
+               { why:'🔥 열 내기 — 고관절 가동성: 넓힌 범위를 내 힘으로 움직이기', sets:2, reps:'10회', label:'10회 × 2세트',
                  options:['스핀롤','고관절 힌지 보조운동'] },
                { why:'🔥 열 내기 — 무릎·발목 챙기기 영상 (1분 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
                  options:['관절 챙기기 영상'] },
-               { why:'⚡ 자극 ③ 깨우기 — 엉덩이 옆 (무릎 안쪽 쏠림 잡기 · 엉덩이에 힘 들어오는 느낌 찾기)', sets:2, reps:'좌우 12회', label:'좌우 12회 × 2세트',
-                 options:['토터치','크랩워킹','클램쉘'] },
-               { why:'⚡ 자극 ③ 깨우기 — 발 (왼발 아치 · 하체 날마다 고정)', sets:2, reps:'15회', label:'15회 × 2세트',
-                 options:['발가락 수건 잡기'] },
-               { why:'🏋️ 본운동 — 하체 주운동 (통제되는 깊이까지 · 첫 세트는 가볍게)', sets:4, reps:'10~12회',
-                 options:['스쿼트','가블릿 스쿼트'] },
-               { why:'🏋️ 본운동 — 한 다리: 덤벨 런지로 고관절 바르게 (중요)', sets:3, reps:'좌우 12회',
-                 options:['런지','프론트런지'] },
-               { why:'🏋️ 본운동 — 머신 (레그프레스는 손잡이 잡고 코어)', sets:3, reps:'15회',
-                 options:['레그프레스','이너타이 머신'] },
-               { why:'🏋️ 본운동 — 엉덩이 접기·힌지 (골반 세우기 · 허리 대신 엉덩이)', sets:2, reps:'15회',
-                 options:['고관절 운동(폼롤러)','스티프 데드리프트','케틀벨 굿모닝','굿모닝 운동'] },
-               { why:'🏋️ 본운동 — 종아리 (발목 끝범위: 끝까지 내려 2초)', sets:2, reps:'15회', label:'15회 × 2세트 (끝까지 내려 2초)',
-                 options:['카프 레이즈'] },
-               { why:'🧩 마무리 ④ 통합 — 무릎 재활: 한 발 균형 (흔들릴 때 잡기)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
+               { why:'🧩 기능성 — 하체를 한 줄로 (고관절·무릎·발목을 같이 쓰기 · 가볍게, 엉덩이 자극 찾기)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
+                 options:['크랩워킹','리버스 노드릭컬','고관절 힌지 보조운동'],
+                 labels:{ '크랩워킹':'좌우 10걸음 × 2' } },
+               { why:'🧩 기능성 — 한 발로 서기 (흔들릴 때 잡기 · 런지 전에)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
                  options:['밸런스 리치 (한 발 서서 앞·뒤 터치)'] },
+               { why:'🏋️ 중량 — 하체 주운동 (통제되는 깊이까지 · 첫 세트는 가볍게)', sets:4, reps:'10~12회',
+                 options:['스쿼트','가블릿 스쿼트'] },
+               { why:'🏋️ 중량 — 한 다리: 덤벨 런지로 고관절 바르게 (중요)', sets:3, reps:'좌우 12회',
+                 options:['런지','프론트런지'] },
+               { why:'🏋️ 중량 — 머신 (레그프레스는 손잡이 잡고 코어)', sets:3, reps:'15회',
+                 options:['레그프레스','이너타이 머신'] },
+               { why:'🏋️ 중량 — 엉덩이 접기·힌지 (골반 세우기 · 허리 대신 엉덩이)', sets:2, reps:'15회',
+                 options:['고관절 운동(폼롤러)','스티프 데드리프트','케틀벨 굿모닝','굿모닝 운동'] },
+               { why:'🏋️ 중량 — 종아리 (발목 끝범위: 끝까지 내려 2초)', sets:2, reps:'15회', label:'15회 × 2세트 (끝까지 내려 2초)',
+                 options:['카프 레이즈'] },
                { why:'🧩 마무리 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
                  options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
                  labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
              ] },
-  shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔 · 어깨 재활 · 어깨 가동성',
-             tip:'공통 워밍업 먼저(케틀벨 암바 = 어깨 가동성) · 🔥 열 내고 → ⚡ 날개뼈·어깨 뒤 깨워서 자극 느끼고 → 🏋️ 무게 · 팔은 마지막에',
+  shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔 · 어깨 가동성 · 기능성 → 중량',
+             tip:'공통 워밍업 먼저(케틀벨 암바 = 어깨 가동성) · 🔥 열 내고 → 🧩 기능성으로 자극 찾고 → 🏋️ 중량 · 팔은 마지막에 · 어깨 재활은 토요일 회복날에',
              routine:[
-               { why:'🔥 열 내기 ① 풀기 — 어깨 재활: 쇄골 아래·겨드랑이·어깨 뒤', sets:1, reps:'좌우 2분', label:'좌우 2분',
-                 options:['마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤'] },
-               { why:'🔥 열 내기 ② 어깨 가동성 — 가슴 앞 늘리고(30초) 그 끝에서 5초 버티기 × 3', sets:2, reps:'좌우 30초', label:'좌우 30초 → 끝 5초×3 · 2세트',
+               { why:'🔥 열 내기 — 어깨 가동성: 가슴 앞 늘리고(30초) 그 끝에서 5초 버티기 × 3', sets:2, reps:'좌우 30초', label:'좌우 30초 → 끝 5초×3 · 2세트',
                  options:['문틀 가슴 스트레칭'] },
                { why:'🔥 열 내기 — 손목·팔꿈치 챙기기 영상 (1분 · 프레스 전에 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
                  options:['관절 챙기기 영상'] },
-               { why:'⚡ 자극 ③ 깨우기 — 날개뼈 아래로 (어깨 올라감 잡기 · 날개뼈 내려가는 느낌 찾기)', sets:2, reps:'10회', label:'10회 × 2세트',
-                 options:['승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라'],
-                 labels:{ '엎드려 코브라':'10초 × 5' } },
-               { why:'⚡ 자극 — 어깨 뒤 가볍게 (끝까지 올려 2초 · 어깨 뒤에 힘 들어오는 느낌 찾기)', sets:2, reps:'15회', label:'15회 × 2세트 (가볍게)',
-                 options:['후면 리어 델토이드 플라이','Y 레이즈','T 레이즈','W 레이즈'] },
-               { why:'🏋️ 본운동 — 어깨 주운동 (첫 세트는 가볍게)', sets:4, reps:'12~15회',
+               { why:'🧩 기능성 — 팔을 머리 위로 들고 버티기 (어깨를 몸통과 잇기)', sets:2, reps:'좌우 3회', label:'좌우 3회 × 2세트',
+                 options:['겟업동작','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
+                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2' } },
+               { why:'🧩 기능성 — 맨몸 밀고 당기기 (가볍게 · 날개뼈와 어깨 자극 찾기)', sets:2, reps:'10회', label:'10회 × 2세트 (가볍게)',
+                 options:['인버티드로우','푸쉬업(팔굽혀펴기)'] },
+               { why:'🏋️ 중량 — 어깨 주운동 (첫 세트는 가볍게)', sets:4, reps:'12~15회',
                  options:['오버헤드프레스','밀리터리 프레스'] },
-               { why:'🏋️ 본운동 — 덤벨 숄더프레스 (좌우 높이 보기)', sets:3, reps:'15회',
+               { why:'🏋️ 중량 — 덤벨 숄더프레스 (좌우 높이 보기)', sets:3, reps:'15회',
                  options:['덤벨 숄더프레스'] },
-               { why:'🏋️ 본운동 — 어깨 옆·뒤 당기기', sets:3, reps:'15회',
-                 options:['업라이트로우','후면 리어 델토이드 플라이'] },
-               { why:'🏋️ 본운동 — 팔 이두', sets:3, reps:'20회',
+               { why:'🏋️ 중량 — 어깨 옆·뒤 당기기 (끝까지 올려 2초)', sets:3, reps:'15회',
+                 options:['후면 리어 델토이드 플라이','업라이트로우'] },
+               { why:'🏋️ 중량 — 팔 이두', sets:3, reps:'20회',
                  options:['바벨 컬','덤벨 해머컬'] },
-               { why:'🏋️ 본운동 — 팔 삼두', sets:3, reps:'20회',
+               { why:'🏋️ 중량 — 팔 삼두', sets:3, reps:'20회',
                  options:['케이블 푸쉬다운','라잉 트라이셉스 익스텐션'] },
                { why:'🧩 마무리 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
                  options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
                  labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
              ] },
-  chestback: { tag:'가슴등', kind:'A', title:'가슴·등 · 허리 재활 · 등 가동성 · 회전',
-             tip:'공통 워밍업 먼저 · 🔥 열 내고 → ⚡ 날개뼈 모아서 자극 느끼고 → 🏋️ 무게 → 🧩 회전 · 덤벨 로우는 늘어날 때 집중(끝범위)',
+  chestback: { tag:'가슴등', kind:'A', title:'가슴·등 · 등 가동성 · 기능성 → 중량 · 회전',
+             tip:'공통 워밍업 먼저 · 🔥 열 내고 → 🧩 기능성으로 자극 찾고 → 🏋️ 중량 → 🧩 회전 · 덤벨 로우는 늘어날 때 집중(끝범위) · 허리 재활은 토요일 회복날에',
              routine:[
-               { why:'🔥 열 내기 ① 풀기 — 허리 재활: 골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)', sets:1, reps:'좌우 2분', label:'좌우 2분',
-                 options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이'] },
-               { why:'🔥 열 내기 ② 등(흉추) 가동성 — 뒤로 젖혀 그 끝에서 5초 버티기 × 3', sets:2, reps:'10회', label:'10회 × 2세트 (끝에서 5초×3)',
+               { why:'🔥 열 내기 — 등(흉추) 가동성: 뒤로 젖혀 그 끝에서 5초 버티기 × 3', sets:2, reps:'10회', label:'10회 × 2세트 (끝에서 5초×3)',
                  options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
                { why:'🔥 열 내기 — 손목·팔꿈치 챙기기 영상 (1분 · 벤치 전에 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
                  options:['관절 챙기기 영상'] },
-               { why:'⚡ 자극 ③ 깨우기 — 날개뼈 모으기 (둥근어깨 · 등 가운데 조이는 느낌 찾기)', sets:2, reps:'10회', label:'10회 × 2세트',
-                 options:['Y 레이즈','T 레이즈','W 레이즈'] },
-               { why:'⚡ 자극 — 가슴 가볍게 (가슴에 힘 들어오는 느낌 찾기)', sets:2, reps:'15회', label:'15회 × 2세트 (가볍게)',
-                 options:['케이블 플라이','펙덱 플라이','푸쉬업(팔굽혀펴기)'] },
-               { why:'🏋️ 본운동 — 가슴 주운동 (첫 세트는 가볍게)', sets:4, reps:'10~12회',
+               { why:'🧩 기능성 — 바닥에서 몸 잇기 (가슴·등·골반을 한 몸으로)', sets:2, reps:'좌우 3회', label:'좌우 3회 × 2세트',
+                 options:['겟업동작','그라운드 소통','스핀롤'],
+                 labels:{ '그라운드 소통':'10회 × 2세트', '스핀롤':'10회 × 2세트' } },
+               { why:'🧩 기능성 — 맨몸 밀고 당기기 (가볍게 · 가슴·등 자극 찾기)', sets:2, reps:'10회', label:'10회 × 2세트 (가볍게)',
+                 options:['푸쉬업(팔굽혀펴기)','인버티드로우'] },
+               { why:'🏋️ 중량 — 가슴 주운동 (첫 세트는 가볍게)', sets:4, reps:'10~12회',
                  options:['벤치프레스','인클라인 덤벨프레스'] },
-               { why:'🏋️ 본운동 — 가슴 두 번째', sets:3, reps:'12~15회',
+               { why:'🏋️ 중량 — 가슴 두 번째', sets:3, reps:'12~15회',
                  options:['덤벨 벤치프레스','케이블 플라이','딥스'] },
-               { why:'🏋️ 본운동 — 등 위에서 당기기', sets:4, reps:'12회',
+               { why:'🏋️ 중량 — 등 위에서 당기기', sets:4, reps:'12회',
                  options:['랫풀다운','비하인드 렛풀다운','어시스턴트 풀업','암풀다운'] },
-               { why:'🏋️ 본운동 — 데드리프트', sets:3, reps:'10~15회',
+               { why:'🏋️ 중량 — 데드리프트', sets:3, reps:'10~15회',
                  options:['데드리프트','스티프 데드리프트'] },
-               { why:'🏋️ 본운동 — 등 앞에서 당기기 (늘어날 때 집중)', sets:3, reps:'15~20회',
+               { why:'🏋️ 중량 — 등 앞에서 당기기 (늘어날 때 집중)', sets:3, reps:'15~20회',
                  options:['롱풀로우 머신','덤벨 로우','바벨 로우','인버티드로우'] },
                { why:'🧩 마무리 — 회전: 한 팔 당기며 몸통 꼬기 (CCT · 불균형 교정)', sets:3, reps:'15회씩', label:'15회씩 × 3세트',
                  options:['원암 케이블 회전 로우 (불균형 교정)'] },
@@ -2498,6 +2523,37 @@ function topPart(act){
 // 선생님이 짜준 요일표 그대로 간다 (3분할: 하체 / 가슴·등 / 어깨·팔)
 //  일 하체 · 월 회복 · 화 PT · 수 가슴·등 · 목 어깨·팔 · 금 PT · 토 회복
 const WEEK_PLAN = ['legs','walk','pt','chestback','shoulderarm','pt','rest'];
+// 회복날 재활 부위: 가장 가까운 앞쪽 운동날이 하체면 무릎, 가슴등·어깨팔이면 허리·어깨 (PT 날은 건너뛴다)
+// 지금 요일표로는 월 = 무릎 (일 하체 다음날), 토 = 허리·어깨 (목 어깨팔 · 수 가슴등 다음)
+const FOCUS_LABEL = { knee:'무릎 재활 (+고관절·발목)', upper:'허리·어깨 재활 (+목·골반)' };
+function focusOf(ds){
+  const dow = dayOfWeek(ds);
+  for(let b = 1; b <= 6; b++){
+    const k = WEEK_PLAN[(dow - b + 7) % 7];
+    if(k === 'legs') return 'knee';
+    if(k === 'chestback' || k === 'shoulderarm') return 'upper';
+  }
+  return 'knee';
+}
+function isRecoveryPlan(p){ return !!(p && p.routine === RECOVERY_ROUTINE); }
+function planTitle(key, ds){ const p = PLAN[key]; return isRecoveryPlan(p) ? p.title + ' · ' + FOCUS_LABEL[focusOf(ds)] : p.title; }
+// 줄의 단계 이름 (프로그램 탭에 묶음 제목으로). 모르는 줄은 앞 줄 단계를 이어 간다
+function stageOf(why){
+  const w = String(why || '');
+  if(/^🔥/.test(w)) return '🔥 열 내기';
+  if(/^⚡/.test(w)) return '⚡ 자극';
+  if(/^🧩 기능성/.test(w)) return '🧩 기능성';
+  if(/^🏋️/.test(w)) return '🏋️ 중량';
+  if(/^🧩 마무리/.test(w)) return '🧩 마무리';
+  if(/^준비/.test(w)) return '🫁 준비';
+  if(/^①/.test(w)) return '① 풀기';
+  if(/^②/.test(w)) return '② 늘리기';
+  if(/^③/.test(w)) return '③ 깨우기';
+  if(/^④/.test(w)) return '④ 통합';
+  if(/^가동성/.test(w)) return '🎬 가동성 영상';
+  if(/^심폐/.test(w)) return '🫀 심폐';
+  return '';
+}
 const WEEK_WHY = {
   legs:'일요일은 하체 (선생님 루틴)',
   chestback:'수요일은 가슴·등 (선생님 루틴)',
@@ -2649,9 +2705,13 @@ function orderedRoutine(p, W, opt){
   const last = Object.assign(lastDoneMap(), opt.extraLast || {});
   const asOf = opt.asOf || W.today;
   const used = new Set(opt.exclude || []);   // opt.exclude: 같은 날 이미 나온 종목(워밍업 등)
-  const dayKey = opt.dayKey || Object.keys(PLAN).find(k => PLAN[k] === p) || '';   // 가동성 영상을 그날 부위로 고르려고
+  const focus = isRecoveryPlan(p) ? focusOf(asOf) : '';
+  // 가동성 영상을 그날 부위로 고르려고 — 회복날은 재활 부위로 (무릎 → 하체 묶음, 허리·어깨 → 상체 묶음)
+  const dayKey = opt.dayKey || (focus ? (focus === 'knee' ? 'legs' : 'chestback') : (Object.keys(PLAN).find(k => PLAN[k] === p) || ''));
   const theme = themeOf(asOf);
-  const list = p.routine.map((slot0, i)=>{
+  // 회복날: 그날 부위(focus) 자리만. 자리 번호(i)는 원래 순서 그대로 둬야 ↻ 기억이 안 꼬인다
+  const slots = p.routine.map((slot0, i) => ({ slot0, i })).filter(x => !x.slot0.focus || !focus || x.slot0.focus === focus);
+  const list = slots.map(({ slot0, i })=>{
     // "이번 주 테마" 자리는 그 주의 결(BTT/CCT/RMT)로 채운다
     const slot = slot0.theme ? { ...theme } : slot0;
     const cands = slotCandidates(slot).filter(e => !used.has(e.id));
@@ -2675,7 +2735,10 @@ function orderedRoutine(p, W, opt){
   });
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
   const rank = r => (r.skip ? 2 : 0) + (r.care ? 1 : 0);
-  return list.sort((a,b) => rank(a) - rank(b));
+  // 단계(열 내기 → 기능성 → 중량 / ①②③④)는 지키고, 그 안에서만 무릎 부담 줄을 아래로
+  let prevSt = '', si = 0; const firstIdx = {};
+  list.forEach((r, k) => { const st = stageOf(r.why) || prevSt; prevSt = st; r.stage = st; if(!(st in firstIdx)) firstIdx[st] = k; r._si = firstIdx[st]; });
+  return list.sort((a,b) => (a._si - b._si) || (rank(a) - rank(b)));
 }
 // ===== 오늘 기록 카드의 ↻ =====
 // 이 종목이 들어 있는 "자리"를 찾는다 — 그 날 요일의 루틴 → 공통 워밍업 → 다른 날 루틴·회복·결 순서로.
@@ -2816,29 +2879,32 @@ function buildWeekProgram(W){
       ? orderedRoutine(WARMUP, W, { extraLast, asOf: ds, dayKey: key }).map(r=>{
           // 기록 없이 지나간 날의 '계획'은 한 것이 아니므로 세지 않는다 (오늘부터만)
           if(r.id && ds >= W.today) extraLast[r.id] = ds;
-          return { id:r.id, name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:r.why, warm:true };
+          return { id:r.id, name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), why:r.why, warm:true, stage:r.stage };
         })
       : [];
     const warmIds = warm.map(r => r.id).filter(Boolean);
     const rows = warm.concat(orderedRoutine(base, W, { extraLast, asOf: ds, exclude: warmIds }).map(r=>{
       if(r.id && ds >= W.today) extraLast[r.id] = ds;
       const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
-      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)),
+      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), stage:r.stage,
                why:(r.care ? '⚠ ' + r.care : r.why + ' · 지난번 ' + when),
                care:r.care,
                // 오늘 것만 직접 바꿀 수 있게 한다 (다른 날은 그날 가서 바꾸면 된다)
                slotKey:(ds === W.today && r.alts > 1) ? r.slotKey : null };
     }));
     // 앞에서부터 시간을 더해 가다가 60분을 넘으면 그 뒤는 "시간 남으면"으로 표시한다
-    let acc = MIN_SETUP;
+    // 심폐(유산소)는 1순위라 시간을 먼저 떼어 두고, 절대 "시간 남으면"으로 밀지 않는다 (2026-10-18)
+    const isCardio = r => r.stage === '🫀 심폐';
+    let acc = MIN_SETUP + rows.filter(isCardio).reduce((n, r) => n + slotMinutes(r), 0);
     rows.forEach(r=>{
       const m = slotMinutes(r);
-      acc += m;
       r.min = m;
+      if(isCardio(r)){ r.extra = false; return; }
+      acc += m;
       r.extra = acc > TIME_BUDGET;
     });
     const core = rows.filter(r=>!r.extra).reduce((n,r)=>n+r.min, MIN_SETUP);
-    out.push({ ds, kind: PLAN[key].kind, title: PLAN[key].title, rows,
+    out.push({ ds, kind: PLAN[key].kind, title: planTitle(key, ds), rows,
                minutes: Math.round(acc), core: Math.round(core) });
   }
   return out;
@@ -2884,7 +2950,9 @@ function renderRoutineTab(){
         const md = Number(day.ds.slice(5,7)) + '/' + Number(day.ds.slice(8));
         const mark = day.ds === W.today ? '<span class="dp-today">오늘</span>'
                    : (day.done ? '<span class="dp-done">완료</span>' : '');
-        const rows = day.rows.map(r => { const info = exInfoByName(r.name, r.id); return `<div class="pc-ex xi-row${r.care?' care':''}${r.extra?' extra':''}${r.warm?' warm':''}">
+        const rows = day.rows.map((r, ri) => { const info = exInfoByName(r.name, r.id);
+          const stHead = (r.stage && r.stage !== (day.rows[ri - 1] || {}).stage) ? `<div class="pc-stage">${r.stage}</div>` : '';
+          return stHead + `<div class="pc-ex xi-row${r.care?' care':''}${r.extra?' extra':''}${r.warm?' warm':''}">
             <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
             <span class="pe-why">${EXINFO.chipsHTML(info)}${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why || ''}</span>
@@ -2978,7 +3046,7 @@ function renderTodayPlan(W){
   card.innerHTML = `
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
     ${routine.length ? `<div class="pc-theme">이번 주 · <b>${themeOf(W.today).name}</b> — ${themeOf(W.today).sub}</div>` : ''}
-    <div class="pc-title">${p.title}</div>
+    <div class="pc-title">${planTitle(t.rec.key, W.today)}</div>
     ${routine.length
         ? `<div class="pc-count">종목 ${routine.length}개 · 자세한 목록은 <b>프로그램</b> 탭에서</div>${addBtn}`
         : `<div class="pc-how">${p.how||''}</div>`}
