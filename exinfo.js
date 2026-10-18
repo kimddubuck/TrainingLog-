@@ -399,7 +399,7 @@
       const count = rows.filter(r => typeof r !== 'string').length;
       if(!count) return '';
       const body = rows.map(r => typeof r === 'string' ? `<div class="tr-sub">${esc(r)}</div>` : leaf(r)).join('') + (vids || '');
-      return `<details class="tr-group" style="--gc:${g.c}"><summary><span class="tr-gi">${g.ic}</span><span class="tr-gn">${esc(g.n)}<small>${esc(g.sub)}</small></span><span class="tr-gc">${count}</span></summary>
+      return `<details class="tr-group" style="--gc:${g.c}"><summary><span class="tr-gi">${g.ic}</span><span class="tr-gn">${esc(g.n)}<small>${esc(g.sub)}</small></span>${vids ? `<span class="tr-gv" title="따라 할 영상">📺 ${(vids.match(/class="tv-i"/g) || []).length}</span>` : ''}<span class="tr-gc">${count}</span></summary>
         <div class="tr-branch">${body}</div></details>`;
     };
     const groups = TREE.map(g => {
@@ -1385,6 +1385,7 @@
     .tr-group[open]>summary{background:color-mix(in srgb, var(--gc) 16%, var(--surface));}
     .tr-gi{font-size:20px;line-height:1;} .tr-gn{flex:1;font-size:14px;font-weight:700;color:var(--ink);}
     .tr-gn small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-dim);margin-top:1px;}
+    .tr-gv{font-size:11px;font-weight:700;color:var(--ink-dim);border:1px dashed var(--border-strong);border-radius:999px;padding:1px 7px;white-space:nowrap;}   /* 묶음의 영상 개수 (2026-10-18) */
     .tr-gc{font-size:12px;font-weight:700;color:var(--gc);min-width:26px;text-align:center;border:1px solid var(--gc);border-radius:999px;padding:1px 6px;}
     .tr-gc::after{content:' ▾';font-size:9px;} .tr-group[open]>summary .tr-gc::after{content:' ▴';}
     .tr-branch{position:relative;margin:6px 0 4px 16px;padding-left:16px;display:flex;flex-direction:column;gap:4px;}
