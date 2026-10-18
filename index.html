@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=155"></script>
+<script src="exinfo.js?v=156"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -408,6 +408,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
   #panel-log .card.date-card{padding:6px 10px;}
   #panel-log .daily-head{margin-bottom:6px;}
   #panel-log .mo-one{margin:0;padding:5px 10px;}
+  #panel-log .mo-one + .mo-one{margin-top:6px;}
+  .bd-one{flex-wrap:wrap;} .bd-one .bd-link{flex-basis:100%;font-size:12.5px;color:var(--accent-b);text-decoration:none;font-weight:600;padding-left:26px;word-break:keep-all;}
   #panel-log .daily-card #dailyList:empty{display:none;}
   #panel-log .ex-search-wrap input{padding-top:8px;padding-bottom:8px;}
   #panel-log .pi-btn{padding:8px;}
@@ -1032,7 +1034,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v155</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v156</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1077,6 +1079,11 @@ if(!window.EXINFO) window.EXINFO = (function(){
       <div class="mo-one" id="moOne">
         <label class="mo-chk"><input type="checkbox" id="moCheck"><span class="mo-n">🌅 뉴로빅 · 기상 루틴</span><span class="mo-t" id="moTime"></span></label>
         <a class="mo-link" href="https://youtu.be/CDY3DKA37cU" target="_blank" rel="noopener">▶ 영상</a>
+      </div>
+      <!-- 오늘의 뻔더: 날마다 다른 뻔더 쇼츠 하나 (회원 전용 제외) · 체크 하나 (2026-10-18 상필님) -->
+      <div class="mo-one bd-one" id="bdOne">
+        <label class="mo-chk"><input type="checkbox" id="bdCheck"><span class="mo-n">🎬 오늘의 뻔더</span><span class="mo-t" id="bdTime"></span></label>
+        <a class="bd-link" id="bdLink" href="#" target="_blank" rel="noopener">▶ 영상</a>
       </div>
       <div id="dailyList"></div>
     </div>
@@ -3385,6 +3392,7 @@ function renderDayTypeAndForm(){
   setTimes = {}; dailyTimes = {};
   renderDaily(existing);
   renderMorning(existing);
+  renderBd(existing);
   missionsDone = (existing && Array.isArray(existing.missions)) ? existing.missions.slice() : [];
   updateMissionDone();
 
@@ -4233,6 +4241,7 @@ function buildEntryFromForm(){
     exercises: exData,
     daily: daily,
     morning: collectMorning(),
+    bdvid: collectBd(),
     missions: missionsDone.length ? missionsDone.slice() : undefined,
     note: note
   };
@@ -4411,6 +4420,32 @@ function dailyTimesText(sets){
 // ---------- 아침 기상 루틴 (뉴로 웜업 21단계) ----------
 // 저장 모양: entry.morning = { steps:{ 단계키:true }, t:'HH:MM'(마지막으로 체크한 시각) }. 하나도 안 했으면 저장하지 않는다.
 let morningTime = '';
+// ----- 오늘의 뻔더 (체크 하나 · 저장은 entry.bdvid = {id, n, t}) -----
+let bdTime = '';
+function renderBd(existing){
+  const cb = document.getElementById('bdCheck'); if(!cb || !window.EXINFO || !EXINFO.bdDaily) return;
+  const ds = currentEntryDate();
+  const saved = existing && existing.bdvid;
+  const v = (saved && saved.id) ? { id:saved.id, n:saved.n, url:'https://www.youtube.com/shorts/' + saved.id } : EXINFO.bdDaily(ds);
+  const a = document.getElementById('bdLink');
+  if(v){ a.href = v.url; a.textContent = '▶ ' + v.n; a.dataset.id = v.id; a.dataset.n = v.n; } else { a.removeAttribute('href'); a.textContent = '영상 확인 중'; }
+  cb.checked = !!(saved && saved.id);
+  bdTime = cb.checked ? (saved.t || '') : '';
+  document.getElementById('bdOne').classList.toggle('on', cb.checked);
+  document.getElementById('bdTime').textContent = bdTime;
+}
+function collectBd(){
+  const cb = document.getElementById('bdCheck'), a = document.getElementById('bdLink');
+  if(!cb || !cb.checked || !a.dataset.id) return undefined;
+  return { id: a.dataset.id, n: a.dataset.n || '', t: bdTime || nowHHMM() };
+}
+document.getElementById('bdCheck').addEventListener('change', e=>{
+  bdTime = e.target.checked ? nowHHMM() : '';
+  document.getElementById('bdOne').classList.toggle('on', e.target.checked);
+  document.getElementById('bdTime').textContent = bdTime;
+  autoSave();
+  if(e.target.checked) showToast('오늘의 뻔더 완료 · ' + bdTime);
+});
 // 체크 하나 = 그날 뉴로 웜업 함. 저장 모양은 예전과 같게 (모든 단계 true) — 지난 기록·리포트가 그대로 읽힌다
 function renderMorning(existing){
   const cb = document.getElementById('moCheck'); if(!cb || !window.EXINFO) return;
@@ -4471,6 +4506,7 @@ function entryCardHTML(e){
   if(dailyTxt) body += `<div style="margin-top:6px;">${dailyTxt}</div>`;
   const moTxt = window.EXINFO ? EXINFO.morningText(e) : '';
   if(moTxt) body += `<div style="margin-top:4px;">${moTxt}</div>`;
+  if(e.bdvid && e.bdvid.id) body += `<div style="margin-top:2px;"><b>🎬 뻔더</b> ✓ <a href="https://www.youtube.com/shorts/${e.bdvid.id}" target="_blank" rel="noopener" style="color:var(--accent-b);">${e.bdvid.n || '영상'}</a>${e.bdvid.t ? ` <span class="mslot-time">${e.bdvid.t}</span>` : ''}</div>`;
   body += `<div style="margin-top:2px;"><b>💧 수분</b> ${w}잔 (${w*CUP_ML}ml)</div>`;
   if(Array.isArray(e.missions) && e.missions.length) body += `<div style="margin-top:2px;"><b style="color:var(--accent-a);">⏰ 스트레칭 미션 ${e.missions.length}개</b> <span style="color:var(--ink-dim);font-size:12px;">${e.missions.map(x => (x.t || '') + ' ' + (x.n || '')).join(' · ')}</span></div>`;
   return `

@@ -656,6 +656,14 @@
   const MOB_PICK = { legs:[1, 2], chestback:[0, 3], shoulderarm:[0], pt:[0, 1, 2, 3] };
   // 운동날 "관절 챙기기 영상" — 가슴등·어깨팔(프레스) = 손목·팔꿈치, 하체 = 무릎·발목. 뻔더에서 확인된 영상만. 날마다 다른 것
   const JOINT_PICK = { chestback:'🦴 손목 · 팔꿈치', shoulderarm:'🦴 손목 · 팔꿈치', legs:'🦵 무릎 · 발 · 발목' };
+  // 매일 루틴 "오늘의 뻔더" — 뻔더 영상 중 회원 전용이 아닌 것(확인된 것, wait 아님)에서 날마다 하나
+  function bdDaily(ds){
+    const all = []; BD.groups.forEach(g => g.items.forEach(it => { if(!it.wait) all.push(it); }));
+    if(!all.length) return null;
+    const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
+    const it = all[((d * 11) % all.length + all.length) % all.length];
+    return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
+  }
   function jointVideo(ds, key){
     const g = BD.groups.find(x => x.t === JOINT_PICK[key]); if(!g) return null;
     const all = g.items.filter(it => !it.wait); if(!all.length) return null;
@@ -1550,5 +1558,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
