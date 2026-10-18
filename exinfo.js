@@ -267,7 +267,7 @@
   function philoMiniHTML(text){
     const t = String(text || '').trim();
     const goal = (!t || t === PHILO_DEFAULT.trim()) ? PHILO.goal : t.split('\n')[0].replace(/^[^\w가-힣]+/, '').replace(/^목적\s*[—-]\s*/, '');
-    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub"> · 그리고 💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>`;   // 사다리 줄(바닥 → 순환 → …)은 머리에서 뺐다 — 자세히 보기 안에 있어요 (2026-10-18)
+    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub">그리고 💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>`;   // 사다리 줄(바닥 → 순환 → …)은 머리에서 뺐다 — 자세히 보기 안에 있어요 (2026-10-18)
   }
   // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
   function philoHTML(text){
@@ -514,10 +514,11 @@
     const L = [];
     if(m.me)  L.push(`<div class="an-me"><b>🙋 내 증상</b>${br(m.me)}</div>`);
     L.push(palpHTML(m));
-    if(m.rel) L.push(`<div class="an-step r"><b>① 풀기</b>${br(m.rel)}${exPicsHTML(m.rel)}</div>`);
-    if(m.str) L.push(`<div class="an-step r"><b>② 늘리기</b>${br(m.str)}${exPicsHTML(m.str)}</div>`);
-    if(m.act) L.push(`<div class="an-step g"><b>③ 깨우기</b>${br(m.act)}${exPicsHTML(m.act)}</div>`);
-    if(m.int) L.push(`<div class="an-step i"><b>④ 통합</b>${br(m.int)}${exPicsHTML(m.int)}</div>`);
+    // 글은 왼쪽(.an-st), 운동 그림은 오른쪽 — 세로 공간을 덜 쓴다 (2026-10-18)
+    if(m.rel) L.push(`<div class="an-step r"><b>① 풀기</b><div class="an-st">${br(m.rel)}</div>${exPicsHTML(m.rel)}</div>`);
+    if(m.str) L.push(`<div class="an-step r"><b>② 늘리기</b><div class="an-st">${br(m.str)}</div>${exPicsHTML(m.str)}</div>`);
+    if(m.act) L.push(`<div class="an-step g"><b>③ 깨우기</b><div class="an-st">${br(m.act)}</div>${exPicsHTML(m.act)}</div>`);
+    if(m.int) L.push(`<div class="an-step i"><b>④ 통합</b><div class="an-st">${br(m.int)}</div>${exPicsHTML(m.int)}</div>`);
     if(!L.length && m.fix) L.push(`<div class="an-fix">${esc(m.fix)}</div>`);
     return `<div class="an-plan">${L.join('')}</div>`;
   }
@@ -1365,7 +1366,8 @@
     .pa-row{display:grid;grid-template-columns:18px 1fr;gap:4px;font-size:11.5px;color:var(--ink);line-height:1.5;word-break:keep-all;} .pa-row i{font-style:normal;}
     .pa-row.w{color:#E8A33D;} .pa-src{font-size:10px;color:var(--ink-faint);} .pa-src a{color:var(--accent-b);margin:0 2px;}
     .an-palp-how{font-size:11.5px;line-height:1.6;color:var(--ink);background:rgba(91,179,217,.08);border-radius:9px;padding:7px 10px;word-break:keep-all;} .an-palp-how b{display:block;color:#5FB3D9;} .an-palp-how small{color:var(--ink-dim);} .an-palp-how a{color:var(--accent-b);}
-    .an-step{font-size:12px;color:var(--ink);word-break:keep-all;line-height:1.55;} .an-step b{display:block;margin-top:2px;}
+    .an-step{font-size:12px;color:var(--ink);word-break:keep-all;line-height:1.55;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:start;} .an-step b{display:block;margin-top:2px;grid-column:1/-1;}
+    .an-step .an-st{min-width:0;} .an-step .an-exs{grid-column:2;grid-row:2;margin:0;max-width:124px;justify-content:flex-end;}
     .an-step.r b{color:#E07A80;} .an-step.g b{color:#7FC08A;} .an-step.i b{color:var(--accent-b);}
     .an-exs{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 2px;}
     .an-ex{display:flex;flex-direction:column;align-items:center;width:58px;text-decoration:none;}
@@ -1418,7 +1420,7 @@
     .pf-goal{text-align:center;padding:4px 0 2px;}
     .pf-gt{font-size:16px;font-weight:800;color:var(--accent-a);word-break:keep-all;}
     .pf-gs{font-size:12px;color:var(--ink-dim);margin:2px 0 8px;word-break:keep-all;} .pf-gs b{color:var(--accent-a);} .pf-gs small{color:var(--ink-faint);font-size:10.5px;}
-    .pm-sub{font-size:.82em;font-weight:600;color:var(--ink-dim);}
+    .pm-sub{display:block;font-size:.82em;font-weight:600;color:var(--ink-dim);}
     .pf-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;}
     .pf-tags span{font-size:11px;color:var(--ink);background:rgba(242,240,234,0.05);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
     .pf-tags em{font-style:normal;color:var(--ink-faint);margin-right:5px;font-size:10px;}

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>내 운동 설계도 · 김상필 트레이닝 로그</title>
+<meta name="theme-color" content="#1B1F23">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+</body>
+</html>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+/* 설계도(청사진) — 옅은 모눈 위에 요일 → 자리 → 종목이 이어지는 한 장. 분류 색 4개만 강하게. 고치기 모드에서는 모든 글이 고쳐진다 */
+:root{
+  /* 앱(index.html)과 같은 색 */
+  --paper:#1B1F23; --card:#242A2F; --ink:#F2F0EA; --dim:#93A0A8; --faint:#6F7B83; --line:rgba(242,240,234,0.12); --grid:rgba(242,240,234,0.025);
+  --accent:#4FA8A0; --accent-soft:#20393B; --edit:#E8A33D; --edit-soft:rgba(232,163,61,.10);
+  --k-func:#4FA8C9; --k-rehab:#C1666B; --k-hyper:#E8A33D; --k-cardio:#E36F8E; --ok:#5CC08A;
+  --f-display:'Do Hyeon','IBM Plex Sans KR',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans KR',system-ui,-apple-system,'Malgun Gothic',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+.back{font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;
+  color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;word-break:keep-all;}
+.wrap{max-width:920px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;letter-spacing:.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,6vw,44px);line-height:1.1} h2{font-size:24px;line-height:1.2}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--dim)} .small{font-size:13px}
+section{display:flex;flex-direction:column;gap:12px}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 고치는 글 */
+body.editing .ce{outline:1px dashed var(--edit);outline-offset:1px;border-radius:3px;background:var(--edit-soft);cursor:text;min-width:1.5em;display:inline-block}
+body.editing .ce:focus{outline:2px solid var(--edit);background:var(--card)}
+.ops{display:none;gap:4px;flex-wrap:wrap}
+body.editing .ops{display:inline-flex}
+.op{font-size:12px;line-height:1;padding:5px 7px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--dim);cursor:pointer}
+.op:hover{color:var(--edit);border-color:var(--edit)} .op.add{color:var(--ok);border-color:var(--ok);border-style:dashed}
+.addrow{display:none} body.editing .addrow{display:flex}
+select.ksel,select.ssel,select.dsel{font:inherit;font-size:12px;padding:2px 4px;border-radius:6px;border:1px solid var(--edit);background:var(--card);color:var(--ink)}
+/* 머리 */
+.philo{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.philo > div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-weight:700;display:flex;flex-direction:column;gap:2px}
+.philo small{display:block;font-weight:400;color:var(--dim);font-size:12.5px}
+.kinds{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.kinds span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;background:var(--k)}
+.k-기능성{--k:var(--k-func)} .k-재활{--k:var(--k-rehab)} .k-중량{--k:var(--k-hyper)} .k-유산소{--k:var(--k-cardio)}
+/* 띠 */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border:1px solid var(--accent);border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13.5px;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.bar b{color:var(--accent)} .bar .st{font-size:12px;color:var(--faint);flex:1;min-width:120px;text-align:right}
+.btn{font-size:13.5px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--card);cursor:pointer}
+.btn.ghost{background:none;color:var(--accent)} .btn.edit{background:var(--edit);border-color:var(--edit)}
+.btn:disabled{opacity:.45;cursor:default}
+/* 규칙 */
+.rule{display:grid;grid-template-columns:36px 1fr;gap:10px;position:relative;padding-bottom:14px}
+.rule:not(:last-child)::before{content:'';position:absolute;left:17px;top:34px;bottom:0;width:2px;background:var(--line)}
+.rule .n{width:36px;height:36px;border-radius:50%;background:var(--card);border:2px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-family:var(--f-mono)}
+.rule .b{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.rule .t{font-weight:700;display:flex;flex-wrap:wrap;gap:6px;align-items:center} .rule p{margin:0;color:var(--dim);font-size:13.5px}
+.rule ol{margin:0;padding-left:20px;font-size:13.5px;color:var(--dim)}
+/* 한 주 */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wd{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--faint);border-radius:10px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.wd b{font-family:var(--f-display);font-weight:400;font-size:20px;line-height:1.1}
+.wd .tg{font-size:12px;color:var(--dim)} .wd a{font-size:11px;color:var(--accent)}
+.wd.work{border-top-color:var(--k-hyper)} .wd.rest{border-top-color:var(--k-rehab)}
+.wd select{max-width:100%}
+/* 하루 */
+.day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:70px}
+.day-h{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.tag{font-family:var(--f-mono);font-size:12px;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.stage{font-weight:700;font-size:13.5px;color:var(--accent);padding-top:6px;border-top:1px dashed var(--line);margin-top:4px}
+.slot{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:8px 10px;border-radius:10px;border:1px solid transparent}
+.slot.chg{border-color:var(--edit);background:var(--edit-soft)}
+.slot .why{font-size:14px;min-width:0} .slot .amt{font-family:var(--f-mono);font-size:12.5px;color:var(--dim);white-space:nowrap;text-align:right}
+.slot .row2{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.chip em{font-style:normal;color:var(--faint);font-size:11.5px}
+.chip .x{display:none;border:0;background:none;color:var(--faint);cursor:pointer;padding:0 0 0 2px;font-size:13px}
+body.editing .chip .x{display:inline}
+.vids{grid-column:1/-1;font-size:12.5px} .vids summary{cursor:pointer;color:var(--dim)}
+.vids ul{margin:6px 0 0;padding-left:18px} .vids a{color:var(--accent)} .vids em{font-style:normal;color:var(--faint)}
+.slot .sops{grid-column:1/-1}
+/* 종목 */
+.exgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.exbox{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--k);border-radius:12px;padding:10px 12px;min-width:0}
+.exbox h3{font-size:19px;color:var(--k)} .exbox p.def{margin:0 0 8px;font-size:12.5px;color:var(--dim)}
+.ex{padding:6px 0;border-top:1px dashed var(--line)} .ex .nm{font-weight:700;font-size:14px} .ex .nm.dropped{text-decoration:line-through;color:var(--faint)}
+.ex .wh{font-size:12px;color:var(--dim)} .ex .note{font-size:12.5px;color:var(--edit)}
+.memo{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.memo textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:110px;resize:vertical;width:100%}
+.list{font-size:13.5px;margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.foot{font-size:12.5px;color:var(--faint)}
+@media (max-width:520px){ .week{gap:4px} .wd b{font-size:17px} .wd .tg{font-size:11px} }
+@media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <a class="back" href="index.html" id="backLink">← 트레이닝 로그로</a>
+    <div class="eyebrow">상필님 트레이닝 로그 · 프로그램 설계도</div>
+    <h1>내 운동 설계도</h1>
+    <p class="muted small" id="made" style="margin:0"></p>
+    <div class="philo" id="philo"></div>
+    <div class="kinds" id="kinds"></div>
+  </header>
+
+  <div class="bar" id="bar" role="status">
+    <button class="btn edit" id="modeBtn" aria-pressed="false">✏️ 고치기 모드</button>
+    <button class="btn" id="saveBtn" disabled>저장</button>
+    <span>고친 것 <b id="chgN">0</b>개 <a href="#h-chg" style="color:var(--accent)">보기</a></span>
+    <span class="st" id="st">불러오는 중…</span>
+  </div>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">종목이 요일에 놓이는 규칙</h2>
+    <p class="muted small" style="margin:0">위에서 아래로 차례대로 정해져요.</p>
+    <div id="rules"></div>
+  </section>
+
+  <section aria-labelledby="h-week">
+    <h2 id="h-week">한 주</h2>
+    <div class="week" id="week"></div>
+    <p class="muted small" style="margin:0">요일 아래 글씨를 누르면 그날 설계로 가요. 고치기 모드에서는 요일마다 어떤 날로 할지 고를 수 있어요.</p>
+  </section>
+
+  <section aria-labelledby="h-days">
+    <h2 id="h-days">날마다 자리와 후보 종목</h2>
+    <p class="muted small" style="margin:0">한 줄이 한 "자리"예요. 딱지가 그 자리에 들어갈 수 있는 종목이에요. 앱은 그중 하나를 골라요.</p>
+    <div id="days" style="display:flex;flex-direction:column;gap:14px"></div>
+    <div class="addrow"><button class="op add" data-act="addDay">＋ 새 날 설계 추가</button></div>
+  </section>
+
+  <section aria-labelledby="h-ex">
+    <h2 id="h-ex">종목 전체 · 어디에 쓰이나</h2>
+    <p class="muted small" style="margin:0" id="exsum"></p>
+    <div class="exgrid" id="exgrid"></div>
+  </section>
+
+  <section aria-labelledby="h-memo">
+    <h2 id="h-memo">설계 메모</h2>
+    <div class="memo">
+      <label for="memoText" class="muted small">질문이나 바꾸고 싶은 방향을 자유롭게 적어 주세요. Claude가 읽고 같이 설계해요.</label>
+      <textarea id="memoText" placeholder="예: 목요일 어깨팔은 시간이 부족해요. 팔은 하나만 해도 될까요?"></textarea>
+    </div>
+    <h2 id="h-chg" style="font-size:19px;margin-top:6px">원래 설계에서 고친 것</h2>
+    <ul class="list" id="chgList"><li class="muted">아직 없어요.</li></ul>
+    <div class="addrow" style="gap:8px;align-items:center"><button class="op" data-act="resetAll">↺ 처음 설계로 되돌리기</button><span class="small muted" id="resetSt"></span></div>
+  </section>
+  <p class="foot">이 설계도는 앱 코드에서 그대로 뽑았어요. 여기서 고쳐도 프로그램은 바로 바뀌지 않아요. 고친 내용은 내 계정에 저장되고, Claude에게 "설계도 반영해줘"라고 말하면 읽어서 같이 정한 뒤 앱에 넣어요.</p>
+</div>
+
+<script>
+const ORIGINAL = {"made":"2026-10-18 · 앱 v147 기준","philo":[{"t":"🎯 내 몸을 자유롭게 쓰고, 아프지 않기","s":"건강한 신체"},{"t":"💰 그리고 노후준비를 위한 근테크","s":"노후 준비 · 나이 들면 근육이 줄어요"},{"t":"🔗 근육은 다 연결돼 있어요","s":"아픈 곳만 말고 이어진 근육까지"}],"kindDef":{"기능성":"여러 부위를 같이 쓰는 운동 (고립 운동 아님)","재활":"뭉친 근육 풀기 · 스트레칭 · 영상으로 근육 키우기","중량":"바벨·덤벨·머신·케이블로 근육 키우기 · 근테크","유산소":"심폐 · 순환 · 1순위"},"rules":[{"t":"요일표는 고정","p":"일 하체 · 월 회복 · 화 PT · 수 가슴등 · 목 어깨팔 · 금 PT · 토 회복. 토요일은 일정 때문에 회복날이에요.","items":[]},{"t":"운동날 맨 앞에 공통 몸풀기","p":"내 몸풀기 하나 — 하체부터 상체로 순환. 가동성 영상은 그날 자리에서. PT 날엔 안 붙어요.","items":[]},{"t":"날마다 \"자리\"가 정해져 있어요","p":"운동날: 🔥 내 몸풀기 → 🧩 기능성 → 🏋️ 중량. 회복날: 🫁 준비 → ① 근육 풀기 → ② 스트레칭 → ③ 근육 키우기(영상) → 🫀 심폐.","items":[]},{"t":"회복날 부위는 전날 운동으로","p":"앞쪽에서 가장 가까운 운동날을 봐요. 하체였으면 무릎(월), 가슴등·어깨팔이었으면 허리·어깨(토). PT 날은 건너뛰어요.","items":[]},{"t":"자리마다 후보 중 하나를 골라요","p":"","items":["선생님이 가르쳐 준 종목 먼저","그중 가장 오래 안 한 것 먼저","같은 날에 이미 나온 종목은 빼요","같은 주 앞날에 쓴 종목은 뒤로 미뤄요"]},{"t":"특별한 자리","p":"유산소는 슬로우 조깅 ↔ 수영을 번갈아요. 영상 자리는 날짜마다 다른 영상이 나와요. 회원 전용 영상은 안 나와요.","items":[]},{"t":"매일 아침은 뉴로빅","p":"기상 루틴으로 뉴로빅. 오늘 기록의 매일 루틴 칸에서 체크 하나로 기록하고 영상을 봐요.","items":[]},{"t":"바쁜 날은 집에서 라쿠다 밴드","p":"어디 가기 애매하거나 바쁜 날은 오늘 기록의 🏠 단추 — 라쿠다 밴드 30분 체형교정 전신 루틴을 담고 영상을 열어요.","items":[]},{"t":"한 시간에 맞춰요","p":"앞에서부터 시간을 더해 60분이 넘으면 뒤쪽은 \"시간 남으면\"이 돼요. 유산소는 1순위라 절대 밀리지 않아요. 오늘 자리는 ↻ 로 직접 바꿀 수 있어요.","items":[]}],"week":[{"dow":"일","tag":"하체","day":"legs","kind":"work"},{"dow":"월","tag":"회복","day":"rest-knee","kind":"rest"},{"dow":"화","tag":"PT","day":null},{"dow":"수","tag":"가슴등","day":"chestback","kind":"work"},{"dow":"목","tag":"어깨팔","day":"shoulderarm","kind":"work"},{"dow":"금","tag":"PT","day":null},{"dow":"토","tag":"회복","day":"rest-upper","kind":"rest"}],"days":[{"key":"legs","kind":"work","title":"하체 · 고관절 가동성 · 기능성 → 중량","tip":"내 몸풀기 먼저 · 🧩 기능성으로 고관절·발목을 열고 엉덩이 자극 찾고 → 🏋️ 중량 · 무릎 재활은 다음날(월) 회복날에 · 끝나면 우유·바나나","slots":[{"id":"legs-0","stage":"🧩 기능성","why":"고관절 가동성: 늘리고(30초) 그 끝에서 바닥 5초 누르기 × 3","amount":"좌우 30초 → 끝 5초×3 · 2세트","options":[{"n":"내전근 스트레칭","kind":"재활","amt":""}],"video":null},{"id":"legs-1","stage":"🧩 기능성","why":"고관절 가동성: 넓힌 범위를 내 힘으로 움직이기","amount":"10회 × 2세트","options":[{"n":"스핀롤","kind":"기능성","amt":""},{"n":"리버스 노드릭컬","kind":"기능성","amt":""}],"video":null},{"id":"legs-2","stage":"🧩 기능성","why":"무릎·발목 챙기기 영상 (1분 · 뻔더)","amount":"1~2분 · 짧은 영상","options":[{"n":"관절 챙기기 영상","kind":"재활","amt":""}],"video":{"from":"뻔더 · 🦵 무릎 · 발 · 발목","list":[{"ch":"뻔더","n":"계단 내려갈 때 무릎이 아프다면","url":"https://www.youtube.com/shorts/R-y8PiIrL10","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"스쿼트할 때 무릎이 아프다면","url":"https://www.youtube.com/shorts/xayphsXCvmw","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"계단을 이용한 무릎 강화 동작 2가지","url":"https://www.youtube.com/shorts/CQ-y9pVp__Q","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"무릎 건강을 지키는 4가지 운동","url":"https://www.youtube.com/shorts/yetSXpXQolA","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"티타늄 무릎 만드는 법","url":"https://www.youtube.com/shorts/DAwIKTGlSSE","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"발·발목 강화 운동 10가지","url":"https://www.youtube.com/shorts/9Olfw9_EATU","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"발목이 계속 삔다면","url":"https://www.youtube.com/shorts/5UGwiN_yabI","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"러닝 후 종아리·발목이 아프다면","url":"https://www.youtube.com/shorts/kQGutIiivw0","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"접질린 발목 재활 4단계","url":"https://www.youtube.com/shorts/BS0Zxr6C0xk","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"러닝 후 발·발목이 아프다면","url":"https://www.youtube.com/shorts/SY5RvX5aeXs","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"러닝 후 무릎·발목이 아프다면","url":"https://www.youtube.com/shorts/XEFomDG-gGc","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"걷거나 달린 후 관절이 아프다면","url":"https://www.youtube.com/shorts/rbvIttDiSvY","gear":"bw","g":"🦵 무릎 · 발 · 발목"}]}},{"id":"legs-3","stage":"🧩 기능성","why":"종아리·발목 (끝까지 내려 2초)","amount":"15회 × 2세트 (끝까지 내려 2초)","options":[{"n":"카프 레이즈","kind":"기능성","amt":""}],"video":null},{"id":"legs-4","stage":"🧩 기능성","why":"왼발 아치 깨우기 (발가락으로 수건 끌어오기 · 하체날 고정)","amount":"15회 × 2세트","options":[{"n":"발가락 수건 잡기","kind":"재활","amt":""}],"video":null},{"id":"legs-5","stage":"🧩 기능성","why":"엉덩이 자극 찾기","amount":"좌우 5회 × 2세트","options":[{"n":"크랩워킹","kind":"기능성","amt":"좌우 10걸음 × 2"},{"n":"밸런스 리치 (한 발 서서 앞·뒤 터치)","kind":"기능성","amt":""}],"video":null},{"id":"legs-6","stage":"🧩 기능성","why":"고관절 운동 (골반 세우기 · 허리 대신 엉덩이)","amount":"15회 × 2세트","options":[{"n":"고관절 운동(폼롤러)","kind":"기능성","amt":""},{"n":"케틀벨 굿모닝","kind":"기능성","amt":""},{"n":"고관절 힌지 보조운동","kind":"기능성","amt":""}],"video":null},{"id":"legs-7","stage":"🧩 기능성","why":"코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)","amount":"8초 버티고 2초 쉬기 × 8","options":[{"n":"플랭크","kind":"기능성","amt":""},{"n":"바디컨트롤 전면 코어","kind":"기능성","amt":"10회 × 2세트"},{"n":"수트케이스 캐리 (한 손 케틀벨 들고 걷기)","kind":"기능성","amt":"좌우 30초 × 2"}],"video":null},{"id":"legs-8","stage":"🏋️ 중량","why":"하체 주운동 (통제되는 깊이까지 · 첫 세트는 가볍게)","amount":"4세트 × 10~12회","options":[{"n":"스쿼트","kind":"중량","amt":""},{"n":"가블릿 스쿼트","kind":"중량","amt":""},{"n":"스티프 데드리프트","kind":"중량","amt":""},{"n":"데드리프트","kind":"중량","amt":""}],"video":null},{"id":"legs-9","stage":"🏋️ 중량","why":"한 다리: 덤벨 런지로 고관절 바르게 (중요)","amount":"3세트 × 좌우 12회","options":[{"n":"런지","kind":"중량","amt":""},{"n":"프론트런지","kind":"중량","amt":""}],"video":null},{"id":"legs-10","stage":"🏋️ 중량","why":"머신 (레그프레스는 손잡이 잡고 코어)","amount":"3세트 × 15회","options":[{"n":"레그프레스","kind":"중량","amt":""},{"n":"이너타이 머신","kind":"중량","amt":""},{"n":"레그 익스텐션","kind":"중량","amt":""},{"n":"라잉 레그컬","kind":"중량","amt":""}],"video":null}],"name":"일 하체"},{"key":"chestback","kind":"work","title":"가슴·등 · 기능성 → 중량","tip":"내 몸풀기 먼저 · 🧩 기능성(관절 영상 · 케틀벨 암바 · 맨몸 밀고 당기기 · 회전)으로 자극 찾고 → 🏋️ 중량 · 덤벨 로우는 늘어날 때 집중(끝범위) · 허리 재활은 토요일 회복날에","slots":[{"id":"chestback-0","stage":"🧩 기능성","why":"손목·팔꿈치 챙기기 영상 (1분 · 벤치 전에 · 뻔더)","amount":"1~2분 · 짧은 영상","options":[{"n":"관절 챙기기 영상","kind":"재활","amt":""}],"video":{"from":"뻔더 · 🦴 손목 · 팔꿈치","list":[{"ch":"뻔더","n":"푸쉬업할 때 손목이 아프다면","url":"https://www.youtube.com/shorts/IcPZMH07BPM","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"운동할 때 손목이 아프다면","url":"https://www.youtube.com/shorts/TIeIZdlPOvM","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"바닥에 손을 짚을 때 손목이 아프다면","url":"https://www.youtube.com/shorts/gl-oi3SZfWo","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"티타늄 손목 만들기","url":"https://www.youtube.com/shorts/hU-dsspvM5U","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"강철 손목 만들기","url":"https://www.youtube.com/shorts/hDAhbkzIT8Q","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"오래 일해서 손목이 아프다면 (일상 손목 운동 3가지)","url":"https://www.youtube.com/shorts/il_BNtH-rI8","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"운동할 때 팔꿈치가 아프다면","url":"https://www.youtube.com/shorts/tQeCixxZm1A","gear":"bw","g":"🦴 손목 · 팔꿈치"},{"ch":"뻔더","n":"팔꿈치에서 뼈 소리가 난다면","url":"https://www.youtube.com/shorts/eawRM8FSxCY","gear":"bw","g":"🦴 손목 · 팔꿈치"}]}},{"id":"chestback-1","stage":"🧩 기능성","why":"바닥에서 몸 잇기 (가슴·등·골반을 한 몸으로)","amount":"좌우 8회 × 2세트","options":[{"n":"케틀벨 암바","kind":"기능성","amt":""}],"video":null},{"id":"chestback-2","stage":"🧩 기능성","why":"맨몸 밀고 당기기 (가볍게 · 가슴·등 자극 찾기)","amount":"10회 × 2세트 (가볍게)","options":[{"n":"푸쉬업(팔굽혀펴기)","kind":"기능성","amt":""},{"n":"인버티드로우","kind":"기능성","amt":""}],"video":null},{"id":"chestback-3","stage":"🧩 기능성","why":"회전: 한 팔 당기며 몸통 꼬기 (불균형 교정)","amount":"15회씩 × 3세트","options":[{"n":"원암 케이블 회전 로우 (불균형 교정)","kind":"기능성","amt":""}],"video":null},{"id":"chestback-4","stage":"🏋️ 중량","why":"가슴 주운동 (첫 세트는 가볍게)","amount":"4세트 × 10~12회","options":[{"n":"벤치프레스","kind":"중량","amt":""},{"n":"인클라인 덤벨프레스","kind":"중량","amt":""}],"video":null},{"id":"chestback-5","stage":"🏋️ 중량","why":"가슴 두 번째","amount":"3세트 × 12~15회","options":[{"n":"덤벨 벤치프레스","kind":"중량","amt":""},{"n":"케이블 플라이","kind":"중량","amt":""},{"n":"딥스","kind":"중량","amt":""}],"video":null},{"id":"chestback-6","stage":"🏋️ 중량","why":"등 위에서 당기기","amount":"4세트 × 12회","options":[{"n":"랫풀다운","kind":"중량","amt":""},{"n":"비하인드 렛풀다운","kind":"중량","amt":""},{"n":"어시스턴트 풀업","kind":"중량","amt":""},{"n":"암풀다운","kind":"중량","amt":""}],"video":null},{"id":"chestback-7","stage":"🏋️ 중량","why":"데드리프트","amount":"3세트 × 10~15회","options":[{"n":"데드리프트","kind":"중량","amt":""},{"n":"스티프 데드리프트","kind":"중량","amt":""}],"video":null},{"id":"chestback-8","stage":"🏋️ 중량","why":"등 앞에서 당기기 (늘어날 때 집중)","amount":"3세트 × 15~20회","options":[{"n":"롱풀로우 머신","kind":"중량","amt":""},{"n":"덤벨 로우","kind":"중량","amt":""},{"n":"바벨 로우","kind":"중량","amt":""}],"video":null}],"name":"수 가슴등"},{"key":"shoulderarm","kind":"work","title":"어깨·팔 · 어깨 가동성 · 기능성 → 중량","tip":"내 몸풀기 먼저 · 🔥 가슴 앞 열고 → 🧩 어깨 가동성(영상 · 케틀벨 암바) → 🏋️ 중량 · 팔은 마지막에 · 어깨 재활은 토요일 회복날에","slots":[{"id":"shoulderarm-0","stage":"🔥 열 내기","why":"어깨 가동성: 가슴 앞 늘리고(30초) 그 끝에서 5초 버티기 × 3","amount":"좌우 30초 → 끝 5초×3 · 2세트","options":[{"n":"문틀 가슴 스트레칭","kind":"재활","amt":""}],"video":null},{"id":"shoulderarm-1","stage":"🧩 기능성","why":"어깨 가동성 영상 (하루 5분 · 뻔더 · 휴먼밸런스)","amount":"5~10분 · 영상 하나","options":[{"n":"어깨 가동성 영상","kind":"재활","amt":""}],"video":{"from":"휴먼밸런스 · 하루 5분 · 뻔더 (맨몸)","list":[{"ch":"하루 5분","n":"어깨 필수 가동성 동작 5가지","url":"https://www.youtube.com/shorts/Qz0U8GHs9_Q","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"30년간 굳은 말린 어깨 되돌리는 동작","url":"https://www.youtube.com/shorts/wWUC_a8QnUk","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"겨드랑이 옆이 뻣뻣하면 생기는 문제 (광배근)","url":"https://www.youtube.com/shorts/Mey2Myd1BPw","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"굽은 몸 한 번에 펴주는 동작","url":"https://www.youtube.com/shorts/nYhI5J3khuc","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"캣카우 스트레칭 제대로","url":"https://www.youtube.com/shorts/ypmLu6CrgyI","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"내 승모근이 계속 뭉치는 이유","url":"https://www.youtube.com/shorts/7-boBAcgoC4","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"휴먼밸런스","n":"스마트폰 세상에서 등근육을 키워야 하는 이유 (짧은 영상)","url":"https://www.youtube.com/watch?v=QjtX9qWHNjA","gear":"bw","g":"🫱 어깨 · 거북목 · 굽은등"}]}},{"id":"shoulderarm-2","stage":"🧩 기능성","why":"어깨 가동성 (어깨 안정화·흉추)","amount":"좌우 8회 × 2세트","options":[{"n":"케틀벨 암바","kind":"기능성","amt":""}],"video":null},{"id":"shoulderarm-3","stage":"🏋️ 중량","why":"어깨 주운동 (첫 세트는 가볍게)","amount":"4세트 × 12~15회","options":[{"n":"오버헤드프레스","kind":"중량","amt":""},{"n":"밀리터리 프레스","kind":"중량","amt":""}],"video":null},{"id":"shoulderarm-4","stage":"🏋️ 중량","why":"덤벨 숄더프레스 (좌우 높이 보기)","amount":"3세트 × 15회","options":[{"n":"덤벨 숄더프레스","kind":"중량","amt":""}],"video":null},{"id":"shoulderarm-5","stage":"🏋️ 중량","why":"어깨 옆·뒤 당기기 (끝까지 올려 2초)","amount":"3세트 × 15회","options":[{"n":"후면 리어 델토이드 플라이","kind":"중량","amt":""},{"n":"업라이트로우","kind":"중량","amt":""}],"video":null},{"id":"shoulderarm-6","stage":"🏋️ 중량","why":"팔 이두","amount":"3세트 × 20회","options":[{"n":"바벨 컬","kind":"중량","amt":""},{"n":"덤벨 해머컬","kind":"중량","amt":""}],"video":null},{"id":"shoulderarm-7","stage":"🏋️ 중량","why":"팔 삼두","amount":"3세트 × 20회","options":[{"n":"케이블 푸쉬다운","kind":"중량","amt":""},{"n":"라잉 트라이셉스 익스텐션","kind":"중량","amt":""}],"video":null}],"name":"목 어깨팔"},{"key":"rest-knee","kind":"rest","title":"회복 — 무릎 재활 (+고관절·발목)","tip":"무게는 가벼운 케틀벨까지만 · 숨이 안 찰 만큼 · 잠을 충분히 (7시간 이상)","slots":[{"id":"rest-0","stage":"🫁 준비","why":"호흡: 배로 천천히","amount":"3분","options":[{"n":"악어호흡","kind":"재활","amt":""}],"video":null},{"id":"rest-1","stage":"① 근육 풀기","why":"발바닥 (공 굴리기 · 왼발 아치)","amount":"좌우 1분","options":[{"n":"발바닥 마사지","kind":"재활","amt":""}],"video":null},{"id":"rest-2","stage":"① 근육 풀기","why":"종아리·정강이 앞 (무릎은 발목이 굳으면 고생)","amount":"좌우 1분","options":[{"n":"마사지볼 풀기 — 종아리·정강이 앞","kind":"재활","amt":""}],"video":null},{"id":"rest-3","stage":"① 근육 풀기","why":"골반 옆·허벅지 앞 (무릎 바깥으로 당기는 곳)","amount":"좌우 2분","options":[{"n":"마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이","kind":"재활","amt":""}],"video":null},{"id":"rest-7","stage":"② 스트레칭","why":"고관절 앞 (골반 말고 엉덩이 조이기)","amount":"좌우 30초 × 2","options":[{"n":"반무릎 장요근 스트레칭","kind":"재활","amt":""}],"video":null},{"id":"rest-8","stage":"② 스트레칭","why":"허벅지 안쪽·뒤","amount":"좌우 30초 × 2","options":[{"n":"내전근 스트레칭","kind":"재활","amt":""},{"n":"의자 햄스트링 스트레칭","kind":"재활","amt":""}],"video":null},{"id":"rest-9","stage":"② 스트레칭","why":"종아리 (발목 끝범위)","amount":"좌우 30초 × 2","options":[{"n":"벽 종아리 스트레칭","kind":"재활","amt":""}],"video":null},{"id":"rest-13","stage":"③ 근육 키우기","why":"무릎 (영상 따라하기)","amount":"5~10분 · 영상 하나","options":[{"n":"무릎 키우기 영상","kind":"재활","amt":""}],"video":{"from":"휴먼밸런스 · 하루 5분 · 뻔더 (맨몸)","list":[{"ch":"뻔더","n":"계단 내려갈 때 무릎이 아프다면","url":"https://www.youtube.com/shorts/R-y8PiIrL10","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"스쿼트할 때 무릎이 아프다면","url":"https://www.youtube.com/shorts/xayphsXCvmw","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"계단을 이용한 무릎 강화 동작 2가지","url":"https://www.youtube.com/shorts/CQ-y9pVp__Q","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"무릎 건강을 지키는 4가지 운동","url":"https://www.youtube.com/shorts/yetSXpXQolA","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"티타늄 무릎 만드는 법","url":"https://www.youtube.com/shorts/DAwIKTGlSSE","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"하루 5분","n":"무릎 통증 없애는 하루 5분 루틴","url":"https://www.youtube.com/shorts/V_8s9gQGd18","gear":"bw","g":"🦵 무릎 · 발목 · 발"},{"ch":"하루 5분","n":"무릎 바깥쪽 통증, 장경인대만 풀고 있나요?","url":"https://www.youtube.com/shorts/KPOvkM_y020","gear":"bw","g":"🦵 무릎 · 발목 · 발"},{"ch":"하루 5분","n":"허벅지 앞이 짧아지고 뻣뻣해지면?","url":"https://www.youtube.com/shorts/KJdm8eXAKFM","gear":"bw","g":"🍑 골반 · 고관절 · 허벅지"},{"ch":"하루 5분","n":"하체 필수 가동성 동작 5가지","url":"https://www.youtube.com/shorts/-v-ZDIrVg0E","gear":"bw","g":"🍑 골반 · 고관절 · 허벅지"}]}},{"id":"rest-14","stage":"③ 근육 키우기","why":"발·발목·엉덩이 (영상 따라하기)","amount":"5~10분 · 영상 하나","options":[{"n":"발·엉덩이 키우기 영상","kind":"재활","amt":""}],"video":{"from":"휴먼밸런스 · 하루 5분 · 뻔더 (맨몸)","list":[{"ch":"뻔더","n":"발·발목 강화 운동 10가지","url":"https://www.youtube.com/shorts/9Olfw9_EATU","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"발목이 계속 삔다면","url":"https://www.youtube.com/shorts/5UGwiN_yabI","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"접질린 발목 재활 4단계","url":"https://www.youtube.com/shorts/BS0Zxr6C0xk","gear":"bw","g":"🦵 무릎 · 발 · 발목"},{"ch":"뻔더","n":"고관절이 뻣뻣하다면","url":"https://www.youtube.com/shorts/xLd9UK2J3b8","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"유연하고 강한 고관절을 위한 한 가지 동작","url":"https://www.youtube.com/shorts/cPQXOtISCJk","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"고관절 내·외회전 스트레칭 3가지","url":"https://www.youtube.com/shorts/rC_TK21aFdw","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"골반 한쪽이 자꾸 떨어진다면","url":"https://www.youtube.com/shorts/10ZNiEjRee8","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"하루 5분","n":"고관절·골반 뻐근할 때 이 동작","url":"https://www.youtube.com/shorts/fBByTVXCONA","gear":"bw","g":"🍑 골반 · 고관절 · 허벅지"},{"ch":"하루 5분","n":"고관절 스트레칭만 하면 안 되는 이유 — 90/90 루틴","url":"https://www.youtube.com/watch?v=8rGQzOeemRI","gear":"bw","g":"🍑 골반 · 고관절 · 허벅지"},{"ch":"하루 5분","n":"햄스트링은 늘어난 범위를 기억하지 않습니다","url":"https://www.youtube.com/watch?v=hrZQxlNijRU","gear":"bw","g":"🍑 골반 · 고관절 · 허벅지"},{"ch":"휴먼밸런스","n":"2025 웰니스 다이브 골반운동 (짧은 영상)","url":"https://www.youtube.com/watch?v=w4pr9HllpNg","gear":"bw","g":"🍑 골반 · 고관절 · 하체"}]}},{"id":"rest-17","stage":"③ 근육 키우기","why":"전신 운동","amount":"15회 × 4세트","options":[{"n":"겟업동작","kind":"기능성","amt":""},{"n":"바디컨트롤 전면 코어","kind":"기능성","amt":""},{"n":"케틀벨 스윙","kind":"기능성","amt":""},{"n":"라쿠다 밴드 30분 루틴","kind":"기능성","amt":"30분 · 영상 따라하기"}],"video":null},{"id":"rest-18","stage":"🫀 심폐","why":"1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)","amount":"20분","options":[{"n":"슬로우 조깅","kind":"유산소","amt":""},{"n":"수영","kind":"유산소","amt":"20~30분 · 천천히, 숨 편하게"}],"video":null}],"name":"월 무릎 재활"},{"key":"rest-upper","kind":"rest","title":"회복 — 허리·어깨 재활 (+목·골반)","tip":"무게는 가벼운 케틀벨까지만 · 숨이 안 찰 만큼 · 잠을 충분히 (7시간 이상)","slots":[{"id":"rest-0","stage":"🫁 준비","why":"호흡: 배로 천천히","amount":"3분","options":[{"n":"악어호흡","kind":"재활","amt":""}],"video":null},{"id":"rest-4","stage":"① 근육 풀기","why":"쇄골 아래·겨드랑이·어깨 뒤 (둥근어깨)","amount":"좌우 1분","options":[{"n":"마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤","kind":"재활","amt":""}],"video":null},{"id":"rest-5","stage":"① 근육 풀기","why":"겨드랑이 옆 광배근 (팔 올리기 막는 곳)","amount":"좌우 1분","options":[{"n":"폼롤러 광배근 풀기","kind":"재활","amt":""}],"video":null},{"id":"rest-6","stage":"① 근육 풀기","why":"골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)","amount":"좌우 2분","options":[{"n":"마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이","kind":"재활","amt":""},{"n":"고관절 운동(폼롤러)","kind":"기능성","amt":""}],"video":null},{"id":"rest-10","stage":"② 스트레칭","why":"가슴 앞 (둥근어깨 펴기)","amount":"좌우 30초 × 2","options":[{"n":"문틀 가슴 스트레칭","kind":"재활","amt":""}],"video":null},{"id":"rest-11","stage":"② 스트레칭","why":"광배근 · 목 옆","amount":"좌우 30초 × 2","options":[{"n":"광배근 스트레칭 (짐볼·벤치)","kind":"재활","amt":""},{"n":"위 승모근 스트레칭 (목 옆 늘리기)","kind":"재활","amt":""}],"video":null},{"id":"rest-12","stage":"② 스트레칭","why":"허리·목 뒤로 젖히기 (디스크 예방)","amount":"10회 × 2세트","options":[{"n":"백년척추 디스크 예방 (허리·목 뒤로 젖히기)","kind":"재활","amt":""}],"video":null},{"id":"rest-15","stage":"③ 근육 키우기","why":"어깨·등 (영상 따라하기)","amount":"5~10분 · 영상 하나","options":[{"n":"어깨·등 키우기 영상","kind":"재활","amt":""}],"video":{"from":"휴먼밸런스 · 하루 5분 · 뻔더 (맨몸)","list":[{"ch":"하루 5분","n":"어깨 필수 가동성 동작 5가지","url":"https://www.youtube.com/shorts/Qz0U8GHs9_Q","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"30년간 굳은 말린 어깨 되돌리는 동작","url":"https://www.youtube.com/shorts/wWUC_a8QnUk","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"굽은 몸 한 번에 펴주는 동작","url":"https://www.youtube.com/shorts/nYhI5J3khuc","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"겨드랑이 옆이 뻣뻣하면 생기는 문제 (광배근)","url":"https://www.youtube.com/shorts/Mey2Myd1BPw","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"하루 5분","n":"내 승모근이 계속 뭉치는 이유","url":"https://www.youtube.com/shorts/7-boBAcgoC4","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"},{"ch":"휴먼밸런스","n":"스마트폰 세상에서 등근육을 키워야 하는 이유 (짧은 영상)","url":"https://www.youtube.com/watch?v=QjtX9qWHNjA","gear":"bw","g":"🫱 어깨 · 거북목 · 굽은등"},{"ch":"휴먼밸런스","n":"스탠딩 롤다운 — 굽은등 스트레칭","url":"https://www.youtube.com/watch?v=k0JNOQrsE0c","gear":"bw","g":"🧍 등 · 허리"},{"ch":"뻔더","n":"상체 운동 전 필수 동작 (흉추 회전)","url":"https://www.youtube.com/shorts/JsF8lersqxk","gear":"bw","g":"🫱 굽은 등 · 말린 어깨"}]}},{"id":"rest-16","stage":"③ 근육 키우기","why":"허리·코어 (영상 따라하기)","amount":"5~10분 · 영상 하나","options":[{"n":"허리·코어 키우기 영상","kind":"재활","amt":""}],"video":{"from":"휴먼밸런스 · 하루 5분 · 뻔더 (맨몸)","list":[{"ch":"뻔더","n":"뻣뻣한 허리를 움직여 보세요","url":"https://www.youtube.com/shorts/LSJuhzT-00Y","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"허리가 아픈데 오래 앉아있다면","url":"https://www.youtube.com/shorts/MqtsvXYEZ_w","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"앉아있다 일어날 때 허리가 아프다면","url":"https://www.youtube.com/shorts/yx0o3fzVFvU","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"코어 운동 후 허리가 더 아프다면","url":"https://www.youtube.com/shorts/U3Uo3G6IApw","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"복근운동할 때 허리만 아프다면","url":"https://www.youtube.com/shorts/dJaBp1AxCs8","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"코어에 힘주라는 건 어떤 뜻일까","url":"https://www.youtube.com/shorts/4ctg0QU4XaY","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"허리 아프지 않게 햄스트링 유연성 늘리기","url":"https://www.youtube.com/shorts/XcIFjvUIVxo","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"뻔더","n":"골반 움직임 느끼기 (앞·뒤 기울기)","url":"https://www.youtube.com/shorts/HbMsD1deA6k","gear":"bw","g":"🍑 고관절 · 골반 · 허리"},{"ch":"하루 5분","n":"복근 운동 딱 하나만 — 할로우 바디","url":"https://www.youtube.com/shorts/dPrXUac3Njc","gear":"bw","g":"🧱 몸통 · 아침 · 자기 전"},{"ch":"하루 5분","n":"몸통이 단단히 굳은 느낌이라면","url":"https://www.youtube.com/shorts/Z1O7kwObK8s","gear":"bw","g":"🧱 몸통 · 아침 · 자기 전"},{"ch":"휴먼밸런스","n":"매일 하면 좋은 4분 플랭크 타바타","url":"https://www.youtube.com/watch?v=NVQwOXqupi8","gear":"bw","g":"🧱 코어 · 전신 흐름"},{"ch":"휴먼밸런스","n":"캣 스트레치 — 척추 유연성","url":"https://www.youtube.com/watch?v=Zxz_wTYJbyk","gear":"bw","g":"🧍 등 · 허리"},{"ch":"하루 5분","n":"캣카우 스트레칭 제대로","url":"https://www.youtube.com/shorts/ypmLu6CrgyI","gear":"bw","g":"🫱 어깨 · 목 · 굽은등"}]}},{"id":"rest-17","stage":"③ 근육 키우기","why":"전신 운동","amount":"15회 × 4세트","options":[{"n":"겟업동작","kind":"기능성","amt":""},{"n":"바디컨트롤 전면 코어","kind":"기능성","amt":""},{"n":"케틀벨 스윙","kind":"기능성","amt":""},{"n":"라쿠다 밴드 30분 루틴","kind":"기능성","amt":"30분 · 영상 따라하기"}],"video":null},{"id":"rest-18","stage":"🫀 심폐","why":"1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)","amount":"20분","options":[{"n":"슬로우 조깅","kind":"유산소","amt":""},{"n":"수영","kind":"유산소","amt":"20~30분 · 천천히, 숨 편하게"}],"video":null}],"name":"토 허리·어깨 재활"}],"warm":[{"id":"warm-0","stage":"🔥 열 내기","why":"몸풀기: 하체(고관절)부터 → WGS → 점프 10번으로 순환 (강의 틀 + 내 WGS)","amount":"약 4분 · 7가지 정해진 횟수","options":[{"n":"내 몸풀기 (하체부터 · WGS · 점프)","kind":"기능성","amt":""}],"video":null}],"memo":"","exNotes":{},"videoCount":83};
+const KINDS = ['기능성','재활','중량','유산소'];
+const STAGES_WORK = ['🔥 열 내기','🧩 기능성','🏋️ 중량','🧩 마무리'];
+const STAGES_REST = ['🫁 준비','① 근육 풀기','② 스트레칭','③ 근육 키우기','🫀 심폐'];
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const clone = o => JSON.parse(JSON.stringify(o));
+let M = clone(ORIGINAL);          // 지금 설계 (저장소에 있으면 그것으로 바꾼다)
+let E = false;                    // 고치기 모드
+let dirty = false, db = null, canWrite = false, saveTimer = null, saving = false;
+
+// ---- 길(path)로 값 읽고 쓰기: "rules.2.t" ----
+const getP = (o, p) => p.split('.').reduce((a, k) => a == null ? a : a[k], o);
+function setP(o, p, v){ const ks = p.split('.'); const last = ks.pop(); const t = ks.reduce((a, k) => a[k], o); t[last] = v; }
+// 고칠 수 있는 글
+const ce = (text, path, tag) => E ? `<${tag || 'span'} class="ce" contenteditable="true" spellcheck="false" data-p="${path}">${esc(text)}</${tag || 'span'}>` : esc(text);
+const ops = (path, i, n, extra) => `<span class="ops">${i > 0 ? `<button class="op" data-act="up" data-p="${path}" data-i="${i}" aria-label="위로">↑</button>` : ''}${i < n - 1 ? `<button class="op" data-act="down" data-p="${path}" data-i="${i}" aria-label="아래로">↓</button>` : ''}<button class="op" data-act="del" data-p="${path}" data-i="${i}" aria-label="지우기">✕</button>${extra || ''}</span>`;
+const addBtn = (path, label, extra) => `<button class="op add" data-act="add" data-p="${path}"${extra || ''}>＋ ${label}</button>`;
+
+// ---- 그리기 ----
+function render(){
+  document.body.classList.toggle('editing', E);
+  $('#made').textContent = ORIGINAL.made + ' · 종목 ' + allExercises().length + '개 · 영상 ' + ORIGINAL.videoCount + '개';
+  $('#philo').innerHTML = M.philo.map((p, i) => `<div>${ce(p.t, `philo.${i}.t`)}<small>${ce(p.s, `philo.${i}.s`)}</small>${ops('philo', i, M.philo.length)}</div>`).join('')
+    + (E ? `<div style="border-style:dashed">${addBtn('philo', '철학 한 줄')}</div>` : '');
+  $('#kinds').innerHTML = KINDS.map(k => `<span class="k-${k}"><i class="dot"></i><b>${k}</b> · ${ce(M.kindDef[k], `kindDef.${k}`)}</span>`).join('');
+  $('#rules').innerHTML = M.rules.map((r, i) => `<div class="rule"><div class="n">${i + 1}</div><div class="b">
+      <div class="t">${ce(r.t, `rules.${i}.t`)}${ops('rules', i, M.rules.length)}</div>
+      ${(r.p || E) ? `<p>${ce(r.p || '', `rules.${i}.p`)}</p>` : ''}
+      ${(r.items && r.items.length) || E ? `<ol>${(r.items || []).map((x, j) => `<li>${ce(x, `rules.${i}.items.${j}`)} ${ops(`rules.${i}.items`, j, r.items.length)}</li>`).join('')}</ol>${E ? addBtn(`rules.${i}.items`, '순서 한 줄') : ''}` : ''}
+    </div></div>`).join('') + (E ? `<div class="addrow" style="margin-left:46px">${addBtn('rules', '규칙 추가')}</div>` : '');
+  const dayOpts = sel => `<option value="">PT · 선생님께</option>` + M.days.map(d => `<option value="${d.key}"${d.key === sel ? ' selected' : ''}>${esc(d.name)}</option>`).join('');
+  $('#week').innerHTML = M.week.map((w, i) => { const d = M.days.find(x => x.key === w.day); const kind = d ? d.kind : 'pt';
+    return `<div class="wd ${kind}"><b>${esc(w.dow)}</b><span class="tg">${ce(w.tag, `week.${i}.tag`)}</span>
+      ${E ? `<select class="dsel" data-week="${i}" aria-label="${esc(w.dow)}요일 설계 고르기">${dayOpts(w.day)}</select>` : (d ? `<a href="#day-${d.key}">설계 보기</a>` : '<span class="tg">PT</span>')}</div>`; }).join('');
+  $('#days').innerHTML = M.days.map((d, di) => dayHTML(d, di)).join('');
+  renderEx(); renderChanges();
+}
+// 저장소는 글자(키) 순서를 바꿔 돌려주므로, 비교는 항상 값만 순서대로 뽑아서 한다
+const slotKey = s => [s.stage, s.why, s.amount].concat((s.options || []).map(x => [x.n, x.kind, x.amt || ''].join('|'))).join('¦');
+const ruleKey = r => [r.t, r.p || ''].concat(r.items || []).join('¦');
+function slotChanged(s, dayKey){
+  const o = findOrigSlot(dayKey, s.id); if(!o) return true;
+  return slotKey(o) !== slotKey(s);
+}
+function findOrigSlot(dayKey, id){ if(dayKey === 'warm') return ORIGINAL.warm.find(s => s.id === id); const d = ORIGINAL.days.find(x => x.key === dayKey); return d && d.slots.find(s => s.id === id); }
+function slotHTML(s, base, i, n, dayKey, stages){
+  const chips = s.options.map((o, j) => `<span class="chip k-${o.kind}"><i class="dot"></i>${ce(o.n, `${base}.${i}.options.${j}.n`)}${(o.amt || E) ? ` <em>${ce(o.amt || '', `${base}.${i}.options.${j}.amt`)}</em>` : ''}${E ? ` <select class="ksel" data-p="${base}.${i}.options.${j}.kind" aria-label="분류">${KINDS.map(k => `<option${k === o.kind ? ' selected' : ''}>${k}</option>`).join('')}</select><button class="x" data-act="del" data-p="${base}.${i}.options" data-i="${j}" aria-label="종목 빼기">✕</button>` : ''}</span>`).join('');
+  const vids = s.video ? `<details class="vids"><summary>▶ 영상 ${s.video.list.length}개 중 날마다 하나 · ${esc(s.video.from)}</summary><ul>${s.video.list.map(v => `<li><a href="${v.url}" target="_blank" rel="noopener">${esc(v.n)}</a> <em>${esc(v.ch)}</em></li>`).join('')}</ul></details>` : '';
+  const stageSel = E ? `<select class="ssel" data-p="${base}.${i}.stage" aria-label="단계">${stages.map(x => `<option${x === s.stage ? ' selected' : ''}>${x}</option>`).join('')}</select>` : '';
+  return `<div class="slot${slotChanged(s, dayKey) ? ' chg' : ''}">
+    <div class="why">${ce(s.why, `${base}.${i}.why`)}</div><div class="amt">${ce(s.amount, `${base}.${i}.amount`)}</div>
+    <div class="row2">${chips}${E ? addBtn(`${base}.${i}.options`, '종목') : ''}</div>${vids}
+    ${E ? `<div class="sops row2">${stageSel}${ops(base, i, n)}</div>` : ''}</div>`;
+}
+function groupSlots(list, base, dayKey, stages){
+  let out = '', cur = null;
+  list.forEach((s, i) => { if(s.stage !== cur){ cur = s.stage; out += `<div class="stage">${esc(cur || '그 밖에')}</div>`; } out += slotHTML(s, base, i, list.length, dayKey, stages); });
+  return out;
+}
+function dayHTML(d, di){
+  const stages = d.kind === 'rest' ? STAGES_REST : STAGES_WORK;
+  const warm = d.kind === 'work' ? `<div class="stage">🔥 공통 몸풀기 <span class="muted small">(운동날마다 같아요 · 고치면 모든 운동날에)</span></div>${M.warm.map((s, i) => slotHTML(s, 'warm', i, M.warm.length, 'warm', STAGES_WORK)).join('')}${E ? `<div class="row2">${addBtn('warm', '몸풀기 자리', ` data-stage="🔥 열 내기"`)}</div>` : ''}` : '';
+  return `<article class="day" id="day-${d.key}">
+    <div class="day-h"><h2 style="font-size:22px">${ce(d.name, `days.${di}.name`)}</h2><span class="tag">${d.kind === 'rest' ? '회복날' : '운동날'}</span>
+      ${E ? `<select class="ssel" data-p="days.${di}.kind" aria-label="날 종류"><option value="work"${d.kind === 'work' ? ' selected' : ''}>운동날</option><option value="rest"${d.kind === 'rest' ? ' selected' : ''}>회복날</option></select>${ops('days', di, M.days.length)}` : ''}</div>
+    <p class="muted small" style="margin:0">${ce(d.title, `days.${di}.title`)} · ${ce(d.tip || '', `days.${di}.tip`)}</p>
+    ${warm}${groupSlots(d.slots, `days.${di}.slots`, d.key, stages)}
+    ${E ? `<div class="row2">${addBtn(`days.${di}.slots`, '자리 추가', ` data-stage="${esc(stages[stages.length - 1])}"`)}</div>` : ''}
+  </article>`;
+}
+// ---- 종목 전체 (지금 설계에서 거꾸로 모은다) ----
+function allExercises(){
+  const map = new Map(); const add = (o, w) => { const k = o.n.replace(/\s+/g, ''); if(!k) return; if(!map.has(k)) map.set(k, { n:o.n, kind:o.kind, where:[] }); const r = map.get(k); if(!r.where.includes(w)) r.where.push(w); };
+  M.warm.forEach(s => s.options.forEach(o => add(o, '운동날 공통 몸풀기')));
+  M.days.forEach(d => d.slots.forEach(s => s.options.forEach(o => add(o, d.name + ' · ' + String(s.stage || '').replace(/^\S+\s/, '')))));
+  return [...map.values()];
+}
+function renderEx(){
+  const ex = allExercises(); const by = {}; ex.forEach(e => (by[e.kind] = by[e.kind] || []).push(e));
+  $('#exsum').textContent = KINDS.map(k => k + ' ' + ((by[k] || []).length)).join(' · ') + ' · 아래 글씨는 그 종목이 나오는 자리예요. 종목을 고치려면 날마다 자리에서 고쳐요.';
+  const note = n => (M.exNotes || {})[n] || {};
+  $('#exgrid').innerHTML = KINDS.filter(k => by[k]).map(k => `<div class="exbox k-${k}"><h3>${k}</h3><p class="def">${esc(M.kindDef[k])}</p>
+    ${by[k].map(e => { const nt = note(e.n); return `<div class="ex"><div class="nm${nt.drop ? ' dropped' : ''}">${esc(e.n)}</div><div class="wh">${e.where.map(esc).join(' / ')}</div>
+      ${(nt.note || E) ? `<div class="note">💬 ${E ? `<span class="ce" contenteditable="true" data-exnote="${esc(e.n)}">${esc(nt.note || '')}</span>` : esc(nt.note)}</div>` : ''}
+      ${E ? `<span class="ops"><button class="op" data-act="drop" data-n="${esc(e.n)}">${nt.drop ? '다시 쓰기' : '이 종목 빼고 싶어요'}</button></span>` : ''}</div>`; }).join('')}</div>`).join('');
+}
+// ---- 원래 설계와 비교 ----
+function changes(){
+  const out = []; const O = ORIGINAL;
+  M.philo.forEach((p, i) => { const o = O.philo[i]; if(!o) out.push('철학 추가: ' + p.t); else if(o.t !== p.t || o.s !== p.s) out.push('철학 ' + (i + 1) + ' → ' + p.t + ' / ' + p.s); });
+  if(O.philo.length > M.philo.length) out.push('철학 줄 ' + (O.philo.length - M.philo.length) + '개 지움');
+  KINDS.forEach(k => { if(O.kindDef[k] !== M.kindDef[k]) out.push(k + ' 뜻 → ' + M.kindDef[k]); });
+  M.rules.forEach((r, i) => { const o = O.rules[i]; if(!o) out.push('규칙 추가: ' + r.t); else if(ruleKey(o) !== ruleKey(r)) out.push('규칙 ' + (i + 1) + ' (' + r.t + ') 바뀜'); });
+  if(O.rules.length > M.rules.length) out.push('규칙 ' + (O.rules.length - M.rules.length) + '개 지움');
+  M.week.forEach((w, i) => { const o = O.week[i]; if(o && (o.tag !== w.tag || o.day !== w.day)) out.push(w.dow + '요일 → ' + w.tag + (w.day ? ' (' + ((M.days.find(d => d.key === w.day) || {}).name || w.day) + ')' : ' (PT)')); });
+  const slotDiff = (label, oList, mList) => {
+    const oIds = new Set(oList.map(s => s.id));
+    oList.forEach(o => { if(!mList.some(s => s.id === o.id)) out.push(label + ' · 자리 지움: ' + o.why); });
+    mList.forEach(s => { const o = oList.find(x => x.id === s.id);
+      if(!o){ out.push(label + ' · 자리 추가: [' + s.stage + '] ' + s.why + ' — ' + s.options.map(x => x.n).join(', ')); return; }
+      const bits = [];
+      if(o.stage !== s.stage) bits.push('단계 ' + o.stage + ' → ' + s.stage);
+      if(o.why !== s.why) bits.push('설명 → ' + s.why);
+      if(o.amount !== s.amount) bits.push('양 ' + o.amount + ' → ' + s.amount);
+      const on = o.options.map(x => x.n), mn = s.options.map(x => x.n);
+      const rm = on.filter(n => !mn.includes(n)), ad = mn.filter(n => !on.includes(n));
+      if(rm.length) bits.push('빼기 ' + rm.join(', ')); if(ad.length) bits.push('더하기 ' + ad.join(', '));
+      s.options.forEach(x => { const y = o.options.find(z => z.n === x.n); if(y && y.kind !== x.kind) bits.push(x.n + ' 분류 ' + y.kind + ' → ' + x.kind); if(y && (y.amt || '') !== (x.amt || '')) bits.push(x.n + ' 양 → ' + x.amt); });
+      if(bits.length) out.push(label + ' · ' + s.why + ' — ' + bits.join(' · '));
+    });
+    const order = l => l.filter(s => oIds.has(s.id)).map(s => s.id).join(',');
+    if(order(oList.filter(s => mList.some(x => x.id === s.id))) !== order(mList)) out.push(label + ' · 자리 순서 바뀜');
+  };
+  slotDiff('공통 몸풀기', O.warm, M.warm);
+  M.days.forEach(d => { const o = O.days.find(x => x.key === d.key);
+    if(!o){ out.push('새 날 설계: ' + d.name + ' (자리 ' + d.slots.length + '개)'); return; }
+    if(o.name !== d.name) out.push(o.name + ' 이름 → ' + d.name); if(o.kind !== d.kind) out.push(d.name + ' → ' + (d.kind === 'rest' ? '회복날' : '운동날'));
+    if(o.title !== d.title || (o.tip || '') !== (d.tip || '')) out.push(d.name + ' 설명 바뀜');
+    slotDiff(d.name, o.slots, d.slots); });
+  O.days.forEach(o => { if(!M.days.some(d => d.key === o.key)) out.push('날 설계 지움: ' + o.name); });
+  Object.entries(M.exNotes || {}).forEach(([n, v]) => { if(v.drop || v.note) out.push(n + ' — ' + [v.drop ? '빼고 싶어요' : '', v.note ? '💬 ' + v.note : ''].filter(Boolean).join(' · ')); });
+  if(M.memo) out.push('설계 메모: ' + M.memo.slice(0, 80) + (M.memo.length > 80 ? '…' : ''));
+  return out;
+}
+function renderChanges(){
+  const c = changes();
+  $('#chgN').textContent = c.length;
+  $('#chgList').innerHTML = c.length ? c.map(x => `<li>${esc(x)}</li>`).join('') : '<li class="muted">아직 없어요.</li>';
+}
+function status(t){ $('#st').textContent = t; }
+
+// ---- 바뀜 → 저장 ----
+function touched(){ dirty = true; $('#saveBtn').disabled = !(db && canWrite); status(db && canWrite ? '고치는 중 · 잠시 멈추면 저장돼요' : '이 화면에서는 저장할 수 없어요'); clearTimeout(saveTimer); if(db && canWrite) saveTimer = setTimeout(save, 2000); }
+async function save(){
+  if(!db || !canWrite || !dirty || saving) return;
+  clearTimeout(saveTimer); saving = true; dirty = false; $('#saveBtn').disabled = true; status('저장 중…');
+  try{ M.at = new Date().toISOString(); await db.doc('design/main').set(clone(M)); status('저장했어요 · Claude가 읽을 수 있어요'); }
+  catch(e){ dirty = true; $('#saveBtn').disabled = false; status(e && /permission/i.test(e.code || e.message || '') ? '로그인한 본인만 저장할 수 있어요' : '저장하지 못했어요. 저장을 다시 눌러 주세요'); }
+  saving = false; if(dirty) touched();
+}
+document.addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset && t.dataset.p && t.classList.contains('ce')){ setP(M, t.dataset.p, t.innerText.replace(/\n+/g, ' ').trim()); renderChanges(); touched(); }
+  else if(t.dataset && t.dataset.exnote != null){ M.exNotes = M.exNotes || {}; const v = M.exNotes[t.dataset.exnote] = M.exNotes[t.dataset.exnote] || {}; v.note = t.innerText.trim(); renderChanges(); touched(); }
+  else if(t.id === 'memoText'){ M.memo = t.value; renderChanges(); touched(); }
+});
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.classList && e.target.classList.contains('ce')){ e.preventDefault(); e.target.blur(); } });
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset && t.dataset.week != null){ M.week[+t.dataset.week].day = t.value || null; render(); touched(); return; }
+  if(t.dataset && t.dataset.p && t.tagName === 'SELECT'){ setP(M, t.dataset.p, t.value); render(); touched(); }
+});
+let uid = 0; const newId = p => 'new' + Date.now().toString(36) + (uid++);
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.id === 'modeBtn'){ E = !E; b.setAttribute('aria-pressed', E); b.textContent = E ? '✓ 고치기 끝' : '✏️ 고치기 모드'; render(); return; }
+  if(b.id === 'saveBtn'){ save(); return; }
+  const act = b.dataset.act; if(!act) return;
+  const p = b.dataset.p, i = +b.dataset.i;
+  if(act === 'resetAll'){ if(b.dataset.sure){ const memo = M.memo; M = clone(ORIGINAL); M.memo = memo; $('#resetSt').textContent = '처음 설계로 돌렸어요 (메모는 그대로)'; render(); touched(); } else { b.dataset.sure = '1'; b.textContent = '정말 되돌릴까요? 한 번 더 누르기'; } return; }
+  if(act === 'drop'){ M.exNotes = M.exNotes || {}; const v = M.exNotes[b.dataset.n] = M.exNotes[b.dataset.n] || {}; v.drop = !v.drop; render(); touched(); return; }
+  if(act === 'addDay'){ const key = newId(); M.days.push({ key, kind:'work', name:'새 날', title:'새 날 설계', tip:'', slots:[] }); render(); touched(); return; }
+  const arr = getP(M, p);
+  if(act === 'del'){ arr.splice(i, 1); }
+  else if(act === 'up' && i > 0){ [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; }
+  else if(act === 'down' && i < arr.length - 1){ [arr[i + 1], arr[i]] = [arr[i], arr[i + 1]]; }
+  else if(act === 'add'){
+    if(p === 'philo') arr.push({ t:'새 철학', s:'설명' });
+    else if(p === 'rules') arr.push({ t:'새 규칙', p:'설명', items:[] });
+    else if(/\.items$/.test(p)) arr.push('새 순서');
+    else if(/\.options$/.test(p)) arr.push({ n:'새 종목', kind:'기능성', amt:'' });
+    else arr.push({ id:newId(), stage:b.dataset.stage || '', why:'새 자리 설명', amount:'10회 × 2세트', options:[{ n:'새 종목', kind:'기능성', amt:'' }] });
+  }
+  if(p === 'days' && act === 'del'){ M.week.forEach(w => { if(w.day && !M.days.some(d => d.key === w.day)) w.day = null; }); }
+  render(); touched();
+});
+
+// ---- 저장소: Firebase users/{uid}/log/design (본인만 쓰기 · 읽기 공개 — 앱과 같은 규칙) ----
+render(); status('불러오는 중…');
+firebase.initializeApp({
+  apiKey: "AIzaSyDB-qmTWEIPhdKc9xdcvBk6sjaXLSwIgOY",
+  authDomain: "training-log-377f4.firebaseapp.com",
+  projectId: "training-log-377f4",
+  storageBucket: "training-log-377f4.firebasestorage.app",
+  messagingSenderId: "286910060476",
+  appId: "1:286910060476:web:4f93133b6348aaba557db9"
+});
+const VIEW = new URLSearchParams(location.search).get('view') || '';
+if(VIEW) document.getElementById('backLink').href = 'index.html?view=' + encodeURIComponent(VIEW);
+let ref = null, unsub = null;
+// save() 가 부르는 모양에 맞춘 작은 다리 — 설계 전체를 글(JSON) 하나로 저장한다 (글자 순서가 바뀌지 않게)
+db = { doc: () => ({ set: o => ref.set({ json: JSON.stringify(o), at: o.at || new Date().toISOString() }) }) };
+firebase.auth().onAuthStateChanged(user => {
+  const uid = VIEW || (user && user.uid) || '';
+  if(unsub){ unsub(); unsub = null; }
+  if(!uid){ status('고치려면 트레이닝 로그에서 먼저 로그인해 주세요 · 지금은 보기만 해요'); $('#modeBtn').disabled = true; return; }
+  canWrite = !!(user && user.uid === uid);
+  $('#modeBtn').disabled = !canWrite;
+  if(!canWrite){ $('#memoText').readOnly = true; }
+  ref = firebase.firestore().collection('users').doc(uid).collection('log').doc('design');
+  let first = true;
+  unsub = ref.onSnapshot(snap => {
+    if(snap.metadata && snap.metadata.hasPendingWrites) return;
+    if(snap.exists){
+      if(dirty || (document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('ce'))) return;
+      try{ M = Object.assign(clone(ORIGINAL), JSON.parse(snap.data().json || '{}')); }catch(e){ M = clone(ORIGINAL); }
+    }
+    $('#memoText').value = M.memo || '';
+    if(first){ first = false; status(canWrite ? (snap.exists ? '저장된 설계를 불러왔어요' : '고치기 모드를 켜면 모든 글을 고칠 수 있어요') : '보기 전용이에요'); }
+    render();
+  }, () => status('불러오지 못했어요. 새로고침해 주세요'));
+});
+</script>
