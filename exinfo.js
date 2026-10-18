@@ -31,7 +31,7 @@
     '기능성': { key:'기능성', kr:'기능성', color:'#4FA8C9',
            kid:'한 관절만 쓰는 <b>고립 운동이 아니라</b>, 여러 몸 부위를 <b>같이 쓰는</b> 운동. 맨몸·케틀벨·선생님 동작처럼 몸을 한 덩어리로 움직여요.' },
     '재활':   { key:'재활', kr:'재활', color:'#C1666B',
-           kid:'굳은 곳을 <b>풀고</b>(마사지볼) <b>늘리고</b>(스트레칭), 영상을 보며 약한 근육을 <b>키우는</b> 운동. 회복날(월·토)에 해요.' },
+           kid:'<b>뭉친 근육을 풀고</b>(마사지볼) <b>늘리고</b>(스트레칭), 영상을 보며 약한 근육을 <b>키우는</b> 운동. 회복날(월·토)에 해요.' },
     '중량':   { key:'중량', kr:'중량 (근비대)', color:'#E8A33D',
            kid:'바벨·덤벨·머신·케이블로 <b>무게를 들어 근육을 키우는</b> 운동. 근테크의 중심이에요.' },
     '유산소': { key:'유산소', kr:'유산소', color:'#E36F8E',
@@ -248,8 +248,8 @@
 · 앞은 풀고 뒤는 깨우기 · 아프면 멈추기 · 선생님 말씀이 먼저`;
   // 기본 글은 짧은 인포그래픽으로: 한 줄 목적 → 신체지도 사다리(가로) → 약속 딱지
   const PHILO = {
-    goal: '내 몸을 자유롭게 쓰고, 아프지 않게',
-    sub: '나머지는 근테크 — 다치지 않게 근육을 꾸준히 쌓아 가기',   // 2026-10-18 상필님: 자유롭게 · 아프지 않게 · 나머지는 근테크
+    goal: '내 몸을 자유롭게 쓰고, 아프지 않기',
+    sub: '그리고 노후준비를 위한 근테크',   // 2026-10-18 상필님: 자유롭게 · 아프지 않게 · 나머지는 근테크
     ladder: [ ['🍚', '바닥', '먹고·자고·마음'], ['🫀', '순환', '1순위'], ['🧱', '코어', '막는 힘'],
               ['⚖️', '밸런스', '흔들릴 때 잡기'], ['🩹', '재활', '풀기→스트레칭→키우기'], ['🚀', '파워', '지구력→근육→힘'] ],
     promises: ['연결된 근육까지', '알고 하기', '목적 정하고 즐겁게', '편식 금지', '한 시간 안', '끝범위 · 통제되는 만큼', '앞은 풀고 뒤는 깨우기', '아프면 멈춤', '선생님 먼저'],
@@ -266,7 +266,7 @@
   function philoMiniHTML(text){
     const t = String(text || '').trim();
     const goal = (!t || t === PHILO_DEFAULT.trim()) ? PHILO.goal : t.split('\n')[0].replace(/^[^\w가-힣]+/, '').replace(/^목적\s*[—-]\s*/, '');
-    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub"> · 나머지는 💰 근테크 · 🔗 연결된 근육까지</span></div>
+    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub"> · 그리고 💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>
       <div class="pm-ladder">${PHILO.ladder.map(s => `<span>${s[0]} ${esc(s[1])}</span>`).join('<i>→</i>')}</div>`;
   }
   // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
@@ -331,8 +331,8 @@
       <summary>${philoMiniHTML(text)}<span class="pf-more">자세히 보기</span></summary>
       <div class="pf-body">
         ${mine}
-        <div class="pf-goal"><div class="pf-gt">🎯 ${esc(PHILO.goal)}</div>
-          <div class="pf-gs">💰 나머지는 <b>근테크</b> — 다치지 않는 범위에서 근육을 꾸준히 쌓아 가기<br><small>근테크는 노후 준비예요 — 나이가 들면 근육이 저절로 줄어요(근감소). 지금 쌓아 둔 만큼 나중에 덜 잃어요</small></div>
+        <div class="pf-goal"><div class="pf-gt">🎯 ${esc(PHILO.goal)}</div><div class="pf-gs">건강한 신체</div>
+          <div class="pf-gs">💰 그리고 <b>노후준비를 위한 근테크</b> — 다치지 않는 범위에서 근육을 꾸준히 쌓아 가기<br><small>근테크는 노후 준비예요 — 나이가 들면 근육이 저절로 줄어요(근감소). 지금 쌓아 둔 만큼 나중에 덜 잃어요</small></div>
           <div class="pf-gs">🔗 근육은 다 <b>연결</b>돼 있어요 — 아픈 곳만 말고 이어진 근육까지 같이 운동해요<br><small>무릎이 아프면 위의 고관절·아래의 발목까지 · 어깨가 아프면 등·가슴까지</small></div>
           <div class="pf-tags"><span><em>고칠 곳</em>오른 무릎 · 허리 · 어깨</span><span><em>넓힐 곳</em>어깨 · 고관절 · 등</span><span><em>바로 세울 것</em>골반 앞기울기 · 둥근어깨</span></div></div>
         ${sec('🏠', '신체지도 — 집짓기처럼 바닥부터', house)}
@@ -665,6 +665,8 @@
   // ----- 회복날 ③ 근육 키우기 영상 — 부위별 묶음 (휴먼밸런스·하루 5분·뻔더, 맨몸으로 되는 것만) -----
   // id 만 적고 이름·채널은 vidLookup 에서 찾는다. 확인 전(wait) 영상은 자동으로 빠지고, 확인되면 저절로 들어온다
   const REHAB_VID = {
+    // 어깨팔 날 🧩 어깨 가동성 영상 (하루 5분 · 뻔더 · 휴먼밸런스, 맨몸)
+    shoulderMob: ['Qz0U8GHs9_Q','wWUC_a8QnUk','Mey2Myd1BPw','nYhI5J3khuc','ypmLu6CrgyI','7-boBAcgoC4','oQ9z0LXsFbI','8cN6ln6VxZ0','uYdWoooEqpc','48gD-RW-jjg','mGjTgOyZDh0','tpkXdXxSRC0','rKsSbDY6-Mc','QjtX9qWHNjA'],
     knee:     ['R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM','-v-ZDIrVg0E'],
     foot:     ['9Olfw9_EATU','5UGwiN_yabI','BS0Zxr6C0xk','m91Pdesc0W8','avOcecxNWTg','f8kekYD0M2I','xLd9UK2J3b8','cPQXOtISCJk','rC_TK21aFdw','10ZNiEjRee8','fBByTVXCONA','8rGQzOeemRI','hrZQxlNijRU','w4pr9HllpNg'],
     shoulder: ['Qz0U8GHs9_Q','wWUC_a8QnUk','nYhI5J3khuc','Mey2Myd1BPw','7-boBAcgoC4','QjtX9qWHNjA','k0JNOQrsE0c','JsF8lersqxk','EqCgw8BPbTM','qQwUoq8ya3M','48gD-RW-jjg','lCSf9FuBm20','DU3pVnoEcd8','8cN6ln6VxZ0'],
@@ -1133,7 +1135,8 @@
     // 선생님 동작 중 이름에 "폼롤러"가 붙었지만 한 다리씩 숙이는 고관절 움직임
     if(/고관절운동\(폼롤러\)/.test(n)) return W('기능성', '정의', '한 다리씩 숙이며 고관절·몸통을 같이 쓰는 선생님 동작');
     // 기능성 이름이 먼저 — 교정 목록(FIX)에 있어도 여러 부위를 쓰는 동작은 기능성 (플랭크·캐리·한 발 균형·몸풀기)
-    if(/내몸풀기|WGS|겟업|그라운드소통|스핀롤|바디컨트롤|크랩워킹|토터치|힌지보조|노드릭|밸런스|캐리|암바|회전로우|불균형교정|플랭크/.test(n))
+    if(/딥스/.test(n)) return W('중량', '정의', '몸무게를 무게로 쓰는 가슴·삼두 근력 운동 (상필님: 중량)');
+    if(/내몸풀기|WGS|겟업|그라운드소통|스핀롤|바디컨트롤|크랩워킹|토터치|힌지보조|노드릭|밸런스|캐리|암바|회전로우|불균형교정|플랭크|카프레이즈/.test(n))
       return W('기능성', '정의', '여러 몸 부위를 한 번에 쓰는 움직임 — 고립 운동이 아니에요');
     // 재활 — 풀기·늘리기·깨우기·교정
     if(FIX[n]) return W('재활', '정의', '교정·재활 동작 — 굳은 곳을 풀고 늘리고, 잠든 근육을 깨워요');
@@ -1241,7 +1244,7 @@
       <div class="xh-main"><div class="xh-title">${icon} ${title}</div>${body}${note ? `<div class="xh-note">${note}</div>` : ''}</div>
     </div>`;
     const week = `<div class="xh-week">${days.map(d=>`<div class="xh-day k-${d.kind}"><span>${esc(d.dow)}</span><b>${esc(d.tag)}</b></div>`).join('')}</div>`;
-    const warm = `<div class="xh-chain"><span>내 몸풀기 (하체부터 · WGS · 점프)</span><i>→</i><span>케틀벨 암바</span><i>→</i><span>바디컨트롤</span></div>`;
+    const warm = `<div class="xh-chain"><span>내 몸풀기 (하체부터 상체로 순환 · WGS · 점프)</span></div>`;
     const funnel = `<div class="xh-funnel">
       <div class="f1">선생님이 가르쳐주신 종목만</div>
       <div class="f2">그중 가장 오래 안 한 것</div>
@@ -1252,7 +1255,7 @@
       <div class="xh-bar-key"><span>0분</span><span>60분</span></div>`;
     return `<div class="xh">
       ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 운동날은 <b>🔥 열 내기(가동성·관절 영상) → 🧩 기능성 → 🏋️ 중량 → 마무리</b> · 코어는 <b>8초 버티고 2초 쉬기</b> · 회복날(월·토)은 <b>전날 부위로 재활 한 바퀴</b> — 월 = 무릎, 토 = 허리·어깨: ① 근육 풀기 → ② 스트레칭 → ③ 근육 키우기(휴먼밸런스·하루 5분·뻔더 영상) → 심폐 20분. 모두 한 시간 안')}
-      ${step(2, '🔥', '운동하는 날 맨 앞엔 워밍업', warm, 'PT 날에도 붙여요')}
+      ${step(2, '🔥', '운동하는 날 맨 앞엔 내 몸풀기', warm, 'PT 날엔 안 붙여요 · 가동성 영상은 그날 자리에서')}
       ${step(3, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
       ${step(4, '🦵', '무릎은 내가 판단', `<div class="xh-chain"><span>스쿼트 · 런지 · 레그프레스도 제자리에</span><i>→</i><span>붓는 날은 직접 빼기</span></div>`, '무릎 자동 규칙은 꺼 두었어요 — 선생님이 중요하다고 한 런지·레그프레스를 정상으로 하기 위해')}
       ${step(5, '⏱', '한 시간에 맞추기', bar, '웨이트 1세트 2분 · 맨몸 1.2분 · 유산소는 적힌 시간 · 60분 넘는 종목은 흐려지고 ⏱')}
