@@ -547,8 +547,8 @@
         <span class="an-k">${m.k}</span>
         <div class="an-body"><div class="an-n">${esc(m.n)} <small>${esc(m.en)}</small><span class="xi-basis b-${m.src === 'NASM' ? '수정' : (m.src === '강의' ? '수정' : '정의')}">${esc(m.src)}</span></div>
           <div class="an-where">📍 ${br(m.where)}</div>
-          <div class="an-does">${br(m.does)}</div>
-          ${anatPlanHTML(m)}</div>${anatThumbHTML(part, m)}</div>`;
+          <div class="an-does">${br(m.does)}</div></div>${anatThumbHTML(part, m)}
+          ${anatPlanHTML(m)}</div>`;   // 계획(내 증상·손으로 찾기·①~④)은 그림 아래로 — 전체 폭을 쓴다 (2026-10-18)
     const red = a.muscles.filter(m => m.t === 'r'), green = a.muscles.filter(m => m.t === 'g'), other = a.muscles.filter(m => m.t !== 'r' && m.t !== 'g');
     return `<details class="an"><summary><span class="an-title">🫀 ${esc(a.title)}</span><small>${esc(a.sub)}</small><span class="an-more">근육 보기 ▾</span></summary>
       <div class="an-body-wrap">
@@ -1356,6 +1356,7 @@
     .an-n{font-size:12.5px;font-weight:700;color:var(--ink);} .an-n small{font-weight:400;color:var(--ink-faint);font-size:10px;margin-left:4px;}
     .an-where{color:var(--ink-dim);} .an-does{color:var(--ink);} .an-fix{color:var(--accent-b);}
     .an-plan{display:flex;flex-direction:column;gap:3px;margin-top:4px;padding-top:4px;border-top:1px dashed var(--border);}
+    .an-m > .an-plan{grid-column:2 / -1;min-width:0;}   /* 그림 칸 아래까지 넓게 — 오른쪽 빈자리 없이 */
     .an-me{color:var(--accent-a);font-size:12px;word-break:keep-all;line-height:1.55;} .an-me b{display:block;}
     .an-palp{border:1px solid rgba(91,179,217,.35);border-radius:9px;background:rgba(91,179,217,.06);padding:5px 8px;}
     .an-palp>summary{cursor:pointer;font-size:12px;font-weight:700;color:#5FB3D9;list-style:none;} .an-palp>summary::-webkit-details-marker{display:none;}
