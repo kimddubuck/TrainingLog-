@@ -844,35 +844,61 @@
   // ----- 스트레칭 미션 (1시간마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
   // n = 앱 종목 이름 (그림·영상 찾기용). 부위를 먼저 고르고 그 안에서 하나 → 부위가 골고루 나온다
   // 오래 앉기·스마트폰 볼 때 굳는 근육을 "푸는" 스트레칭만 (2026-10-18 상필님). n = 사진용 앱 종목, label = 보여 줄 이름
+  // 상필님 2026-10-18: 오래 앉거나 서 있을 때 아픈 곳 = 허리 · 무릎 · 어깨 · 손목 → p 를 이 네 부위로 묶는다 (부위가 고르게 나온다)
+  // pool = 영상 하나 미션: 뽑힐 때 그 묶음의 확인된 무료 영상(맨몸) 중 하나를 붙인다
   const MISSIONS = [
-    { p:'목 · 폰 목', n:'위 승모근 스트레칭 (목 옆 늘리기)', label:'목 옆 늘리기', set:'좌우 30초', why:'폰 볼 때 올라간 어깨·목 풀기' },
-    { p:'목 · 폰 목', n:'위 승모근 스트레칭 (목 옆 늘리기)', label:'어깨올림근 늘리기', set:'고개를 반대쪽 겨드랑이 보듯 숙여 좌우 30초', why:'거북목 때 짧아지는 목 옆 뒤' },
-    { p:'가슴 · 둥근어깨', n:'문틀 가슴 스트레칭', label:'문틀 가슴 스트레칭', set:'좌우 30초', why:'앉아서 말린 가슴 열기' },
-    { p:'겨드랑이 · 광배근', n:'광배근 스트레칭 (짐볼·벤치)', label:'책상 짚고 광배근 늘리기', set:'좌우 30초', why:'팔 올리기 가동성' },
-    { p:'등 · 굽은등', n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', label:'일어나서 뒤로 젖히기', set:'10회', why:'앉아서 굽은 등·허리 되돌리기' },
-    { p:'고관절 앞 · 장요근', n:'반무릎 장요근 스트레칭', label:'반무릎 장요근 스트레칭', set:'좌우 30초 (골반 말고 엉덩이 조이기)', why:'앉으면 짧아지는 고관절 앞' },
-    { p:'허벅지 앞', n:'서서 허벅지 앞 늘리기', label:'서서 발 뒤로 잡고 허벅지 앞 늘리기', set:'좌우 30초 (벽 잡고)', why:'앉으면 짧아지는 허벅지 앞' },
+    // ── 허리 ── (앉으면 굽는 등·허리, 짧아지는 고관절 앞·엉덩이)
+    { p:'허리', n:'백년척추 디스크 예방 (허리·목 뒤로 젖히기)', label:'일어나서 뒤로 젖히기', set:'10회', why:'앉아서 굽은 등·허리 되돌리기' },
+    { p:'허리', n:'반무릎 장요근 스트레칭', label:'반무릎 장요근 스트레칭', set:'좌우 30초 (골반 말고 엉덩이 조이기)', why:'앉으면 짧아지는 고관절 앞 — 허리를 앞으로 당긴다' },
+    { p:'허리', n:'이상근 스트레칭 (4자)', label:'앉아서 4자 다리 숙이기', set:'좌우 30초', why:'오래 앉으면 저린 엉덩이 깊은 곳' },
     { p:'허리', n:'아기 자세 (차일드 포즈)', label:'아기 자세', set:'30초 × 2', why:'허리 세움근 풀기 (바닥 있을 때)' },
-    { p:'엉덩이 · 이상근', n:'이상근 스트레칭 (4자)', label:'앉아서 4자 다리 숙이기', set:'좌우 30초', why:'오래 앉으면 저린 엉덩이 깊은 곳' },
-    { p:'허벅지 안쪽', n:'내전근 스트레칭', label:'내전근 스트레칭', set:'좌우 30초', why:'앉으면 굳는 허벅지 안쪽' },
-    { p:'뒷벅지', n:'의자 햄스트링 스트레칭', label:'의자 햄스트링 스트레칭', set:'좌우 30초 (허벅지와 배 붙이기)', why:'앉아서 당겨진 뒷벅지' },
-    { p:'종아리', n:'벽 종아리 스트레칭', label:'벽 종아리 스트레칭', set:'좌우 30초', why:'앉아서 굳는 종아리 · 발목' },
     // 상필님 2026-10-18 "미션에 자주 나오게" — often: 최근 3개 안에 없으면 30% 로 먼저 뽑힌다
-    { p:'허리 · 서 있을 때', n:'서 있을 때 허리 영상', label:'서 있을 때 허리 — 영상 따라하기', set:'영상 따라 1분', why:'오래 서 있으면 아픈 허리 (닥터 마디마디 쇼츠)',
+    { p:'허리', n:'서 있을 때 허리 영상', label:'서 있을 때 허리 — 영상 따라하기', set:'영상 따라 1분', why:'오래 서 있으면 아픈 허리 (닥터 마디마디 쇼츠)',
       vid:{ id:'ZlAOi6B5_wE', t:'닥터 마디마디 · 서 있을 때 허리가 아프세요?' }, often:true },
+    { p:'허리', n:'허리 영상 하나', label:'허리 — 영상 하나 따라하기', set:'영상 따라 1~5분', why:'허리·고관절 (뻔더·하루 5분·휴먼밸런스 중 무료·맨몸)', pool:'back' },
+    // ── 무릎 ── (앉으면 굳는 허벅지 앞·뒤·안쪽·종아리 = 무릎 위아래)
+    { p:'무릎', n:'서서 허벅지 앞 늘리기', label:'서서 발 뒤로 잡고 허벅지 앞 늘리기', set:'좌우 30초 (벽 잡고)', why:'앉으면 짧아지는 허벅지 앞 — 무릎뼈를 누른다' },
+    { p:'무릎', n:'의자 햄스트링 스트레칭', label:'의자 햄스트링 스트레칭', set:'좌우 30초 (허벅지와 배 붙이기)', why:'앉아서 당겨진 뒷벅지' },
+    { p:'무릎', n:'내전근 스트레칭', label:'내전근 스트레칭', set:'좌우 30초', why:'앉으면 굳는 허벅지 안쪽' },
+    { p:'무릎', n:'벽 종아리 스트레칭', label:'벽 종아리 스트레칭', set:'좌우 30초', why:'종아리·발목이 굳으면 무릎이 고생' },
+    { p:'무릎', n:'무릎 영상 하나', label:'무릎 — 영상 하나 따라하기', set:'영상 따라 1분', why:'무릎·발목 (뻔더 쇼츠 중 무료)', pool:'bdKnee' },
+    // ── 어깨 · 목 ── (폰·모니터로 말린 어깨, 올라간 목)
+    { p:'어깨 · 목', n:'위 승모근 스트레칭 (목 옆 늘리기)', label:'목 옆 늘리기', set:'좌우 30초', why:'폰 볼 때 올라간 어깨·목 풀기' },
+    { p:'어깨 · 목', n:'위 승모근 스트레칭 (목 옆 늘리기)', label:'어깨올림근 늘리기', set:'고개를 반대쪽 겨드랑이 보듯 숙여 좌우 30초', why:'거북목 때 짧아지는 목 옆 뒤' },
+    { p:'어깨 · 목', n:'문틀 가슴 스트레칭', label:'문틀 가슴 스트레칭', set:'좌우 30초', why:'앉아서 말린 가슴 열기' },
+    { p:'어깨 · 목', n:'광배근 스트레칭 (짐볼·벤치)', label:'책상 짚고 광배근 늘리기', set:'좌우 30초', why:'팔 올리기 가동성' },
+    { p:'어깨 · 목', n:'어깨 영상 하나', label:'어깨 — 영상 하나 따라하기', set:'영상 따라 1~5분', why:'어깨 (뻔더·하루 5분·휴먼밸런스 중 무료·맨몸)', pool:'shoulder' },
+    // ── 손목 ── (키보드·마우스·폰)
+    { p:'손목', n:'손목 영상 하나', label:'손목 — 영상 하나 따라하기', set:'영상 따라 1분', why:'오래 일해서 굳은 손목·팔꿈치 (뻔더 쇼츠 중 무료)', pool:'bdWrist' },
   ];
+  // 영상 하나 미션의 영상 묶음 — 확인된 무료(맨몸)만
+  function missionPool(key){
+    if(key === 'bdKnee' || key === 'bdWrist'){
+      const g = BD.groups.find(x => x.t === JOINT_PICK[key === 'bdKnee' ? 'legs' : 'chestback']);
+      return g ? g.items.filter(it => !it.wait) : [];
+    }
+    const m = vidLookup();
+    return (REHAB_VID[key] || []).map(id => m.get(id)).filter(v => v && (!v.gear || v.gear === 'bw'));
+  }
+  function withVid(m){
+    if(!m || !m.pool) return m;
+    const L = missionPool(m.pool); if(!L.length) return m;
+    const it = L[Math.floor(Math.random() * L.length)];
+    const ch = it.ch ? (CH_TAG[it.ch] || '') : '뻔더';
+    return { ...m, vid:{ id:it.id, t:(ch ? ch + ' · ' : '') + it.n, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id } };
+  }
   // 최근 한 것(avoid: 이름 배열)은 피하고, 부위를 먼저 뽑아서 골고루
   function pickMission(avoid){
     const av = new Set(avoid || []);
     const near = new Set((avoid || []).slice(0, 3));
     const fav = MISSIONS.filter(m => m.often && !near.has(m.label || m.n));
-    if(fav.length && Math.random() < 0.3) return fav[Math.floor(Math.random() * fav.length)];
+    if(fav.length && Math.random() < 0.3) return withVid(fav[Math.floor(Math.random() * fav.length)]);
     const pool = MISSIONS.filter(m => !av.has(m.label || m.n));
     const list = pool.length ? pool : MISSIONS;
     const parts = [...new Set(list.map(m => m.p))];
     const p = parts[Math.floor(Math.random() * parts.length)];
     const inPart = list.filter(m => m.p === p);
-    return inPart[Math.floor(Math.random() * inPart.length)];
+    return withVid(inPart[Math.floor(Math.random() * inPart.length)]);
   }
 
   // ----- 아침 기상 루틴: 뉴로 웜업(센서리 웜업) 21단계 -----

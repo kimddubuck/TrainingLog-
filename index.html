@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=158"></script>
+<script src="exinfo.js?v=159"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1034,7 +1034,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v158</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v159</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -3133,7 +3133,7 @@ function renderMission(m){
   curMission = m;
   const b = document.getElementById('msBody'); if(!b || !m) return;
   // 영상이 정해진 미션(m.vid)은 그 영상 썸네일 + 링크
-  const vurl = m.vid ? 'https://www.youtube.com/shorts/' + m.vid.id : '';
+  const vurl = m.vid ? (m.vid.url || 'https://www.youtube.com/shorts/' + m.vid.id) : '';
   b.innerHTML = `<div class="ms-pic">${m.vid ? `<a href="${vurl}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${m.vid.id}/mqdefault.jpg" alt="" style="width:64px;border-radius:6px;display:block;"></a>` : EXINFO.imgHTML(m.n, 34)}</div>
     <div class="ms-txt"><div class="ms-p">${m.p}</div><div class="ms-n">${m.label || m.n.replace(/\s*\(.*?\)\s*$/, '')}</div>
       <div class="ms-set">${m.set}</div><div class="ms-why">${m.why}</div>${m.vid ? `<a class="pe-vid" href="${vurl}" target="_blank" rel="noopener">▶ ${m.vid.t}</a>` : (EXINFO.vidHTML ? EXINFO.vidHTML(m.n) : '')}</div>`;
