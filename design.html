@@ -350,7 +350,7 @@ document.addEventListener('click', e => {
   render(); touched();
 });
 
-// ---- 저장소: Firebase users/{uid}/log/design (본인만 쓰기 · 읽기 공개 — 앱과 같은 규칙) ----
+// ---- 저장소: Firebase users/{uid}/log/data 의 design 칸 (앱 기록과 같은 문서 · 같은 규칙: 본인만 쓰기 · 읽기 공개) ----
 render(); status('불러오는 중…');
 firebase.initializeApp({
   apiKey: "AIzaSyDB-qmTWEIPhdKc9xdcvBk6sjaXLSwIgOY",
@@ -370,7 +370,8 @@ $('#loginBox').addEventListener('submit', async e => {
   catch(err){ st.textContent = '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요'; }
 });
 // save() 가 부르는 모양에 맞춘 작은 다리 — 설계 전체를 글(JSON) 하나로 저장한다 (글자 순서가 바뀌지 않게)
-db = { doc: () => ({ set: o => ref.set({ json: JSON.stringify(o), at: o.at || new Date().toISOString() }) }) };
+// 앱의 기록 문서(log/data)에 design 칸 하나만 덧붙인다 (merge) — 다른 기록은 건드리지 않는다
+db = { doc: () => ({ set: o => ref.set({ design: JSON.stringify(o), designAt: o.at || new Date().toISOString() }, { merge: true }) }) };
 firebase.auth().onAuthStateChanged(user => {
   const uid = VIEW || (user && user.uid) || '';
   if(unsub){ unsub(); unsub = null; }
@@ -381,16 +382,16 @@ firebase.auth().onAuthStateChanged(user => {
   $('#who').textContent = canWrite ? '✓ 로그인됨 · 고치면 내 계정에 저장돼요' : '';
   $('#modeBtn').disabled = !canWrite;
   if(!canWrite){ $('#memoText').readOnly = true; }
-  ref = firebase.firestore().collection('users').doc(uid).collection('log').doc('design');
+  ref = firebase.firestore().collection('users').doc(uid).collection('log').doc('data');
   let first = true;
   unsub = ref.onSnapshot(snap => {
     if(snap.metadata && snap.metadata.hasPendingWrites) return;
-    if(snap.exists){
+    if(snap.exists && snap.data().design){
       if(dirty || (document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('ce'))) return;
-      try{ M = Object.assign(clone(ORIGINAL), JSON.parse(snap.data().json || '{}')); }catch(e){ M = clone(ORIGINAL); }
+      try{ M = Object.assign(clone(ORIGINAL), JSON.parse(snap.data().design || '{}')); }catch(e){ M = clone(ORIGINAL); }
     }
     $('#memoText').value = M.memo || '';
-    if(first){ first = false; status(canWrite ? (snap.exists ? '저장된 설계를 불러왔어요' : '고치기 모드를 켜면 모든 글을 고칠 수 있어요') : '보기 전용이에요 · 고치려면 위에서 로그인'); }
+    if(first){ first = false; status(canWrite ? (snap.exists && snap.data().design ? '저장된 설계를 불러왔어요' : '고치기 모드를 켜면 모든 글을 고칠 수 있어요') : '보기 전용이에요 · 고치려면 위에서 로그인'); }
     render();
   }, () => status('불러오지 못했어요. 새로고침해 주세요'));
 });
