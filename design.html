@@ -119,7 +119,7 @@ body.editing .chip .x{display:inline}
   </header>
 
   <form class="login" id="loginBox" hidden autocomplete="on">
-    <b>고치려면 로그인</b><span class="muted small">트레이닝 로그와 같은 계정이에요</span>
+    <b>고치려면 로그인</b><span class="muted small">상필님 계정(트레이닝 로그와 같은 계정)으로 로그인하면 고칠 수 있어요</span>
     <input type="email" id="lgEmail" placeholder="이메일" autocomplete="username">
     <input type="password" id="lgPw" placeholder="비밀번호" autocomplete="current-password">
     <button class="btn" type="submit">로그인</button>
@@ -374,7 +374,8 @@ db = { doc: () => ({ set: o => ref.set({ json: JSON.stringify(o), at: o.at || ne
 firebase.auth().onAuthStateChanged(user => {
   const uid = VIEW || (user && user.uid) || '';
   if(unsub){ unsub(); unsub = null; }
-  $('#loginBox').hidden = !!uid;
+  // 본인으로 로그인돼 있지 않으면 로그인 칸을 보인다 — 선생님 보기 링크(?view=)로 열었어도 본인이 로그인하면 고칠 수 있게
+  $('#loginBox').hidden = !!(user && (!VIEW || user.uid === VIEW));
   if(!uid){ status('로그인하면 고칠 수 있어요 · 지금은 보기만 해요'); $('#modeBtn').disabled = true; return; }
   canWrite = !!(user && user.uid === uid);
   $('#who').textContent = canWrite ? '✓ 로그인됨 · 고치면 내 계정에 저장돼요' : '';
@@ -389,7 +390,7 @@ firebase.auth().onAuthStateChanged(user => {
       try{ M = Object.assign(clone(ORIGINAL), JSON.parse(snap.data().json || '{}')); }catch(e){ M = clone(ORIGINAL); }
     }
     $('#memoText').value = M.memo || '';
-    if(first){ first = false; status(canWrite ? (snap.exists ? '저장된 설계를 불러왔어요' : '고치기 모드를 켜면 모든 글을 고칠 수 있어요') : '보기 전용이에요'); }
+    if(first){ first = false; status(canWrite ? (snap.exists ? '저장된 설계를 불러왔어요' : '고치기 모드를 켜면 모든 글을 고칠 수 있어요') : '보기 전용이에요 · 고치려면 위에서 로그인'); }
     render();
   }, () => status('불러오지 못했어요. 새로고침해 주세요'));
 });
