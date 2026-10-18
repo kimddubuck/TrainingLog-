@@ -23,6 +23,9 @@
   --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
   color-scheme:dark;
 }
+[hidden]{display:none!important}
+.login{background:var(--card);border:1px solid var(--edit);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.login input{font:inherit;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
 .back{font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -115,11 +118,19 @@ body.editing .chip .x{display:inline}
     <div class="kinds" id="kinds"></div>
   </header>
 
+  <form class="login" id="loginBox" hidden autocomplete="on">
+    <b>고치려면 로그인</b><span class="muted small">트레이닝 로그와 같은 계정이에요</span>
+    <input type="email" id="lgEmail" placeholder="이메일" autocomplete="username">
+    <input type="password" id="lgPw" placeholder="비밀번호" autocomplete="current-password">
+    <button class="btn" type="submit">로그인</button>
+    <span class="small" id="loginErr" style="color:var(--edit)"></span>
+  </form>
   <div class="bar" id="bar" role="status">
     <button class="btn edit" id="modeBtn" aria-pressed="false">✏️ 고치기 모드</button>
     <button class="btn" id="saveBtn" disabled>저장</button>
     <span>고친 것 <b id="chgN">0</b>개 <a href="#h-chg" style="color:var(--accent)">보기</a></span>
     <span class="st" id="st">불러오는 중…</span>
+    <span class="small" id="who" style="color:var(--ok);flex-basis:100%;text-align:right"></span>
   </div>
 
   <section aria-labelledby="h-rules">
@@ -352,13 +363,21 @@ firebase.initializeApp({
 const VIEW = new URLSearchParams(location.search).get('view') || '';
 if(VIEW) document.getElementById('backLink').href = 'index.html?view=' + encodeURIComponent(VIEW);
 let ref = null, unsub = null;
+// 이 페이지에서 바로 로그인 (카톡 안 브라우저처럼 앱과 로그인이 따로 노는 경우를 위해)
+$('#loginBox').addEventListener('submit', async e => {
+  e.preventDefault(); const st = $('#loginErr'); st.textContent = '로그인 중…';
+  try{ await firebase.auth().signInWithEmailAndPassword($('#lgEmail').value.trim(), $('#lgPw').value); st.textContent = ''; $('#lgPw').value = ''; }
+  catch(err){ st.textContent = '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요'; }
+});
 // save() 가 부르는 모양에 맞춘 작은 다리 — 설계 전체를 글(JSON) 하나로 저장한다 (글자 순서가 바뀌지 않게)
 db = { doc: () => ({ set: o => ref.set({ json: JSON.stringify(o), at: o.at || new Date().toISOString() }) }) };
 firebase.auth().onAuthStateChanged(user => {
   const uid = VIEW || (user && user.uid) || '';
   if(unsub){ unsub(); unsub = null; }
-  if(!uid){ status('고치려면 트레이닝 로그에서 먼저 로그인해 주세요 · 지금은 보기만 해요'); $('#modeBtn').disabled = true; return; }
+  $('#loginBox').hidden = !!uid;
+  if(!uid){ status('로그인하면 고칠 수 있어요 · 지금은 보기만 해요'); $('#modeBtn').disabled = true; return; }
   canWrite = !!(user && user.uid === uid);
+  $('#who').textContent = canWrite ? '✓ 로그인됨 · 고치면 내 계정에 저장돼요' : '';
   $('#modeBtn').disabled = !canWrite;
   if(!canWrite){ $('#memoText').readOnly = true; }
   ref = firebase.firestore().collection('users').doc(uid).collection('log').doc('design');
