@@ -48,8 +48,8 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=136"></script>
+<!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
+<script src="exinfo.js?v=137"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1009,7 +1009,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v136</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v137</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -2238,7 +2238,7 @@ const KNEE_CARE = false;   // 상필님: 무릎 규칙 통째로 끄기 (2026-10
 const KNEE_AVOID = /스쿼트|런지|레그프레스|레그 익스텐션|야외 러닝|러닝머신|줄넘기|버피|점핑잭|마운틴|스텝밀|등산|조깅/;
 function kneeRisky(ex){ return KNEE_CARE && KNEE_AVOID.test(ex && ex.name || ''); }
 
-// ===== 이번 주 테마 (BTT ↔ CCT 한 주씩 번갈아) =====
+// ===== 이번 주 테마 (BTT ↔ CCT) — 2026-10-18 화면·추천에서 뺐다. 예전 B_old 자리만 남아 있음 =====
 // RMT 는 배운 종목이 없어서 뺐다 (2026-10-17 상필님: RMT 클럽·로프는 안 배움). 배우면 RMT 를 다시 넣고 % 3 으로
 // 한 주 내내 같은 결로 간다. 날마다 바꾸면 몸에 붙지 않는다.
 const THEMES = [
@@ -2316,7 +2316,6 @@ const RECOVERY_ROUTINE = [
     options:['고관절 힌지 보조운동','리버스 노드릭컬','크랩워킹'] },
   { focus:'upper', why:'④ 통합 — 선생님 동작 (어깨·몸통·골반을 한 몸으로)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
     options:['겟업동작','그라운드 소통','케틀벨 암바'] },
-  { theme:true },
   { why:'④ 통합 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
     options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
     labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
@@ -2375,6 +2374,9 @@ const PLAN = {
                  options:['스핀롤','고관절 힌지 보조운동'] },
                { why:'🔥 열 내기 — 무릎·발목 챙기기 영상 (1분 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
                  options:['관절 챙기기 영상'] },
+               // 하체날마다 고정 (2026-10-18 상필님) — 회복날(월) 무릎 재활에도 나온다
+               { why:'🔥 열 내기 — 왼발 아치 깨우기 (발가락으로 수건 끌어오기 · 하체날 고정)', sets:2, reps:'15회', label:'15회 × 2세트',
+                 options:['발가락 수건 잡기'] },
                { why:'🧩 기능성 — 하체를 한 줄로 (고관절·무릎·발목을 같이 쓰기 · 가볍게, 엉덩이 자극 찾기)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
                  options:['크랩워킹','리버스 노드릭컬','고관절 힌지 보조운동'],
                  labels:{ '크랩워킹':'좌우 10걸음 × 2' } },
@@ -2442,7 +2444,7 @@ const PLAN = {
                  options:['데드리프트','스티프 데드리프트'] },
                { why:'🏋️ 중량 — 등 앞에서 당기기 (늘어날 때 집중)', sets:3, reps:'15~20회',
                  options:['롱풀로우 머신','덤벨 로우','바벨 로우','인버티드로우'] },
-               { why:'🧩 마무리 — 회전: 한 팔 당기며 몸통 꼬기 (CCT · 불균형 교정)', sets:3, reps:'15회씩', label:'15회씩 × 3세트',
+               { why:'🧩 마무리 — 회전: 한 팔 당기며 몸통 꼬기 (불균형 교정)', sets:3, reps:'15회씩', label:'15회씩 × 3세트',
                  options:['원암 케이블 회전 로우 (불균형 교정)'] },
              ] },
   B_old:   { tag:'하체팔', kind:'B', title:'하체·어깨·팔 (예전 합본)',
@@ -2675,13 +2677,11 @@ function slotCandidates(slot){
 // opt.extraLast : 이번 주 앞선 날에 이미 배정한 종목 (id → 날짜). 같은 주에 같은 종목이 겹치지 않게 한다.
 // opt.asOf      : "지난번 N일 전" 을 계산할 기준 날짜
 // 한 자리의 후보를 고르는 순서 (프로그램 탭 · 오늘 기록 ↻ 공용)
-//  ① 무릎 부담 큰 것은 뒤로  ② 이번 주 결(BTT/CCT/RMT)에 맞는 것 먼저  ③ 선생님이 가르쳐준 것 먼저  ④ 가장 오래 안 한 것 먼저
+//  ① 무릎 부담 큰 것은 뒤로  ② 선생님이 가르쳐준 것 먼저  ③ 가장 오래 안 한 것 먼저 (2026-10-18: 이번 주 결 BTT/CCT 는 뺐다)
 function candOrder(theme, last){
   return (a, b)=>{
     const ka = kneeRisky(a) ? 1 : 0, kb = kneeRisky(b) ? 1 : 0;
     if(ka !== kb) return ka - kb;
-    const ma = bigGroupOf(a) === theme.key ? 0 : 1, mb = bigGroupOf(b) === theme.key ? 0 : 1;
-    if(ma !== mb) return ma - mb;
     const ta = ptTip(a) ? 0 : 1, tb = ptTip(b) ? 0 : 1;
     if(ta !== tb) return ta - tb;
     const da = last[a.id] || '0000-00-00', db = last[b.id] || '0000-00-00';
@@ -2730,7 +2730,7 @@ function orderedRoutine(p, W, opt){
              label: (slot.labels && slot.labels[ex.name]) || slot.label,
              ago: daysAgo(last[ex.id], asOf),
              care: kneeRisky(ex) ? '무릎 상태 보고 · 가볍게/얕게 (아프면 건너뛰기)' : '',
-             why: ((!slot0.theme && bigGroupOf(ex) === theme.key) ? slot.why + ' · 이번 주 ' + theme.key : slot.why) + mobLink(ex, asOf, dayKey),
+             why: slot.why + mobLink(ex, asOf, dayKey),
              skip: '' };
   });
   // 뒤로 보낼 것: 무릎 부담(⚠) → 최근에 한 부위(가볍게) 순서로 아래에 깐다
@@ -2916,7 +2916,6 @@ function renderRoutineTab(){
   if(!wrap) return;
   // (아래에서 innerHTML 을 새로 쓰고 난 뒤 ↻ 를 다시 연결한다)
   const W = buildWeekPlan();
-  const th = themeOf(W.today);
   const DOWN = ['일','월','화','수','목','금','토'];
   const algoOpen = [...wrap.querySelectorAll('details.algo')].map(d => d.open);
 
@@ -2938,11 +2937,6 @@ function renderRoutineTab(){
   });
 
   wrap.innerHTML = `
-    <div class="rt-theme">
-      <div class="rt-theme-name">${th.name}</div>
-      <div class="rt-theme-sub">${th.sub}</div>
-      <div class="rt-theme-cycle">BTT ↔ CCT · 한 주씩 번갈아 · 그 주 내내 같은 결로</div>
-    </div>
     <div class="rt-week">${days.join('')}</div>
     <div class="routine-list">${
       buildWeekProgram(W).filter(day => day.ds === programDay).map(day=>{
@@ -2969,11 +2963,10 @@ function renderRoutineTab(){
       <summary>이 프로그램은 어떻게 짜였나요? (그림)</summary>
       <div class="algo-body">${EXINFO.howHTML({
         days: WEEK_PLAN.map((k, i)=>({ dow: DOWN[i], tag: PLAN[k].tag,
-          kind: k === 'pt' ? 'p' : (k === 'walk' || k === 'rest' || k === 'recover') ? 'r' : 'w' })),
-        theme: th.key })}</div>
+          kind: k === 'pt' ? 'p' : (k === 'walk' || k === 'rest' || k === 'recover') ? 'r' : 'w' })) })}</div>
     </details>
     <details class="algo">
-      <summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary>
+      <summary>기능성 · 재활 · 중량이 뭐예요?</summary>
       <div class="algo-body">${EXINFO.weckHTML()}</div>
     </details>
     <details class="algo">
@@ -2986,7 +2979,7 @@ function renderRoutineTab(){
     </details>
     <div class="rt-foot">
       위 요일을 누르면 그 날 운동이 보여요 (주황 테두리가 오늘).<br>
-      종목 줄을 누르면 <b>기구·한쪽/양쪽·BTT/CCT/RMT</b> 설명과 근거가 펼쳐져요.<br>
+      종목 줄을 누르면 <b>기구·한쪽/양쪽·기능성/재활/중량</b> 설명이 펼쳐져요.<br>
       지난날은 <b>실제로 한 것</b>, 오늘부터는 <b>할 것</b>이에요. 오늘 것은 ↻ 로 다른 종목으로 바꿀 수 있어요.<br>
       종목은 선생님이 가르쳐주신 것 중 <b>가장 오래 안 한 것</b>으로 고르고, 같은 주에 겹치지 않게 합니다.<br>
       PT날 것은 혼자 할 때 기준이에요 — 선생님이 다르게 진행하면 그대로 따르세요.
@@ -3045,7 +3038,6 @@ function renderTodayPlan(W){
     : '';
   card.innerHTML = `
     <div class="pc-head"><span>오늘 할 운동 · ${dateTxt}</span>${done}</div>
-    ${routine.length ? `<div class="pc-theme">이번 주 · <b>${themeOf(W.today).name}</b> — ${themeOf(W.today).sub}</div>` : ''}
     <div class="pc-title">${planTitle(t.rec.key, W.today)}</div>
     ${routine.length
         ? `<div class="pc-count">종목 ${routine.length}개 · 자세한 목록은 <b>프로그램</b> 탭에서</div>${addBtn}`
@@ -3063,7 +3055,7 @@ function renderTodayPlan(W){
       inline.innerHTML = '';
     }else if(routine.length){
       inline.innerHTML = `<button class="pi-btn" id="planAddBtn2">⬇ 오늘 할 운동 담기 · ${p.title.replace(/\s*\(.*\)\s*$/, '')} · ${routine.length}개</button>
-        <div class="pi-sub">${done || '이번 주 ' + themeOf(W.today).name + ' · 자세한 목록·↻ 바꾸기는 <b>프로그램</b> 탭에서'}</div>`;
+        <div class="pi-sub">${done || '자세한 목록·↻ 바꾸기는 <b>프로그램</b> 탭에서'}</div>`;
       document.getElementById('planAddBtn2').onclick = ()=> addRoutineToToday(routine);
     }else{
       inline.innerHTML = `<div class="pi-sub">오늘은 <b>${p.title}</b> — ${p.how || '선생님께 맡기기'}</div>`;
@@ -3232,7 +3224,6 @@ function exWhereMap(){
   (WARMUP.routine || []).forEach(s => (s.options || []).forEach(o => add(o, '운동날 워밍업')));
   const DAY = { legs:'일 하체', chestback:'수 가슴·등', shoulderarm:'목 어깨·팔', walk:'월·토 회복', rest:'월·토 회복' };
   Object.keys(DAY).forEach(k => ((PLAN[k] && PLAN[k].routine) || []).forEach(s => (s.options || []).forEach(o => add(o, DAY[k] + ' · ' + slotName(s)))));
-  THEMES.forEach(t => (t.options || []).forEach(o => add(o, t.key + ' 주간 회복날')));
   return map;
 }
 function renderExTree(){
@@ -3822,19 +3813,14 @@ document.getElementById('manageModal').addEventListener('click', (e)=>{
 
 
 
-// ---------- 대그룹 (BTT · CCT · RMT) ----------
-// 종목을 BTT · CCT · RMT 로 묶는다. 나누는 기준은 exinfo.js (WeckMethod 공식 정의 + 근거 표시).
-//  BTT  양쪽 같이 비틀기 — 양손·양발이 같이 움직여 한쪽으로 꼴 수 없음 (공식 예: 파워리프팅·멀리뛰기·키핑 풀업)
-//  CCT  한쪽으로 꼬아 버티기 — 한 번에 한쪽씩 몸통을 꼼 (공식 예: 스플릿 스쿼트·런지·꼬아서 하는 프레스·로우)
-//  RMT  이쪽 꼬임 → 저쪽 꼬임 — 클럽·로프 스윙
-//  일반 셋 중 어디라고 근거가 없음 (기계·한 관절·유산소·스트레칭·버티는 코어)
-//  ?    선생님만의 동작이라 공식 자료에 없음 → 선생님 확인
+// ---------- 대그룹 = 기능성 · 재활 · 중량(근비대) · 유산소 (2026-10-18 상필님. 예전 BTT·CCT·RMT 는 뺐다) ----------
+// 기능성 = 고립 운동이 아니라 여러 몸 부위를 같이 쓰는 운동 · 재활 = 풀고 늘리고 깨우기 · 중량 = 무게로 근육 키우기
+// 나누는 기준은 exinfo.js weckOf. 종목 목록에서 단추로 직접 바꿀 수 있다 (exOverrides[id].grp)
 const BIG_GROUPS = [
-  { key:'BTT', name:'BTT', btn:'BTT', sub:'양쪽 같이 비틀기 — 양손·양발이 같이 움직여요' },
-  { key:'CCT', name:'CCT', btn:'CCT', sub:'한쪽으로 꼬아 버티기 — 한 번에 한쪽씩' },
-  { key:'RMT', name:'RMT', btn:'RMT', sub:'이쪽 꼬임 → 저쪽 꼬임 — 클럽·로프 스윙' },
-  { key:'일반', name:'셋 다 아님', btn:'일반', sub:'기계·한 관절·유산소·스트레칭·버티는 코어' },
-  { key:'?', name:'선생님 확인', btn:'확인', sub:'선생님만의 동작 — 공식 자료에 없어요' },
+  { key:'기능성', name:'기능성', btn:'기능성', sub:'여러 몸 부위를 같이 쓰는 운동 (고립 운동 아님)' },
+  { key:'중량', name:'중량 (근비대)', btn:'중량', sub:'무게를 들어 근육 키우기 — 근테크' },
+  { key:'재활', name:'재활', btn:'재활', sub:'풀고 늘리고 깨우기 — 회복날 4단계' },
+  { key:'유산소', name:'유산소', btn:'유산소', sub:'심폐 · 순환 — 1순위' },
 ];
 function exInfo(ex){
   const o = ex && exOverrides[ex.id];
@@ -3864,10 +3850,10 @@ const escAttr = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').
 function renderManageMaster(msg){
   const wrap = document.getElementById('mpanel-master');
   const typeLabel = t => t==='cardio'?'유산소':(t==='bodyweight'?'맨몸':'웨이트');
-  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 아래 단추로 BTT / CCT / RMT / 일반 / 확인 을 바꿔요 (선생님 말씀이 먼저).</p>'
-    + '<details class="algo"><summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary><div class="algo-body">' + EXINFO.weckHTML() + '</div></details>';
+  let html = '<p class="section-label">✏️ 로 이름·부위·종류를 고치고, × 로 지울 수 있어요. 아래 단추로 기능성 / 중량 / 재활 / 유산소 를 바꿔요 (선생님 말씀이 먼저).</p>'
+    + '<details class="algo"><summary>기능성 · 재활 · 중량이 뭐예요?</summary><div class="algo-body">' + EXINFO.weckHTML() + '</div></details>';
   if(msg) html += `<p class="mx-note">${msg}</p>`;
-  // 대그룹(BTT·CCT·RMT·기본)으로 묶어서 보여준다
+  // 대그룹(기능성·중량·재활·유산소)으로 묶어서 보여준다
   BIG_GROUPS.forEach(g=>{
     const items = masterExercises.filter(ex=>bigGroupOf(ex)===g.key);
     if(!items.length) return;

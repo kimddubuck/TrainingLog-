@@ -36,7 +36,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (앱과 같은 파일) -->
-<script src="exinfo.js?v=136"></script>
+<script src="exinfo.js?v=137"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{
@@ -234,7 +234,7 @@ window.__chartReady = false;
 <div class="app">
   <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
   <h1>김상필 트레이닝 리포트</h1>
-  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v136</span></p>
+  <p class="sub">읽기 전용 · 트레이너 선생님 열람용 · 기록·식단·몸 상태·프로그램 원리 <span style="color:var(--ink-faint);">· v137</span></p>
   <div class="notice" id="notice" style="display:none;"></div>
 
   <div class="tabs">
@@ -652,14 +652,14 @@ function renderGuide(){
   if(!window.EXINFO){ wrap.innerHTML = '<div class="empty">설명 파일을 불러오지 못했어요</div>'; return; }
   const open = [...wrap.querySelectorAll('details.algo')].map(d => d.open);
   // 종목 사전: 결별로 묶어서, 종목마다 기구·쪽·근거
-  const groups = ['BTT','CCT','RMT','일반','?'];
+  const groups = ['기능성','중량','재활','유산소'];
   const items = masterExercises.filter(e => !(exOverrides[e.id] && exOverrides[e.id].deleted))
     .map(e => ({ e, info: exInfoOf(e) }));
   const dict = groups.map(g=>{
     const list = items.filter(x => x.info.weck.key === g);
     if(!list.length) return '';
     const W = EXINFO.WECK[g];
-    return `<div class="dict-head" style="--wk:${W.color}">${/^(BTT|CCT|RMT)$/.test(g) ? `<b>${g}</b> <span>${W.kr}</span>` : `<b>${W.kr}</b>`} <em>${list.length}개</em></div>`
+    return `<div class="dict-head" style="--wk:${W.color}"><b>${W.kr}</b> <em>${list.length}개</em></div>`
       + list.map(({ e, info }) => `<div class="dict-item">
           <div class="dict-name">${e.name}${e.part ? ` <span>· ${e.part}</span>` : ''}</div>
           ${EXINFO.imgHTML(e.name, 64)}
@@ -669,7 +669,7 @@ function renderGuide(){
   }).join('');
   wrap.innerHTML = `
     <details class="algo"><summary>프로그램은 이렇게 짜여요 (그림)</summary><div class="algo-body">${EXINFO.howHTML()}</div></details>
-    <details class="algo"><summary>BTT · CCT · RMT 가 뭐예요? (공식 근거)</summary><div class="algo-body">${EXINFO.weckHTML()}</div></details>
+    <details class="algo"><summary>기능성 · 재활 · 중량이 뭐예요?</summary><div class="algo-body">${EXINFO.weckHTML()}</div></details>
     <details class="algo"><summary>바벨 · 덤벨 · 머신은 뭐가 달라요? (연구 근거)</summary><div class="algo-body">${EXINFO.toolsHTML()}</div></details>
     <details class="algo"><summary>교정운동은 뭘 바로잡나요? (회복날 시리즈)</summary><div class="algo-body">${EXINFO.fixHTML()}</div></details>
     <details class="algo" open><summary>종목 지도 — 묶음 → 종목 → 설명</summary><div class="algo-body">${EXINFO.treeHTML ? EXINFO.treeHTML(treeItems(), { etc:false }) : dict}</div></details>`;

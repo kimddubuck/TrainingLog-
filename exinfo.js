@@ -25,33 +25,23 @@
                  name:'Kassiano 외 2025 · Sports Medicine · 한쪽 vs 양쪽 메타분석 (9편)' },
   };
 
-  // ----- BTT · CCT · RMT (+ 셋 다 아님 · 확인 필요) -----
+  // ----- 종목 분류: 기능성 · 재활 · 중량(근비대) · 유산소 (2026-10-18 상필님. 예전 BTT·CCT·RMT 는 뺐다) -----
+  // 이름은 예전 그대로 WECK / weck 로 둔다 (여러 곳에서 info.weck.key 를 읽어서). 뜻만 바뀌었다
   const WECK = {
-    BTT: { key:'BTT', full:'Bilateral Torsion Training', kr:'양쪽 같이 비틀기', color:'#5B9BD5',
-           kid:'양손·양발이 <b>똑같이 같이</b> 움직여서 몸통을 한쪽으로 꼴 수 없는 운동. 그래도 몸통이 비틀리는 힘은 같이 써요.',
-           official:'제자리멀리뛰기 · 접영 · 전통 파워리프팅(스쿼트·벤치프레스·데드리프트) · 키핑 풀업',
-           src:'weckDef' },
-    CCT: { key:'CCT', full:'Coiling Core Training', kr:'한쪽으로 꼬아 버티기', color:'#E8A33D',
-           kid:'<b>한 번에 한쪽</b>으로 옆구리를 굽히며 몸통을 꽈배기처럼 꼬고(코일링), 그 꼰 힘으로 버티거나 미는 운동.',
-           official:'로열 코일(꼬고 버티기) · 스플릿 스쿼트·런지 · 꼰 자세에서 시작하는 프레스 · 끝에서 꼬아 마무리하는 로우',
-           src:'weckCCT' },
-    RMT: { key:'RMT', full:'Rotational Movement Training', kr:'이쪽 꼬임 → 저쪽 꼬임', color:'#4FA8A0',
-           kid:'한쪽으로 꼰 힘을 <b>반대쪽으로 넘기며</b> 흐르듯 움직이는 운동. 클럽·로프를 휘두르는 스윙이 대표예요.',
-           official:'RMT 클럽 스윙(8자 돌리기 등) · RMT 로프',
-           src:'weckRMT' },
-    '일반': { key:'일반', full:'', kr:'셋 다 아님', color:'#7A858C',
-           kid:'WeckMethod 가 셋 중 어디라고 말한 적 없는 운동. 기계·한 관절 운동, 유산소, 스트레칭·호흡, '
-              + '그리고 플랭크 같은 <b>버티는 코어</b>(Weck 은 이걸 "브레이싱 코어"라고 따로 불러요).',
-           official:'', src:'weckBrace' },
-    '?':  { key:'?', full:'', kr:'선생님 확인', color:'#C1666B',
-           kid:'선생님만의 동작이라 공식 자료에 없어요. 선생님께 여쭤보고 종목 목록에서 단추로 정해요.',
-           official:'', src:null },
+    '기능성': { key:'기능성', kr:'기능성', color:'#4FA8C9',
+           kid:'한 관절만 쓰는 <b>고립 운동이 아니라</b>, 여러 몸 부위를 <b>같이 쓰는</b> 운동. 맨몸·케틀벨·선생님 동작처럼 몸을 한 덩어리로 움직여요.' },
+    '재활':   { key:'재활', kr:'재활', color:'#C1666B',
+           kid:'굳은 곳을 <b>풀고 늘리고</b>, 잠든 근육을 <b>깨우는</b> 운동. 마사지볼·스트레칭·교정 동작. 회복날에 4단계로 해요.' },
+    '중량':   { key:'중량', kr:'중량 (근비대)', color:'#E8A33D',
+           kid:'바벨·덤벨·머신·케이블로 <b>무게를 들어 근육을 키우는</b> 운동. 근테크의 중심이에요.' },
+    '유산소': { key:'유산소', kr:'유산소', color:'#E36F8E',
+           kid:'심폐 · 순환. 모든 운동의 1순위예요.' },
   };
   // 근거가 얼마나 확실한지
   const BASIS = {
-    '공식': 'WeckMethod 가 직접 예로 든 운동',
-    '정의': '공식 정의에 맞춰 나눈 것',
-    '확인': '공식 자료에 없음 · 선생님 확인 필요',
+    '공식': '확인된 근거',
+    '정의': '기준(기능성 = 여러 부위 · 재활 = 풀고 늘리고 깨우기 · 중량 = 무게로 근육 키우기)에 맞춰 나눈 것',
+    '확인': '확인이 필요한 것',
     '수정': '앱에서 직접 바꾼 것',
   };
 
@@ -393,7 +383,7 @@
       const r = roleOf(x.name), f = fixTip(x.name), w = x.info && x.info.weck;
       const wk = w && WECK[w.key];
       const badges = (x.tip ? '<span class="tr-b t">쌤</span>' : '') + (f && f.basis === '강의' ? '<span class="tr-b l">강의</span>' : '') + (f && f.basis === 'NASM' ? '<span class="tr-b n">NASM</span>' : '')
-                   + (w && /^(BTT|CCT|RMT)$/.test(w.key) ? `<span class="tr-b w" style="--wk:${wk.color}">${w.key}</span>` : '');
+                   + (w && wk ? `<span class="tr-b w" style="--wk:${wk.color}">${w.key}</span>` : '');
       return `<details class="tr-leaf"><summary><span class="tr-ln">${esc(x.name)}</span>${badges}${roleTag(r)}</summary>
         <div class="tr-detail">
           <div class="tr-img">${imgHTML(x.name, 64)}</div>
@@ -402,7 +392,7 @@
           ${f ? `<div class="tr-row tr-fix">🧩 <b>${esc(f.for)}</b><br>${esc(f.how)}</div>` : ''}
           <div class="tr-row">${vidHTML(x.name)}</div>
           ${x.where && x.where.length ? `<div class="tr-row">📅 ${x.where.map(esc).join(' · ')}</div>` : ''}
-          ${x.info ? `<div class="tr-row tr-dim">${esc(x.info.icon)} ${esc(x.info.toolText)} · ${esc(x.info.sideText)} · ${esc(w.key === '?' ? '선생님 확인' : (w.key === '일반' ? '셋 다 아님' : w.key))} — ${esc(w.why)}</div>` : ''}
+          ${x.info ? `<div class="tr-row tr-dim">${esc(x.info.icon)} ${esc(x.info.toolText)} · ${esc(x.info.sideText)} · ${esc((WECK[w.key] || {}).kr || w.key)} — ${esc(w.why)}</div>` : ''}
         </div></details>`;
     };
     const branch = (g, rows, vids) => {
@@ -429,7 +419,7 @@
     return `<div class="tr">
       <div class="tr-root">🌳 내 종목 지도 <b>${total}개</b><small>묶음을 누르면 종목이, 종목을 누르면 설명이 펼쳐져요</small></div>
       <div class="tr-trunk">${groups}${etc}</div>
-      <div class="tr-legend"><span class="tr-b t">쌤</span> 선생님이 가르쳐 준 것 · <span class="tr-b l">강의</span> 신체지도 강의 · <span class="tr-b w" style="--wk:#888">BTT</span> 비틀기 결</div>
+      <div class="tr-legend"><span class="tr-b t">쌤</span> 선생님이 가르쳐 준 것 · <span class="tr-b l">강의</span> 신체지도 강의 · <span class="tr-b w" style="--wk:#4FA8C9">기능성</span> <span class="tr-b w" style="--wk:#C1666B">재활</span> <span class="tr-b w" style="--wk:#E8A33D">중량</span> 운동 분류</div>
     </div>`;
   }
 
@@ -1121,43 +1111,22 @@
     return '양쪽 같이';
   }
   const W = (key, basis, why) => ({ key, basis, why });
+  // 종목 → 기능성 · 재활 · 중량 · 유산소
   function weckOf(n, type, tool, side){
-    // ① 공식 자료가 직접 이름을 든 것
-    if(/RMT/.test(n)) return W('RMT', '공식', 'RMT 클럽·로프 스윙은 WeckMethod 가 RMT 도구로 직접 든 것');
-    if(/스플릿|런지/.test(n)) return W('CCT', '공식', '스플릿 스쿼트·런지는 WeckMethod 가 CCT 를 쓰는 예로 직접 든 것');
-    if(/^스쿼트$|^벤치프레스$|^데드리프트$/.test(n)) return W('BTT', '공식', '전통 파워리프팅(스쿼트·벤치·데드)은 WeckMethod 가 BTT 예로 직접 든 것');
-    if(/플랭크|크런치|싯업|윗몸|레그레이즈|슈퍼맨|월싯|캐리/.test(n)) return W('일반', '공식', '버티는 코어 — WeckMethod 는 이걸 셋과 따로 "브레이싱 코어"라고 불러요');
-    if(/내몸풀기/.test(n)) return W('일반', '정의', '여러 동작을 한 번씩 하는 몸풀기 흐름 — 셋에 해당 근거 없음');
-    if(FIX[n]){
-      if(/레이즈$/.test(n)) return W('BTT', '정의', '양팔이 같이 똑같이 올라가 한쪽으로 꼴 수 없음 → BTT 정의 (교정 동작)');
-      if(/백년척추/.test(n)) return W('BTT', '정의', '허리·목을 양쪽 같이 뒤로 젖힘 — 한쪽으로 꼬지 않음 → BTT 정의 (교정 동작)');
-      return W('일반', '정의', '교정·재활 동작 — 몸통을 한쪽으로 꼬지 않아 셋에 해당 근거 없음 (무엇을 바로잡는지는 🧩 설명)');
-    }
-    // ② 이름만으로는 무슨 동작인지 모르는 것 · 선생님만의 동작
-    if(/^커틀벨$|^오버헤드$/.test(n)) return W('?', '확인', '이름만으로는 어떤 동작인지 몰라요');
-    // 원암 케이블 회전 로우(선생님 이름: 불균형 교정운동) — 사진으로 동작 확인: 한 팔로 당기며 몸통을 꼰다
-    if(/회전로우/.test(n)) return W('CCT', '정의', '한 팔로 당기며 몸통을 꼬아 마무리 — 공식 CCT 예 "끝에서 꼬아 마무리하는 로우"와 같은 모양');
-    if(/암바/.test(n)) return W('일반', '정의', '어깨·등 가동성 운동 — 셋에 해당 근거 없음 (상필님 확인)');
-    if(/겟업/.test(n)) return W('일반', '정의', '그라운드 소통 같은 움직임 흐름 운동 — 셋에 해당 근거 없음 (상필님 확인)');
-    if(/바디컨트롤전면코어/.test(n)) return W('CCT', '정의', '복부 회전 — 몸통을 한쪽으로 꼬며 배로 잡는 동작 → CCT 정의 (상필님 확인)');
-    if(/그라운드소통|스핀롤/.test(n)) return W('일반', '정의', '가동성 흐름(등·어깨·고관절 돌리기) — 셋에 해당 근거 없음 (상필님 확인)');
-    if(/고관절운동\(폼롤러\)/.test(n)) return W('CCT', '정의', '한 다리씩 숙이는 동작 — 공식 CCT 예(스플릿·런지)처럼 한쪽씩 (상필님 확인)');
-    if(/토터치/.test(n)) return W('CCT', '정의', '대각선으로 한 다리씩 뻗는 런지 — 공식 CCT 예(런지)와 같은 집안 (상필님 확인)');
-    if(/크랩워킹/.test(n)) return W('일반', '정의', '밴드 끼고 옆으로 걷기 — 몸통을 꼬지 않아 셋에 해당 근거 없음 (상필님 확인)');
-    // ③ 셋 중 근거가 없는 것
-    if(type === 'cardio') return W('일반', '정의', '유산소 — 셋 중 어디라고 한 적 없음 (접영만 BTT 예로 나와요)');
-    if(tool === '회복') return W('일반', '정의', '스트레칭·호흡·이완 — 셋에 해당 근거 없음');
-    if(/노드릭/.test(n)) return W('BTT', '정의', '양 무릎 꿇고 몸통을 같이 뒤로 — 한쪽으로 꼬지 않음 → BTT 정의 (상필님 확인)');
-    if(/케틀벨스윙/.test(n)) return W('BTT', '정의', '양손으로 같이 휘두르는 힙힌지 — 한쪽으로 꼬지 않음 → BTT 정의');
-    if(/힌지보조|고관절운동/.test(n)) return W('일반', '정의', '준비·보조 동작 — 셋에 해당 근거 없음');
-    if(/풀업|턱걸이/.test(n)) return W('BTT', '정의', '양팔이 같이 당기는 턱걸이 — 공식 예 "키핑 풀업"과 같은 집안');
-    if(tool === '머신') return W('일반', '정의', '기계가 길을 잡아줘서 몸통을 꼬거나 비틀 일이 거의 없음');
-    if(/마운틴/.test(n)) return W('일반', '정의', '버티는 코어 쪽 — 셋에 해당 근거 없음');
-    if(/컬|레이즈|플라이|익스텐션|푸쉬다운|페이스풀|크로스오버|카프|어덕션|업라이트로우|암풀다운/.test(n))
-      return W('일반', '정의', '한 관절만 쓰는 운동 — 셋에 해당 근거 없음');
-    // ④ 정의를 적용한 것
-    if(side === '한쪽씩') return W('CCT', '정의', '한쪽씩 하는 동작이라 한쪽으로 꼬아 쓸 수 있음 → CCT 쪽 (로우는 "끝에서 꼬는 로우"가 공식 예)');
-    return W('BTT', '정의', '양손·양발이 같이 움직여 한쪽으로 꼴 수 없음 → BTT 정의에 맞음');
+    if(type === 'cardio' || tool === '유산소') return W('유산소', '정의', '심폐 운동 — 순환');
+    // 선생님 동작 중 이름에 "폼롤러"가 붙었지만 한 다리씩 숙이는 고관절 움직임
+    if(/고관절운동\(폼롤러\)/.test(n)) return W('기능성', '정의', '한 다리씩 숙이며 고관절·몸통을 같이 쓰는 선생님 동작');
+    // 기능성 이름이 먼저 — 교정 목록(FIX)에 있어도 여러 부위를 쓰는 동작은 기능성 (플랭크·캐리·한 발 균형·몸풀기)
+    if(/내몸풀기|WGS|겟업|그라운드소통|스핀롤|바디컨트롤|크랩워킹|토터치|힌지보조|노드릭|밸런스|캐리|암바|회전로우|불균형교정|플랭크/.test(n))
+      return W('기능성', '정의', '여러 몸 부위를 한 번에 쓰는 움직임 — 고립 운동이 아니에요');
+    // 재활 — 풀기·늘리기·깨우기·교정
+    if(FIX[n]) return W('재활', '정의', '교정·재활 동작 — 굳은 곳을 풀고 늘리고, 잠든 근육을 깨워요');
+    if(tool === '회복' || /마사지|수건잡기|턱당기기|월슬라이드|코브라|클램쉘|데드버그|글루트브릿지|백년척추|아기자세|가동성영상|관절챙기기/.test(n))
+      return W('재활', '정의', '풀기·늘리기·깨우기 — 회복날 재활 4단계에 쓰는 운동');
+    if(tool === '케틀벨' || tool === '맨몸' || type === 'bodyweight')
+      return W('기능성', '정의', '맨몸·케틀벨로 몸을 한 덩어리로 쓰는 운동');
+    // 나머지 — 바벨·덤벨·머신·케이블
+    return W('중량', '정의', '무게를 들어 근육을 키우는 운동 — 근테크');
   }
 
   // ex: {name, type, part} · grp: 앱에서 직접 바꾼 값(있으면 그게 이김)
@@ -1167,10 +1136,8 @@
     const tool = toolOf(n, type);
     const side = sideOf(n, tool);
     let weck = weckOf(n, type, tool, side);
-    if(grp){
-      const g = grp === '기본' ? '일반' : grp;
-      if(WECK[g] && g !== weck.key) weck = W(g, '수정', '앱의 종목 목록에서 직접 정한 것');
-    }
+    // 앱에서 직접 정한 분류가 있으면 그게 이긴다 (예전 BTT·CCT 값은 WECK 에 없어서 그냥 무시된다)
+    if(grp && WECK[grp] && grp !== weck.key) weck = W(grp, '수정', '앱의 종목 목록에서 직접 정한 것');
     return { name: ex && ex.name, tool, side, weck,
              toolText: TOOLS[tool].short, toolKid: TOOLS[tool].kid, icon: TOOLS[tool].icon,
              sideText: SIDES[side] };
@@ -1178,11 +1145,10 @@
 
   // ----- 화면 조각 (두 페이지가 같이 쓴다) -----
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  // 작은 딱지: [BTT] [바벨 · 양쪽 같이]
+  // 작은 딱지: [기능성] [바벨 · 양쪽 같이]
   function chipsHTML(info){
-    const wk = info.weck.key;
-    const sure = info.weck.basis === '확인' ? '?' : '';
-    return `<span class="xi-wk xi-${wk === '?' ? 'Q' : wk}" title="${esc(info.weck.why)}">${wk === '?' ? '확인' : wk}${wk !== '?' ? sure : ''}</span>`
+    const wk = info.weck.key, c = (WECK[wk] || {}).color || '#55606A';
+    return `<span class="xi-wk" style="background:${c}" title="${esc(info.weck.why)}">${esc(wk)}</span>`
          + `<span class="xi-tl">${esc(info.tool)} · ${esc(info.side)}</span>`;
   }
   // 펼쳐 보는 설명 한 덩어리
@@ -1192,7 +1158,7 @@
       ${(r => r ? `<div><b>${esc(r.muscles)}</b> — ${esc(r.role)} (${esc(r.joint)}) <span class="xi-basis b-공식">${esc(r.ok || '짐작')}</span><br><span style="color:var(--ink-faint)">${esc(r.note)}</span></div>` : '')(roleOf(info.name))}
       <div><b>${esc(info.icon)} ${esc(info.tool)}</b> — ${info.toolKid}</div>
       <div><b>${esc(info.side)}</b> — ${esc(info.sideText)}</div>
-      <div><b>${esc(info.weck.key === '?' ? '선생님 확인' : info.weck.key)}</b> — ${esc(info.weck.why)}
+      <div><b>${esc((WECK[info.weck.key] || {}).kr || info.weck.key)}</b> — ${esc(info.weck.why)}
         <span class="xi-basis b-${esc(info.weck.basis)}">${esc(info.weck.basis)}</span></div>
     </div>`;
   }
@@ -1221,38 +1187,12 @@
       <g fill="currentColor" opacity=".6"><path d="M102 70 l-2 12 l-9 -8z"/></g></svg>`,
   };
 
-  // "BTT·CCT·RMT 가 뭐예요?"
+  // "기능성 · 재활 · 중량이 뭐예요?"
   function weckHTML(){
-    const cards = ['BTT','CCT','RMT'].map(k=>{
-      const w = WECK[k];
-      return `<div class="xi-wcard" style="--wk:${w.color}">
-        <div class="xi-wfig">${FIG[k]}</div>
-        <div class="xi-wbody">
-          <div class="xi-wname"><b>${k}</b> <span>${esc(w.kr)}</span></div>
-          <div class="xi-wfull">${esc(w.full)}</div>
-          <div class="xi-wkid">${w.kid}</div>
-          <div class="xi-wex"><b>공식 예시</b> ${esc(w.official)}</div>
-        </div>
-      </div>`;
-    }).join('');
-    return `<div class="xi-weck">
-      ${cards}
-      <div class="xi-wcard plain" style="--wk:${WECK['일반'].color}">
-        <div class="xi-wbody"><div class="xi-wname"><b>셋 다 아님</b></div><div class="xi-wkid">${WECK['일반'].kid}</div></div>
-      </div>
-      <div class="xi-wcard plain" style="--wk:${WECK['?'].color}">
-        <div class="xi-wbody"><div class="xi-wname"><b>확인</b> <span>선생님께 여쭤보기</span></div><div class="xi-wkid">${WECK['?'].kid}</div></div>
-      </div>
-      <div class="xi-basis-key">
-        딱지 뜻:
-        <span class="xi-basis b-공식">공식</span> ${BASIS['공식']} ·
-        <span class="xi-basis b-정의">정의</span> ${BASIS['정의']} ·
-        <span class="xi-basis b-확인">확인</span> ${BASIS['확인']}
-      </div>
-      <div class="xi-warn">⚠ 인터넷 글에 "BTT = 좌우 불균형을 바로잡는 운동"이라는 설명이 있지만, 공식 정의에는 그런 말이 없어요.
-        공식 뜻은 <b>"양쪽이 같이 움직여서 한쪽으로 꼴 수 없을 때"</b>예요. 한쪽씩 하는 런지·스플릿 스쿼트는 오히려 공식 자료에서 <b>CCT</b> 예로 나와요.</div>
-      <div class="xi-src">근거: ${srcLink('weckDef')} · ${srcLink('weckCCT')} · ${srcLink('weckBrace')} · ${srcLink('weckRMT')}</div>
-    </div>`;
+    const cards = ['기능성','재활','중량','유산소'].map(k => { const w = WECK[k];
+      return `<div class="xi-wcard plain" style="--wk:${w.color}"><div class="xi-wbody"><div class="xi-wname"><b>${esc(w.kr)}</b></div><div class="xi-wkid">${w.kid}</div></div></div>`; }).join('');
+    return `<div class="xi-weck">${cards}
+      <div class="xi-wkid">운동날 순서: 🔥 열 내기 → 🧩 <b>기능성</b> → 🏋️ <b>중량</b>. <b>재활</b>은 회복날(월·토)에 4단계로.</div></div>`;
   }
 
   // "바벨·덤벨·머신은 뭐가 달라요?"
@@ -1286,7 +1226,6 @@
     </div>`;
     const week = `<div class="xh-week">${days.map(d=>`<div class="xh-day k-${d.kind}"><span>${esc(d.dow)}</span><b>${esc(d.tag)}</b></div>`).join('')}</div>`;
     const warm = `<div class="xh-chain"><span>내 몸풀기 (하체부터 · WGS · 점프)</span><i>→</i><span>케틀벨 암바</span><i>→</i><span>바디컨트롤</span></div>`;
-    const ring = `<div class="xh-ring" style="grid-template-columns:1fr 18px 1fr 18px">${['BTT','CCT'].map((k,i)=>`<span class="xh-rk${k===th?' on':''}" style="--wk:${WECK[k].color}">${k}<small>${esc(WECK[k].kr)}</small></span>${i<1?'<i>↔</i>':'<i>↺</i>'}`).join('')}</div>`;
     const funnel = `<div class="xh-funnel">
       <div class="f1">선생님이 가르쳐주신 종목만</div>
       <div class="f2">그중 가장 오래 안 한 것</div>
@@ -1296,13 +1235,12 @@
     const bar = `<div class="xh-bar"><span class="s1" style="flex:6">준비</span><span class="s2" style="flex:12">워밍업</span><span class="s3" style="flex:42">본 운동</span><span class="s4" style="flex:10">⏱</span></div>
       <div class="xh-bar-key"><span>0분</span><span>60분</span></div>`;
     return `<div class="xh">
-      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 운동날은 <b>그날 관절의 가동성(늘리기 → 끝에서 버티기 → 끝에서 움직이기) + 그 부위 재활 + 선생님 근력</b> — 일 하체=무릎·고관절, 수 가슴·등=허리·등, 목 어깨·팔=어깨 · 코어는 <b>8초 버티고 2초 쉬기</b> · 회복날(월·토)은 <b>재활 4단계</b> 순서: ① 풀기(발바닥·마사지볼) → ② 늘리기(스트레칭·백년척추) → ③ 깨우기(T·W·Y·수건 잡기) → ④ 통합(선생님 동작·결·밸런스·코어 안티 모션) → 심폐 20분. 운동날 끝에도 코어 한 자리. 모두 한 시간 안')}
+      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 운동날은 <b>🔥 열 내기(가동성·관절 영상) → 🧩 기능성 → 🏋️ 중량 → 마무리</b> · 코어는 <b>8초 버티고 2초 쉬기</b> · 회복날(월·토)은 <b>전날 부위로 재활 4단계 한 바퀴</b> — 월 = 무릎, 토 = 허리·어깨: ① 풀기 → ② 늘리기 → ③ 깨우기 → ④ 통합 → 가동성 영상 → 심폐 20분. 모두 한 시간 안')}
       ${step(2, '🔥', '운동하는 날 맨 앞엔 워밍업', warm, 'PT 날에도 붙여요')}
-      ${step(3, '🔄', '이번 주 결 — BTT ↔ CCT 한 주씩 (RMT는 배우면 추가)', ring, '운동날·회복날 모두 ① 그 주 결의 기능성 한 자리가 들어가고 ② 다른 자리도 그 결에 맞는 종목을 먼저 골라요' + (th ? ` · 이번 주는 <b>${th}</b>` : ''))}
-      ${step(4, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
-      ${step(5, '🦵', '무릎은 내가 판단', `<div class="xh-chain"><span>스쿼트 · 런지 · 레그프레스도 제자리에</span><i>→</i><span>붓는 날은 직접 빼기</span></div>`, '무릎 자동 규칙은 꺼 두었어요 — 선생님이 중요하다고 한 런지·레그프레스를 정상으로 하기 위해')}
-      ${step(6, '⏱', '한 시간에 맞추기', bar, '웨이트 1세트 2분 · 맨몸 1.2분 · 유산소는 적힌 시간 · 60분 넘는 종목은 흐려지고 ⏱')}
-      ${step(7, '✍️', '기록하면 → 다음 고르기 재료', `<div class="xh-chain"><span>오늘 한 것 기록</span><i>→</i><span>"가장 오래 안 한 것"이 바뀜</span><i>→</i><span>④로 돌아가요</span></div>`, '')}
+      ${step(3, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
+      ${step(4, '🦵', '무릎은 내가 판단', `<div class="xh-chain"><span>스쿼트 · 런지 · 레그프레스도 제자리에</span><i>→</i><span>붓는 날은 직접 빼기</span></div>`, '무릎 자동 규칙은 꺼 두었어요 — 선생님이 중요하다고 한 런지·레그프레스를 정상으로 하기 위해')}
+      ${step(5, '⏱', '한 시간에 맞추기', bar, '웨이트 1세트 2분 · 맨몸 1.2분 · 유산소는 적힌 시간 · 60분 넘는 종목은 흐려지고 ⏱')}
+      ${step(6, '✍️', '기록하면 → 다음 고르기 재료', `<div class="xh-chain"><span>오늘 한 것 기록</span><i>→</i><span>"가장 오래 안 한 것"이 바뀜</span><i>→</i><span>③으로 돌아가요</span></div>`, '')}
       <div class="xh-foot">※ 몸이 안 좋으면 추천은 무시하고 쉬어도 돼요. 선생님이 다르게 진행하면 선생님 말씀이 먼저예요.</div>
     </div>`;
   }
