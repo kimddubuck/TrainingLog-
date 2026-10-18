@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=143"></script>
+<script src="exinfo.js?v=144"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -400,6 +400,14 @@ if(!window.EXINFO) window.EXINFO = (function(){
   }
   .row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 
+  /* 날짜 칸 = 한 줄로 낮게 (2026-10-18) */
+  .card.date-card{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:10px;}
+  .card.date-card label.field-label{margin:0;white-space:nowrap;}
+  .card.date-card input[type=date]{flex:1;width:auto;padding:7px 10px;}
+  /* 개인운동 날 · PT 받는 날 안내 상자는 숨긴다 — PT 는 이미 알고 있으니 (2026-10-18) */
+  #daytypeBanner{display:none;}
+  /* 미션 그림 출처는 한 줄로 (누르면 출처가 열린다) */
+  .ms-pic .xi-credit{display:block;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   label.field-label{
     font-size:12px;color:var(--ink-dim);
     display:block;margin-bottom:6px;
@@ -774,7 +782,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .ms-btns{display:flex;gap:8px;margin-top:10px;}
   .ms-btns button{flex:1;padding:7px;border-radius:8px;border:1px solid var(--accent-a);background:var(--accent-a);color:var(--bg);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
   .ms-btns button.ghost{background:transparent;color:var(--ink-dim);border-color:var(--border-strong);font-weight:600;}
-  .ms-note{font-size:10px;color:var(--ink-faint);margin-top:5px;line-height:1.4;word-break:keep-all;}
+  .ms-note{font-size:10px;color:var(--ink-faint);margin-top:5px;line-height:1.4;word-break:keep-all;} .ms-note:empty{display:none;}
   .ms-btns{margin-top:6px;} .ms-set{font-size:11.5px;} .ms-why{font-size:10.5px;} .ms-txt .rh-vid{font-size:10px;margin-top:3px;}
   .water-card{
     background:var(--surface);border:1px solid var(--border);border-radius:12px;
@@ -1013,7 +1021,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v143</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v144</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1043,8 +1051,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
   <!-- LOG PANEL -->
   <div class="panel active" id="panel-log">
 
-    <div class="card">
-      <label class="field-label">날짜</label>
+    <div class="card date-card">
+      <label class="field-label" for="dateInput">날짜</label>
       <input type="date" id="dateInput">
     </div>
 
@@ -3121,8 +3129,8 @@ function renderMsAlarm(){
   b.classList.toggle('on', on);
   b.textContent = on ? '🔔 1시간마다 알림 켜짐' : '🔕 1시간마다 알림';
   note.textContent = on
-    ? `${MS_HOURS[0]}시~${MS_HOURS[1]}시, 앱이 열려 있을 때 1시간마다 미션 알림이 와요. 앱을 완전히 닫으면 알림이 안 와요 — 폰 알람·달력에 "스트레칭"을 같이 걸어 두세요`
-    : '누르면 1시간마다 미션 알림. 앱이 열려 있을 때만 와요 (홈 화면에 추가해 두면 좋아요)';
+    ? `${MS_HOURS[0]}~${MS_HOURS[1]}시 · 앱이 열려 있을 때만 와요`
+    : '';
 }
 async function msShow(m){
   const title = '⏰ 스트레칭 미션 — ' + m.p;
