@@ -267,8 +267,7 @@
   function philoMiniHTML(text){
     const t = String(text || '').trim();
     const goal = (!t || t === PHILO_DEFAULT.trim()) ? PHILO.goal : t.split('\n')[0].replace(/^[^\w가-힣]+/, '').replace(/^목적\s*[—-]\s*/, '');
-    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub"> · 그리고 💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>
-      <div class="pm-ladder">${PHILO.ladder.map(s => `<span>${s[0]} ${esc(s[1])}</span>`).join('<i>→</i>')}</div>`;
+    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub"> · 그리고 💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>`;   // 사다리 줄(바닥 → 순환 → …)은 머리에서 뺐다 — 자세히 보기 안에 있어요 (2026-10-18)
   }
   // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
   function philoHTML(text){
