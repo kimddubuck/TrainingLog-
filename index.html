@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·BTT/CCT/RMT 와 그 근거 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=133"></script>
+<script src="exinfo.js?v=134"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1007,7 +1007,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v133</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v134</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1483,7 +1483,8 @@ const DEFAULT_MASTER = [
   {id:'rmtrope',     name:'RMT 로프',        part:'전신', type:'bodyweight'},
   {id:'slowjog',     name:'슬로우 조깅',      part:'유산소', type:'cardio'},
   {id:'groundflow',  name:'그라운드 소통',     part:'전신', type:'bodyweight'},
-  {id:'mobvid',      name:'가동성 영상 따라하기', part:'전신', type:'bodyweight'},   // 회복날 — 날마다 다른 영상 (exinfo.js mobVideo)
+  {id:'mobvid',      name:'가동성 영상 따라하기', part:'전신', type:'bodyweight'},
+  {id:'jointvid',    name:'관절 챙기기 영상',   part:'전신', type:'bodyweight'},   // 운동날 — 손목·팔꿈치 / 무릎·발목 (exinfo.js jointVideo)   // 회복날 — 날마다 다른 영상 (exinfo.js mobVideo)
   {id:'bcfrontcore', name:'바디컨트롤 전면 코어', part:'코어', type:'bodyweight'},
 
   // ===== 웨이트(근력) =====
@@ -2343,6 +2344,8 @@ const PLAN = {
                  options:['내전근 스트레칭'] },
                { why:'🔥 열 내기 ② 고관절 가동성 — 넓힌 범위를 내 힘으로 움직이기', sets:2, reps:'10회', label:'10회 × 2세트',
                  options:['스핀롤','고관절 힌지 보조운동'] },
+               { why:'🔥 열 내기 — 무릎·발목 챙기기 영상 (1분 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
+                 options:['관절 챙기기 영상'] },
                { why:'⚡ 자극 ③ 깨우기 — 엉덩이 옆 (무릎 안쪽 쏠림 잡기 · 엉덩이에 힘 들어오는 느낌 찾기)', sets:2, reps:'좌우 12회', label:'좌우 12회 × 2세트',
                  options:['토터치','크랩워킹','클램쉘'] },
                { why:'⚡ 자극 ③ 깨우기 — 발 (왼발 아치 · 하체 날마다 고정)', sets:2, reps:'15회', label:'15회 × 2세트',
@@ -2370,6 +2373,8 @@ const PLAN = {
                  options:['마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤'] },
                { why:'🔥 열 내기 ② 어깨 가동성 — 가슴 앞 늘리고(30초) 그 끝에서 5초 버티기 × 3', sets:2, reps:'좌우 30초', label:'좌우 30초 → 끝 5초×3 · 2세트',
                  options:['문틀 가슴 스트레칭'] },
+               { why:'🔥 열 내기 — 손목·팔꿈치 챙기기 영상 (1분 · 프레스 전에 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
+                 options:['관절 챙기기 영상'] },
                { why:'⚡ 자극 ③ 깨우기 — 날개뼈 아래로 (어깨 올라감 잡기 · 날개뼈 내려가는 느낌 찾기)', sets:2, reps:'10회', label:'10회 × 2세트',
                  options:['승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라'],
                  labels:{ '엎드려 코브라':'10초 × 5' } },
@@ -2396,6 +2401,8 @@ const PLAN = {
                  options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이'] },
                { why:'🔥 열 내기 ② 등(흉추) 가동성 — 뒤로 젖혀 그 끝에서 5초 버티기 × 3', sets:2, reps:'10회', label:'10회 × 2세트 (끝에서 5초×3)',
                  options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
+               { why:'🔥 열 내기 — 손목·팔꿈치 챙기기 영상 (1분 · 벤치 전에 · 뻔더)', sets:1, reps:'1~2분', label:'1~2분 · 짧은 영상',
+                 options:['관절 챙기기 영상'] },
                { why:'⚡ 자극 ③ 깨우기 — 날개뼈 모으기 (둥근어깨 · 등 가운데 조이는 느낌 찾기)', sets:2, reps:'10회', label:'10회 × 2세트',
                  options:['Y 레이즈','T 레이즈','W 레이즈'] },
                { why:'⚡ 자극 — 가슴 가볍게 (가슴에 힘 들어오는 느낌 찾기)', sets:2, reps:'15회', label:'15회 × 2세트 (가볍게)',
@@ -2627,6 +2634,10 @@ function candOrder(theme, last){
 }
 // 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
 function mobLink(ex, ds, dayKey){
+  if(ex && ex.id === 'jointvid' && window.EXINFO && EXINFO.jointVideo){
+    const j = EXINFO.jointVideo(ds, dayKey);
+    return j ? ` · <a class="pe-vid" href="${j.url}" target="_blank" rel="noopener">▶ ${j.n}</a>` : '';
+  }
   if(!ex || ex.id !== 'mobvid' || !window.EXINFO || !EXINFO.mobVideo) return '';
   const v = EXINFO.mobVideo(ds, dayKey);
   return ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.n}</a>`;

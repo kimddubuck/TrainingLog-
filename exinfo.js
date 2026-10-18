@@ -662,6 +662,15 @@
   // 회복날 자리용: 날짜마다 다른 영상 하나 (하루 5분 채널을 차례로 돌린다. 같은 날은 늘 같은 영상)
   // key = 그날 운동 (legs·chestback·shoulderarm·pt). 그 부위 묶음에서만 고른다. 회복날(key 없음)은 전체에서
   const MOB_PICK = { legs:[1, 2], chestback:[0, 3], shoulderarm:[0], pt:[0, 1, 2, 3] };
+  // 운동날 "관절 챙기기 영상" — 가슴등·어깨팔(프레스) = 손목·팔꿈치, 하체 = 무릎·발목. 뻔더에서 확인된 영상만. 날마다 다른 것
+  const JOINT_PICK = { chestback:'🦴 손목 · 팔꿈치', shoulderarm:'🦴 손목 · 팔꿈치', legs:'🦵 무릎 · 발 · 발목' };
+  function jointVideo(ds, key){
+    const g = BD.groups.find(x => x.t === JOINT_PICK[key]); if(!g) return null;
+    const all = g.items.filter(it => !it.wait); if(!all.length) return null;
+    const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
+    const it = all[((d * 3) % all.length + all.length) % all.length];
+    return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
+  }
   function mobVideo(ds, key){
     const gi = MOB_PICK[key];
     const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => all.push(it)); });
@@ -684,7 +693,7 @@
         { id:'qQwUoq8ya3M', n:'말린 어깨·굽은 등 운동 TOP 1', sh:true, wait:true },
         { id:'er7l9X-eHdY', n:'말린 어깨를 위한 팔돌리기 팁 3가지', sh:true, wait:true },
         { id:'LvpDob9qYIY', n:'나쁜 굽은 등, 좋은 굽은 등 구별법', sh:true, wait:true },
-        { id:'JsF8lersqxk', n:'상체 운동 전 필수 동작 (흉추 회전)', sh:true, wait:true },
+        { id:'JsF8lersqxk', n:'상체 운동 전 필수 동작 (흉추 회전)', sh:true },
         { id:'a8eNvDkLDZw', n:'턱걸이 전 꼭 해야 하는 준비운동', sh:true, wait:true },
       ] },
       { t:'🙆 어깨 가동성', items:[
@@ -705,34 +714,48 @@
         { id:'cp2DkTN7nEs', n:'휴대폰 볼 때 최악의 자세', sh:true, wait:true },
       ] },
       { t:'🍑 고관절 · 골반 · 허리', items:[
-        { id:'xLd9UK2J3b8', n:'고관절이 뻣뻣하다면', sh:true, wait:true },
-        { id:'cPQXOtISCJk', n:'유연하고 강한 고관절을 위한 한 가지 동작', sh:true, wait:true },
-        { id:'hhqPzF12cAI', n:'고관절 기름칠하기', sh:true, wait:true },
-        { id:'rC_TK21aFdw', n:'고관절 내·외회전 스트레칭 3가지', sh:true, wait:true },
-        { id:'BwUgrlnzhpg', n:'스쿼트 전 고관절 필수 웜업', sh:true, wait:true },
-        { id:'XparnX9xSRc', n:'힙힌지 단계별 접근법 (데드리프트)', sh:true, wait:true },
-        { id:'HbMsD1deA6k', n:'골반 움직임 느끼기 (앞·뒤 기울기)', sh:true, wait:true },
-        { id:'10ZNiEjRee8', n:'골반 한쪽이 자꾸 떨어진다면', sh:true, wait:true },
-        { id:'LSJuhzT-00Y', n:'뻣뻣한 허리를 움직여 보세요', sh:true, wait:true },
-        { id:'MqtsvXYEZ_w', n:'허리가 아픈데 오래 앉아있다면', sh:true, wait:true },
-        { id:'yx0o3fzVFvU', n:'앉아있다 일어날 때 허리가 아프다면', sh:true, wait:true },
-        { id:'U3Uo3G6IApw', n:'코어 운동 후 허리가 더 아프다면', sh:true, wait:true },
-        { id:'dJaBp1AxCs8', n:'복근운동할 때 허리만 아프다면', sh:true, wait:true },
-        { id:'4ctg0QU4XaY', n:'코어에 힘주라는 건 어떤 뜻일까', sh:true, wait:true },
-        { id:'XcIFjvUIVxo', n:'허리 아프지 않게 햄스트링 유연성 늘리기', sh:true, wait:true },
+        { id:'xLd9UK2J3b8', n:'고관절이 뻣뻣하다면', sh:true },
+        { id:'cPQXOtISCJk', n:'유연하고 강한 고관절을 위한 한 가지 동작', sh:true },
+        { id:'hhqPzF12cAI', n:'고관절 기름칠하기', sh:true },
+        { id:'rC_TK21aFdw', n:'고관절 내·외회전 스트레칭 3가지', sh:true },
+        { id:'BwUgrlnzhpg', n:'스쿼트 전 고관절 필수 웜업', sh:true },
+        { id:'XparnX9xSRc', n:'힙힌지 단계별 접근법 (데드리프트)', sh:true },
+        { id:'HbMsD1deA6k', n:'골반 움직임 느끼기 (앞·뒤 기울기)', sh:true },
+        { id:'10ZNiEjRee8', n:'골반 한쪽이 자꾸 떨어진다면', sh:true },
+        { id:'LSJuhzT-00Y', n:'뻣뻣한 허리를 움직여 보세요', sh:true },
+        { id:'MqtsvXYEZ_w', n:'허리가 아픈데 오래 앉아있다면', sh:true },
+        { id:'yx0o3fzVFvU', n:'앉아있다 일어날 때 허리가 아프다면', sh:true },
+        { id:'U3Uo3G6IApw', n:'코어 운동 후 허리가 더 아프다면', sh:true },
+        { id:'dJaBp1AxCs8', n:'복근운동할 때 허리만 아프다면', sh:true },
+        { id:'4ctg0QU4XaY', n:'코어에 힘주라는 건 어떤 뜻일까', sh:true },
+        { id:'XcIFjvUIVxo', n:'허리 아프지 않게 햄스트링 유연성 늘리기', sh:true },
+      ] },
+      { t:'🦴 손목 · 팔꿈치', items:[
+        { id:'IcPZMH07BPM', n:'푸쉬업할 때 손목이 아프다면', sh:true },
+        { id:'TIeIZdlPOvM', n:'운동할 때 손목이 아프다면', sh:true },
+        { id:'gl-oi3SZfWo', n:'바닥에 손을 짚을 때 손목이 아프다면', sh:true },
+        { id:'hU-dsspvM5U', n:'티타늄 손목 만들기', sh:true },
+        { id:'hDAhbkzIT8Q', n:'강철 손목 만들기', sh:true },
+        { id:'il_BNtH-rI8', n:'오래 일해서 손목이 아프다면 (일상 손목 운동 3가지)', sh:true },
+        { id:'tQeCixxZm1A', n:'운동할 때 팔꿈치가 아프다면', sh:true },
+        { id:'eawRM8FSxCY', n:'팔꿈치에서 뼈 소리가 난다면', sh:true },
       ] },
       { t:'🦵 무릎 · 발 · 발목', items:[
-        { id:'R-y8PiIrL10', n:'계단 내려갈 때 무릎이 아프다면', sh:true, wait:true },
-        { id:'xayphsXCvmw', n:'스쿼트할 때 무릎이 아프다면', sh:true, wait:true },
-        { id:'CQ-y9pVp__Q', n:'계단을 이용한 무릎 강화 동작 2가지', sh:true, wait:true },
-        { id:'yetSXpXQolA', n:'무릎 건강을 지키는 4가지 운동', sh:true, wait:true },
-        { id:'DAwIKTGlSSE', n:'티타늄 무릎 만드는 법', sh:true, wait:true },
+        { id:'R-y8PiIrL10', n:'계단 내려갈 때 무릎이 아프다면', sh:true },
+        { id:'xayphsXCvmw', n:'스쿼트할 때 무릎이 아프다면', sh:true },
+        { id:'CQ-y9pVp__Q', n:'계단을 이용한 무릎 강화 동작 2가지', sh:true },
+        { id:'yetSXpXQolA', n:'무릎 건강을 지키는 4가지 운동', sh:true },
+        { id:'DAwIKTGlSSE', n:'티타늄 무릎 만드는 법', sh:true },
         { id:'m91Pdesc0W8', n:'발의 아치가 무너졌다면', sh:true, note:'왼발 아치', wait:true },
         { id:'f8kekYD0M2I', n:'발 아치가 무너지면 생기는 일', sh:true, wait:true },
         { id:'avOcecxNWTg', n:'발가락 운동 6가지', sh:true, wait:true },
-        { id:'9Olfw9_EATU', n:'발·발목 강화 운동 10가지', sh:true, wait:true },
-        { id:'5UGwiN_yabI', n:'발목이 계속 삔다면', sh:true, wait:true },
-        { id:'kQGutIiivw0', n:'러닝 후 종아리·발목이 아프다면', sh:true, wait:true },
+        { id:'9Olfw9_EATU', n:'발·발목 강화 운동 10가지', sh:true },
+        { id:'5UGwiN_yabI', n:'발목이 계속 삔다면', sh:true },
+        { id:'kQGutIiivw0', n:'러닝 후 종아리·발목이 아프다면', sh:true },
+        { id:'BS0Zxr6C0xk', n:'접질린 발목 재활 4단계', sh:true },
+        { id:'SY5RvX5aeXs', n:'러닝 후 발·발목이 아프다면', sh:true },
+        { id:'XEFomDG-gGc', n:'러닝 후 무릎·발목이 아프다면', sh:true },
+        { id:'rbvIttDiSvY', n:'걷거나 달린 후 관절이 아프다면', sh:true },
       ] },
       { t:'🌀 전신 · 웜업', items:[
         { id:'0YGv8gP8yjc', n:'관절 움직이기 8가지', sh:true, wait:true },
@@ -748,13 +771,14 @@
   // ----- 종목 탭: 묶음마다 따라 할 영상 (휴먼밸런스·하루 5분·뻔더·라쿠다를 부위별로 섞음). id 만 적고 이름·채널은 위 목록에서 찾는다
   // '#' 로 시작하면 작은 제목. 2026-10-18 상필님: 재활 영상을 가슴·등 같은 부위로 종목에 나눠서
   const TREE_VIDS = {
-    chest:['#가슴 앞이 짧아져 어깨가 말릴 때','EqCgw8BPbTM','wWUC_a8QnUk','zQH_78wNBIc','DU3pVnoEcd8','qQwUoq8ya3M','er7l9X-eHdY'],
+    arm:['#팔꿈치','tQeCixxZm1A','eawRM8FSxCY','#손목','TIeIZdlPOvM','hU-dsspvM5U','hDAhbkzIT8Q','il_BNtH-rI8'],
+    chest:['#벤치·푸쉬업 때 손목','IcPZMH07BPM','gl-oi3SZfWo','#가슴 앞이 짧아져 어깨가 말릴 때','EqCgw8BPbTM','wWUC_a8QnUk','zQH_78wNBIc','DU3pVnoEcd8','qQwUoq8ya3M','er7l9X-eHdY'],
     back:['#굽은 등 · 흉추','lCSf9FuBm20','hCC3jNlJv24','s5P9UN_ujkM','LvpDob9qYIY','JsF8lersqxk','nYhI5J3khuc','k0JNOQrsE0c','Zxz_wTYJbyk','ypmLu6CrgyI','DupZZ8XbGFY','harTIZ8JMNg',
           '#당기기 · 광배근','Mey2Myd1BPw','a8eNvDkLDZw','QjtX9qWHNjA'],
     shoulder:['#어깨 가동성','Qz0U8GHs9_Q','8cN6ln6VxZ0','uYdWoooEqpc','48gD-RW-jjg','mGjTgOyZDh0','tpkXdXxSRC0','rKsSbDY6-Mc','oQ9z0LXsFbI','QAKFxXsNmtU',
               '#목 · 거북목 · 승모근','sMcn4jZMg9M','7fUwH-QySlA','jc7kfGBZZFI','_55XoEBleRc','Ymkkv72R8FM','cp2DkTN7nEs','7-boBAcgoC4','-mfsp5J4nHc','TQLowdplsvc'],
     leg:['#무릎','R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM',
-         '#발 · 발목 (왼발 아치)','m91Pdesc0W8','f8kekYD0M2I','avOcecxNWTg','9Olfw9_EATU','5UGwiN_yabI'],
+         '#발 · 발목 (왼발 아치)','m91Pdesc0W8','f8kekYD0M2I','avOcecxNWTg','9Olfw9_EATU','5UGwiN_yabI','BS0Zxr6C0xk','SY5RvX5aeXs','XEFomDG-gGc','rbvIttDiSvY'],
     hip:['#고관절','-v-ZDIrVg0E','xLd9UK2J3b8','cPQXOtISCJk','hhqPzF12cAI','rC_TK21aFdw','8rGQzOeemRI','fBByTVXCONA','BwUgrlnzhpg','XparnX9xSRc',
          '#골반 · 좌우 균형','HbMsD1deA6k','10ZNiEjRee8','h0-wfLOVWtQ','w4pr9HllpNg','hr2kAA9Q5KE',
          '#뒷벅지','hrZQxlNijRU','XcIFjvUIVxo','YkAA-X5Lp64'],
@@ -1560,5 +1584,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
