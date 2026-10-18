@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=137"></script>
+<script src="exinfo.js?v=138"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1009,7 +1009,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v137</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v138</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1486,7 +1486,12 @@ const DEFAULT_MASTER = [
   {id:'slowjog',     name:'슬로우 조깅',      part:'유산소', type:'cardio'},
   {id:'groundflow',  name:'그라운드 소통',     part:'전신', type:'bodyweight'},
   {id:'mobvid',      name:'가동성 영상 따라하기', part:'전신', type:'bodyweight'},
-  {id:'jointvid',    name:'관절 챙기기 영상',   part:'전신', type:'bodyweight'},   // 운동날 — 손목·팔꿈치 / 무릎·발목 (exinfo.js jointVideo)   // 회복날 — 날마다 다른 영상 (exinfo.js mobVideo)
+  {id:'jointvid',    name:'관절 챙기기 영상',   part:'전신', type:'bodyweight'},
+  // 회복날 ③ 근육 키우기 — 부위별 영상 (exinfo.js rehabVideo · REHAB_VID). id 뒤쪽이 묶음 이름
+  {id:'rv-knee',     name:'무릎 키우기 영상',      part:'무릎',    type:'bodyweight'},
+  {id:'rv-foot',     name:'발·엉덩이 키우기 영상',  part:'발·엉덩이', type:'bodyweight'},
+  {id:'rv-shoulder', name:'어깨·등 키우기 영상',    part:'어깨·등',  type:'bodyweight'},
+  {id:'rv-back',     name:'허리·코어 키우기 영상',  part:'허리·코어', type:'bodyweight'},   // 운동날 — 손목·팔꿈치 / 무릎·발목 (exinfo.js jointVideo)   // 회복날 — 날마다 다른 영상 (exinfo.js mobVideo)
   {id:'bcfrontcore', name:'바디컨트롤 전면 코어', part:'코어', type:'bodyweight'},
 
   // ===== 웨이트(근력) =====
@@ -2261,67 +2266,48 @@ function themeOf(ds){
 }
 
 // 회복날에 하는 기능성 동작 (선생님이 알려주신 것들). 자리마다 돌아가며 나온다.
-// 회복날 = 저강도 교정 시리즈를 "재활 4단계" 순서로 (웰니스 강의 2026-10-16):
-//  ① 풀기(억제: 뭉친 곳을 볼·손으로) → ② 늘리기(스트레칭·가동) → ③ 깨우기(약한 근육 활성화) → ④ 통합(동작·밸런스) → 심폐
-//  마사지에서 멈추지 않고 통합까지 간다. 앞쪽은 풀고 뒤쪽은 깨운다. 무게 없이, 숨이 안 찰 만큼.
+// 회복날 = 재활 한 바퀴, 간단하게 (2026-10-18 상필님):
+//  ① 근육 풀기(마사지볼·폼롤러) → ② 스트레칭 → ③ 근육 키우기(휴먼밸런스·하루 5분·뻔더 영상 따라하기) → 심폐
+//  강의의 4단계(풀기→늘리기→깨우기→통합)를 깨우기·통합은 영상으로 합쳤다. 무게 없이, 숨이 안 찰 만큼.
 const RECOVERY_ROUTINE = [
-  // 회복날 = 재활 4단계 한 바퀴 (2026-10-18 상필님: 재활은 회복날에만, 전날 운동한 부위로)
-  //   focus:'knee'  = 하체 다음날 — 무릎 + 이어진 고관절·발목·발
-  //   focus:'upper' = 가슴등·어깨팔 다음날 — 허리 + 어깨 + 이어진 목·골반
-  //   focus 가 없는 자리는 회복날마다 나온다. 어느 쪽인지는 focusOf(날짜) 가 정한다
+  // 전날 운동한 부위로 (focusOf): focus:'knee' = 하체 다음날(월) 무릎 / focus:'upper' = 가슴등·어깨팔 다음(토) 허리·어깨
   { why:'준비 — 호흡: 배로 천천히', sets:1, reps:'3분', label:'3분',
     options:['악어호흡'] },
-  // ① 풀기
-  { focus:'knee', why:'① 풀기 — 발바닥 (공 굴리기 · 왼발 아치)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+  // ① 근육 풀기
+  { focus:'knee', why:'① 근육 풀기 — 발바닥 (공 굴리기 · 왼발 아치)', sets:1, reps:'좌우 1분', label:'좌우 1분',
     options:['발바닥 마사지'] },
-  { focus:'knee', why:'① 풀기 — 종아리·정강이 앞 (무릎은 발목이 굳으면 고생)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+  { focus:'knee', why:'① 근육 풀기 — 종아리·정강이 앞 (무릎은 발목이 굳으면 고생)', sets:1, reps:'좌우 1분', label:'좌우 1분',
     options:['마사지볼 풀기 — 종아리·정강이 앞'] },
-  { focus:'knee', why:'① 풀기 — 골반 옆·허벅지 앞 (무릎 바깥으로 당기는 곳)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+  { focus:'knee', why:'① 근육 풀기 — 골반 옆·허벅지 앞 (무릎 바깥으로 당기는 곳)', sets:1, reps:'좌우 2분', label:'좌우 2분',
     options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','고관절 운동(폼롤러)'] },
-  { focus:'upper', why:'① 풀기 — 쇄골 아래·겨드랑이·어깨 뒤 (둥근어깨)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+  { focus:'upper', why:'① 근육 풀기 — 쇄골 아래·겨드랑이·어깨 뒤 (둥근어깨)', sets:1, reps:'좌우 1분', label:'좌우 1분',
     options:['마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤'] },
-  { focus:'upper', why:'① 풀기 — 겨드랑이 옆 광배근 (팔 올리기 막는 곳)', sets:1, reps:'좌우 1분', label:'좌우 1분',
+  { focus:'upper', why:'① 근육 풀기 — 겨드랑이 옆 광배근 (팔 올리기 막는 곳)', sets:1, reps:'좌우 1분', label:'좌우 1분',
     options:['폼롤러 광배근 풀기'] },
-  { focus:'upper', why:'① 풀기 — 골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)', sets:1, reps:'좌우 2분', label:'좌우 2분',
+  { focus:'upper', why:'① 근육 풀기 — 골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)', sets:1, reps:'좌우 2분', label:'좌우 2분',
     options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','고관절 운동(폼롤러)'] },
-  // ② 늘리기
-  { focus:'knee', why:'② 늘리기 — 고관절 앞 (골반 말고 엉덩이 조이기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  // ② 스트레칭
+  { focus:'knee', why:'② 스트레칭 — 고관절 앞 (골반 말고 엉덩이 조이기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['반무릎 장요근 스트레칭'] },
-  { focus:'knee', why:'② 늘리기 — 허벅지 안쪽·뒤', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  { focus:'knee', why:'② 스트레칭 — 허벅지 안쪽·뒤', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['내전근 스트레칭','의자 햄스트링 스트레칭'] },
-  { focus:'knee', why:'② 늘리기 — 종아리 (발목 끝범위)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  { focus:'knee', why:'② 스트레칭 — 종아리 (발목 끝범위)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['벽 종아리 스트레칭'] },
-  { focus:'upper', why:'② 늘리기 — 가슴 앞 (둥근어깨 펴기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  { focus:'upper', why:'② 스트레칭 — 가슴 앞 (둥근어깨 펴기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['문틀 가슴 스트레칭'] },
-  { focus:'upper', why:'② 늘리기 — 광배근 · 목 옆', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  { focus:'upper', why:'② 스트레칭 — 광배근 · 목 옆', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['광배근 스트레칭 (짐볼·벤치)','위 승모근 스트레칭 (목 옆 늘리기)'] },
-  { focus:'upper', why:'② 늘리기 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
+  { focus:'upper', why:'② 스트레칭 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
     options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
-  // ③ 깨우기
-  { focus:'knee', why:'③ 깨우기 — 엉덩이 옆 (무릎 안쪽 쏠림 잡기)', sets:2, reps:'좌우 12회', label:'좌우 12회 × 2세트',
-    options:['클램쉘','토터치','크랩워킹'] },
-  { focus:'knee', why:'③ 깨우기 — 왼발 아치 (발가락으로 수건 끌어오기)', sets:2, reps:'15회', label:'15회 × 2세트',
-    options:['발가락 수건 잡기'] },
-  { focus:'upper', why:'③ 깨우기 — 어깨 뒤·등 (Y·T·W 돌아가며 · 끝에서 2초)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['Y 레이즈','T 레이즈','W 레이즈'] },
-  { focus:'upper', why:'③ 깨우기 — 날개뼈 아래로 · 깊은 목 (거북목)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['승모근 아래 깨우기 (손바닥 뒤로 내리기)','엎드려 코브라','턱 당기기 (깊은 목 근육)'],
-    labels:{ '엎드려 코브라':'10초 × 5' } },
-  { focus:'upper', why:'③ 깨우기 — 깊은 코어·엉덩이 (허리 대신 일할 근육)', sets:2, reps:'10회', label:'10회 × 2세트',
-    options:['데드버그','글루트 브릿지'] },
-  // ④ 통합
-  { focus:'knee', why:'④ 통합 — 한 발 균형 (좌우 차이 느끼기, 흔들릴 때 잡기)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
-    options:['밸런스 리치 (한 발 서서 앞·뒤 터치)'] },
-  { focus:'knee', why:'④ 통합 — 선생님 동작 (고관절·무릎·발목을 한 줄로)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
-    options:['고관절 힌지 보조운동','리버스 노드릭컬','크랩워킹'] },
-  { focus:'upper', why:'④ 통합 — 선생님 동작 (어깨·몸통·골반을 한 몸으로)', sets:2, reps:'좌우 5회', label:'좌우 5회 × 2세트',
-    options:['겟업동작','그라운드 소통','케틀벨 암바'] },
-  { why:'④ 통합 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
-    options:['플랭크','바디컨트롤 전면 코어','레그 레이즈','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
-    labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '레그 레이즈':'15회 × 3세트' } },
-  // 2026-10-18 상필님: 하루 5분 채널 가동성 영상들을 회복날에 랜덤으로 — 그날 재활 부위에 맞는 묶음에서
-  { why:'가동성 — 영상 보며 따라하기 (맨몸 · 그날 재활 부위)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
-    options:['가동성 영상 따라하기'] },
+  // ③ 근육 키우기 — 영상 따라하기 (휴먼밸런스·하루 5분·뻔더, 맨몸으로 되는 것만 · 날마다 다른 영상)
+  { focus:'knee', why:'③ 근육 키우기 — 무릎 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
+    options:['무릎 키우기 영상'] },
+  { focus:'knee', why:'③ 근육 키우기 — 발·발목·엉덩이 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
+    options:['발·엉덩이 키우기 영상'] },
+  { focus:'upper', why:'③ 근육 키우기 — 어깨·등 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
+    options:['어깨·등 키우기 영상'] },
+  { focus:'upper', why:'③ 근육 키우기 — 허리·코어 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
+    options:['허리·코어 키우기 영상'] },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
     // 슬로우 조깅 ↔ 수영을 번갈아 (2026-10-17 상필님: 수영·슬로우 조깅 같은 유산소를 주 1~2번).
     // 회복날이 주 2번(월·토)이라 한 주에 하나씩 나온다. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
@@ -2348,13 +2334,13 @@ const WARMUP = { kind:'free', routine:[
 const PLAN = {
   // 회복날은 "아무것도 안 하는 날"이 아니라 기능성 동작으로 몸을 되돌리는 날.
   // 선생님이 알려주신 움직임·교정·호흡 동작으로 채운다. 무거운 것은 하나도 없다.
-  rest:    { tag:'회복', kind:'free', title:'회복 — 재활 4단계 (풀기→늘리기→깨우기→통합)',
+  rest:    { tag:'회복', kind:'free', title:'회복 — 재활 (근육 풀기 → 스트레칭 → 근육 키우기)',
              tip:'무게는 전혀 쓰지 않아요 · 숨이 안 찰 만큼 · 잠을 충분히 (7시간 이상)',
              routine: RECOVERY_ROUTINE },
-  walk:    { tag:'회복', kind:'free', title:'회복 — 재활 4단계 (풀기→늘리기→깨우기→통합) + 걷기',
+  walk:    { tag:'회복', kind:'free', title:'회복 — 재활 (근육 풀기 → 스트레칭 → 근육 키우기) + 걷기',
              tip:'헬스장이 쉬는 날 · 집에서 매트 하나로 · 걷기는 코로 숨 쉬며 대화할 수 있는 속도로',
              routine: RECOVERY_ROUTINE },
-  recover: { tag:'회복', kind:'free', title:'회복 — 재활 4단계 (풀기→늘리기→깨우기→통합)',
+  recover: { tag:'회복', kind:'free', title:'회복 — 재활 (근육 풀기 → 스트레칭 → 근육 키우기)',
              tip:'이틀 연속 근력을 했어요 · 오늘은 무게 대신 움직임으로',
              routine: RECOVERY_ROUTINE },
   pt:      { tag:'PT', kind:'pt', title:'PT 수업', routine:[],
@@ -2548,9 +2534,9 @@ function stageOf(why){
   if(/^🏋️/.test(w)) return '🏋️ 중량';
   if(/^🧩 마무리/.test(w)) return '🧩 마무리';
   if(/^준비/.test(w)) return '🫁 준비';
-  if(/^①/.test(w)) return '① 풀기';
-  if(/^②/.test(w)) return '② 늘리기';
-  if(/^③/.test(w)) return '③ 깨우기';
+  if(/^①/.test(w)) return '① 근육 풀기';
+  if(/^②/.test(w)) return '② 스트레칭';
+  if(/^③/.test(w)) return '③ 근육 키우기';
   if(/^④/.test(w)) return '④ 통합';
   if(/^가동성/.test(w)) return '🎬 가동성 영상';
   if(/^심폐/.test(w)) return '🫀 심폐';
@@ -2690,6 +2676,10 @@ function candOrder(theme, last){
 }
 // 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
 function mobLink(ex, ds, dayKey){
+  if(ex && /^rv-/.test(ex.id) && window.EXINFO && EXINFO.rehabVideo){
+    const v = EXINFO.rehabVideo(ds, ex.id.slice(3));
+    return v ? ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.chName} · ${v.n}</a>` : ' · (영상 확인 중)';
+  }
   if(ex && ex.id === 'jointvid' && window.EXINFO && EXINFO.jointVideo){
     const j = EXINFO.jointVideo(ds, dayKey);
     return j ? ` · <a class="pe-vid" href="${j.url}" target="_blank" rel="noopener">▶ ${j.n}</a>` : '';
@@ -3819,7 +3809,7 @@ document.getElementById('manageModal').addEventListener('click', (e)=>{
 const BIG_GROUPS = [
   { key:'기능성', name:'기능성', btn:'기능성', sub:'여러 몸 부위를 같이 쓰는 운동 (고립 운동 아님)' },
   { key:'중량', name:'중량 (근비대)', btn:'중량', sub:'무게를 들어 근육 키우기 — 근테크' },
-  { key:'재활', name:'재활', btn:'재활', sub:'풀고 늘리고 깨우기 — 회복날 4단계' },
+  { key:'재활', name:'재활', btn:'재활', sub:'근육 풀기 · 스트레칭 · 영상으로 근육 키우기 — 회복날' },
   { key:'유산소', name:'유산소', btn:'유산소', sub:'심폐 · 순환 — 1순위' },
 ];
 function exInfo(ex){

@@ -31,7 +31,7 @@
     '기능성': { key:'기능성', kr:'기능성', color:'#4FA8C9',
            kid:'한 관절만 쓰는 <b>고립 운동이 아니라</b>, 여러 몸 부위를 <b>같이 쓰는</b> 운동. 맨몸·케틀벨·선생님 동작처럼 몸을 한 덩어리로 움직여요.' },
     '재활':   { key:'재활', kr:'재활', color:'#C1666B',
-           kid:'굳은 곳을 <b>풀고 늘리고</b>, 잠든 근육을 <b>깨우는</b> 운동. 마사지볼·스트레칭·교정 동작. 회복날에 4단계로 해요.' },
+           kid:'굳은 곳을 <b>풀고</b>(마사지볼) <b>늘리고</b>(스트레칭), 영상을 보며 약한 근육을 <b>키우는</b> 운동. 회복날(월·토)에 해요.' },
     '중량':   { key:'중량', kr:'중량 (근비대)', color:'#E8A33D',
            kid:'바벨·덤벨·머신·케이블로 <b>무게를 들어 근육을 키우는</b> 운동. 근테크의 중심이에요.' },
     '유산소': { key:'유산소', kr:'유산소', color:'#E36F8E',
@@ -251,7 +251,7 @@
     goal: '내 몸을 자유롭게 쓰고, 아프지 않게',
     sub: '나머지는 근테크 — 다치지 않게 근육을 꾸준히 쌓아 가기',   // 2026-10-18 상필님: 자유롭게 · 아프지 않게 · 나머지는 근테크
     ladder: [ ['🍚', '바닥', '먹고·자고·마음'], ['🫀', '순환', '1순위'], ['🧱', '코어', '막는 힘'],
-              ['⚖️', '밸런스', '흔들릴 때 잡기'], ['🩹', '재활', '풀→늘→깨→통합'], ['🚀', '파워', '지구력→근육→힘'] ],
+              ['⚖️', '밸런스', '흔들릴 때 잡기'], ['🩹', '재활', '풀기→스트레칭→키우기'], ['🚀', '파워', '지구력→근육→힘'] ],
     promises: ['연결된 근육까지', '알고 하기', '목적 정하고 즐겁게', '편식 금지', '한 시간 안', '끝범위 · 통제되는 만큼', '앞은 풀고 뒤는 깨우기', '아프면 멈춤', '선생님 먼저'],
   };
   function philoGraphic(){
@@ -283,7 +283,7 @@
     house: [ // 위(지붕)에서 아래(바닥)로 그린다
       { ic:'🚀', n:'파워', d:'안정화 → 근지구력 → (근육) → (힘) → 파워 · 근육·최대근력은 옵션, 꼭 필요한 건 근지구력', app:'선생님 근력 운동',
         say:'할부로 사면 파워가 없고, 일시불로 사면 파워가 있다 — 가장 짧은 시간에 가장 큰 힘. 강사님도 "왜 기록이 안 늘지?" 했는데 옵션(근육·최대근력)만 하고 있었대요' },
-      { ic:'🩹', n:'재활', d:'풀기 → 늘리기 → 깨우기 → 통합 · 마사지에서 멈추지 않기, 근력(통합)까지', app:'운동날 그 부위 재활 · 회복날 4단계',
+      { ic:'🩹', n:'재활', d:'풀기 → 늘리기 → 깨우기 → 통합 · 마사지에서 멈추지 않기, 근력(통합)까지', app:'회복날에만 · 근육 풀기 → 스트레칭 → 영상으로 근육 키우기',
         say:'컴퓨터 고치기 — 백업(풀기) → 자리 비우기(늘리기) → 프로그램 깔기(깨우기) → 여러 개를 한꺼번에 켜도 잘 돌아가게(통합). "마사지 받고 나았다"는 첫 단계만 한 것' },
       { ic:'⚖️', n:'밸런스', d:'흔들리지 않는 게 아니라 흔들릴 때 잡는 것 · 좌우 차이 느끼기', app:'책 위 밸런스 · 밸런스 리치',
         say:'책 위에 일자로 서서 눈 감고 20초를 못 버티면 50대 몸. 독일은 음주 측정을 똑바로 걷기로 해요. 50대부터 좌우 차이가 생겨요' },
@@ -661,6 +661,22 @@
     const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
     const it = all[((d * 3) % all.length + all.length) % all.length];
     return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
+  }
+  // ----- 회복날 ③ 근육 키우기 영상 — 부위별 묶음 (휴먼밸런스·하루 5분·뻔더, 맨몸으로 되는 것만) -----
+  // id 만 적고 이름·채널은 vidLookup 에서 찾는다. 확인 전(wait) 영상은 자동으로 빠지고, 확인되면 저절로 들어온다
+  const REHAB_VID = {
+    knee:     ['R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM','-v-ZDIrVg0E'],
+    foot:     ['9Olfw9_EATU','5UGwiN_yabI','BS0Zxr6C0xk','m91Pdesc0W8','avOcecxNWTg','f8kekYD0M2I','xLd9UK2J3b8','cPQXOtISCJk','rC_TK21aFdw','10ZNiEjRee8','fBByTVXCONA','8rGQzOeemRI','hrZQxlNijRU','w4pr9HllpNg'],
+    shoulder: ['Qz0U8GHs9_Q','wWUC_a8QnUk','nYhI5J3khuc','Mey2Myd1BPw','7-boBAcgoC4','QjtX9qWHNjA','k0JNOQrsE0c','JsF8lersqxk','EqCgw8BPbTM','qQwUoq8ya3M','48gD-RW-jjg','lCSf9FuBm20','DU3pVnoEcd8','8cN6ln6VxZ0'],
+    back:     ['LSJuhzT-00Y','MqtsvXYEZ_w','yx0o3fzVFvU','U3Uo3G6IApw','dJaBp1AxCs8','4ctg0QU4XaY','XcIFjvUIVxo','HbMsD1deA6k','dPrXUac3Njc','Z1O7kwObK8s','NVQwOXqupi8','Zxz_wTYJbyk','ypmLu6CrgyI'],
+  };
+  function rehabVideo(ds, key){
+    const m = vidLookup();
+    const pool = (REHAB_VID[key] || []).map(id => m.get(id)).filter(v => v && (!v.gear || v.gear === 'bw'));
+    if(!pool.length) return null;
+    const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
+    const it = pool[((d * 5) % pool.length + pool.length) % pool.length];
+    return { ...it, chName: CH_TAG[it.ch] || '', url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
   }
   function mobVideo(ds, key){
     const gi = MOB_PICK[key];
@@ -1121,8 +1137,8 @@
       return W('기능성', '정의', '여러 몸 부위를 한 번에 쓰는 움직임 — 고립 운동이 아니에요');
     // 재활 — 풀기·늘리기·깨우기·교정
     if(FIX[n]) return W('재활', '정의', '교정·재활 동작 — 굳은 곳을 풀고 늘리고, 잠든 근육을 깨워요');
-    if(tool === '회복' || /마사지|수건잡기|턱당기기|월슬라이드|코브라|클램쉘|데드버그|글루트브릿지|백년척추|아기자세|가동성영상|관절챙기기/.test(n))
-      return W('재활', '정의', '풀기·늘리기·깨우기 — 회복날 재활 4단계에 쓰는 운동');
+    if(tool === '회복' || /마사지|수건잡기|턱당기기|월슬라이드|코브라|클램쉘|데드버그|글루트브릿지|백년척추|아기자세|가동성영상|관절챙기기|키우기영상/.test(n))
+      return W('재활', '정의', '근육 풀기·스트레칭·근육 키우기 — 회복날 재활에 쓰는 운동');
     if(tool === '케틀벨' || tool === '맨몸' || type === 'bodyweight')
       return W('기능성', '정의', '맨몸·케틀벨로 몸을 한 덩어리로 쓰는 운동');
     // 나머지 — 바벨·덤벨·머신·케이블
@@ -1192,7 +1208,7 @@
     const cards = ['기능성','재활','중량','유산소'].map(k => { const w = WECK[k];
       return `<div class="xi-wcard plain" style="--wk:${w.color}"><div class="xi-wbody"><div class="xi-wname"><b>${esc(w.kr)}</b></div><div class="xi-wkid">${w.kid}</div></div></div>`; }).join('');
     return `<div class="xi-weck">${cards}
-      <div class="xi-wkid">운동날 순서: 🔥 열 내기 → 🧩 <b>기능성</b> → 🏋️ <b>중량</b>. <b>재활</b>은 회복날(월·토)에 4단계로.</div></div>`;
+      <div class="xi-wkid">운동날 순서: 🔥 열 내기 → 🧩 <b>기능성</b> → 🏋️ <b>중량</b>. <b>재활</b>은 회복날(월·토)에: 근육 풀기 → 스트레칭 → 근육 키우기(영상).</div></div>`;
   }
 
   // "바벨·덤벨·머신은 뭐가 달라요?"
@@ -1235,7 +1251,7 @@
     const bar = `<div class="xh-bar"><span class="s1" style="flex:6">준비</span><span class="s2" style="flex:12">워밍업</span><span class="s3" style="flex:42">본 운동</span><span class="s4" style="flex:10">⏱</span></div>
       <div class="xh-bar-key"><span>0분</span><span>60분</span></div>`;
     return `<div class="xh">
-      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 운동날은 <b>🔥 열 내기(가동성·관절 영상) → 🧩 기능성 → 🏋️ 중량 → 마무리</b> · 코어는 <b>8초 버티고 2초 쉬기</b> · 회복날(월·토)은 <b>전날 부위로 재활 4단계 한 바퀴</b> — 월 = 무릎, 토 = 허리·어깨: ① 풀기 → ② 늘리기 → ③ 깨우기 → ④ 통합 → 가동성 영상 → 심폐 20분. 모두 한 시간 안')}
+      ${step(1, '📅', '요일은 선생님 표대로', week, '바뀌지 않아요 · 운동날은 <b>🔥 열 내기(가동성·관절 영상) → 🧩 기능성 → 🏋️ 중량 → 마무리</b> · 코어는 <b>8초 버티고 2초 쉬기</b> · 회복날(월·토)은 <b>전날 부위로 재활 한 바퀴</b> — 월 = 무릎, 토 = 허리·어깨: ① 근육 풀기 → ② 스트레칭 → ③ 근육 키우기(휴먼밸런스·하루 5분·뻔더 영상) → 심폐 20분. 모두 한 시간 안')}
       ${step(2, '🔥', '운동하는 날 맨 앞엔 워밍업', warm, 'PT 날에도 붙여요')}
       ${step(3, '🎯', '자리는 그대로, 종목만 바꿔 넣기', funnel, '"가슴 주운동" 같은 자리는 고정 → 종목만 돌아가서 운동 편식이 없어요')}
       ${step(4, '🦵', '무릎은 내가 판단', `<div class="xh-chain"><span>스쿼트 · 런지 · 레그프레스도 제자리에</span><i>→</i><span>붓는 날은 직접 빼기</span></div>`, '무릎 자동 규칙은 꺼 두었어요 — 선생님이 중요하다고 한 런지·레그프레스를 정상으로 하기 위해')}
@@ -1524,5 +1540,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
