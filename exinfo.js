@@ -196,6 +196,7 @@
     '내전근 스트레칭':['IzHUoWs0maQ','NASM · 서서 내전근 스트레칭'],
     '클램쉘':['V_AnVxKPFlY','NASM · 클램쉘'],
     '밸런스 리치 (한 발 서서 앞·뒤 터치)':['1sbENKqlslg','NASM · 한 발 앞뒤 리치'],
+    '라쿠다 밴드 30분 루틴':['PV08L0Dqq9k','레드밸런스 · 30분 체형교정 전신 루틴'],
   };
   const ytWatch = id => 'https://www.youtube.com/watch?v=' + id;
   function vidHTML(name){
@@ -890,7 +891,7 @@
     const m = e && e.morning; if(!m || !m.steps) return '';
     const done = MORNING.steps.filter(s => m.steps[s.k]).length;
     if(!done) return '';
-    return `<b>🌅 뉴로 웜업</b> ${done === MORNING.steps.length ? '✓' : done + '/' + MORNING.steps.length}${m.t ? ` <span class="mslot-time">${esc(m.t)}</span>` : ''}`;
+    return `<b>🌅 뉴로빅</b> ${done === MORNING.steps.length ? '✓' : done + '/' + MORNING.steps.length}${m.t ? ` <span class="mslot-time">${esc(m.t)}</span>` : ''}`;
   }
 
   // ----- 종목 그림: free-exercise-db (퍼블릭 도메인, https://github.com/yuhonas/free-exercise-db) -----
@@ -1092,6 +1093,7 @@
     // --- 2026-10-17 상필님 확인 ---
     '내몸풀기(하체부터·WGS·점프)': { muscles:'전신 (고관절 먼저)', role:'가동성', joint:'고관절 → 등 → 어깨·목', ok:'확인됨', note:'무릎 올리기 → 스쿼트 → WGS → 힙힌지 → 거북목 → 손 털기 → 점프 10번 (강의 틀 + 내 WGS)', video:'월드 그레이티스트 스트레칭' },
     '가동성영상따라하기': { muscles:'전신 가동성', role:'가동성', joint:'그날 영상의 관절', ok:'일반', note:'회복날마다 다른 영상 하나 (하루 5분 채널 · 맨몸). 프로그램 탭에서 ▶ 링크로 열기. 근거는 일반 — 아프면 그 동작은 건너뛰기', video:'하루 5분 가동성' },
+    '라쿠다밴드30분루틴': { muscles:'목 · 어깨 · 견갑 · 골반 · 몸통', role:'가동성', joint:'전신', ok:'일반', note:'바쁜 날 집에서 — 레드밸런스 라쿠다 밴드 30분 체형교정 전신 루틴 영상 따라하기 (목 → 어깨 → 견갑 → 골반 → 몸통 회전 → 호흡)', video:'라쿠다 30분 체형교정 전신 루틴' },
     '수영':             { muscles:'전신 · 심폐', role:'회복', joint:'—', ok:'확인됨', note:'유산소 — 무릎 충격이 적음. 회복날에 슬로우 조깅과 번갈아 (강사도 시간이 없어 수영으로 유산소를 해결한다고 함)', video:'자유형 천천히 오래 수영' },
     '카프레이즈':        { muscles:'종아리', role:'근력', joint:'발목', ok:'확인됨', note:'뒤꿈치를 들었다 내렸다 — 선생님 종아리 운동' },
     '케틀벨암바':        { muscles:'어깨 · 등(흉추)', role:'가동성', joint:'어깨·등', ok:'확인됨', note:'누워서 케틀벨 들고 몸을 굴리며 어깨·등을 열기 — 매 운동 워밍업' },
@@ -1136,7 +1138,7 @@
     if(/고관절운동\(폼롤러\)/.test(n)) return W('기능성', '정의', '한 다리씩 숙이며 고관절·몸통을 같이 쓰는 선생님 동작');
     // 기능성 이름이 먼저 — 교정 목록(FIX)에 있어도 여러 부위를 쓰는 동작은 기능성 (플랭크·캐리·한 발 균형·몸풀기)
     if(/딥스/.test(n)) return W('중량', '정의', '몸무게를 무게로 쓰는 가슴·삼두 근력 운동 (상필님: 중량)');
-    if(/내몸풀기|WGS|겟업|그라운드소통|스핀롤|바디컨트롤|크랩워킹|토터치|힌지보조|노드릭|밸런스|캐리|암바|회전로우|불균형교정|플랭크|카프레이즈/.test(n))
+    if(/내몸풀기|WGS|겟업|그라운드소통|스핀롤|바디컨트롤|크랩워킹|토터치|힌지보조|노드릭|밸런스|캐리|암바|회전로우|불균형교정|플랭크|카프레이즈|라쿠다/.test(n))
       return W('기능성', '정의', '여러 몸 부위를 한 번에 쓰는 움직임 — 고립 운동이 아니에요');
     // 재활 — 풀기·늘리기·깨우기·교정
     if(FIX[n]) return W('재활', '정의', '교정·재활 동작 — 굳은 곳을 풀고 늘리고, 잠든 근육을 깨워요');
