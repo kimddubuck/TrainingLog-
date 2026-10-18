@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=149"></script>
+<script src="exinfo.js?v=150"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1031,7 +1031,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v149</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v150</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1499,6 +1499,7 @@ const DEFAULT_MASTER = [
   {id:'fx-calf',     name:'벽 종아리 스트레칭',         part:'종아리',   type:'bodyweight'},
   {id:'fx-ballcalf', name:'마사지볼 풀기 — 종아리·정강이 앞', part:'종아리', type:'bodyweight'},
   {id:'fx-reach',    name:'밸런스 리치 (한 발 서서 앞·뒤 터치)', part:'균형', type:'bodyweight'},
+  {id:'seesawpress', name:'시소프레스',      part:'어깨', type:'strength'},   // 선생님 2026-10-18 · 케틀벨 두 개 번갈아 프레스
   {id:'getup',       name:'겟업동작',        part:'전신', type:'bodyweight'},
   {id:'crabwalk',    name:'크랩워킹',        part:'하체', type:'bodyweight'},
   {id:'hipmobility', name:'고관절 운동(폼롤러)', part:'하체', type:'bodyweight'},
@@ -2397,8 +2398,8 @@ const PLAN = {
                { why:'🧩 기능성 — 고관절 운동 (골반 세우기 · 허리 대신 엉덩이)', sets:2, reps:'15회', label:'15회 × 2세트',
                  options:['고관절 운동(폼롤러)','케틀벨 굿모닝','고관절 힌지 보조운동'] },
                { why:'🧩 기능성 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
-                 options:['플랭크','바디컨트롤 전면 코어','수트케이스 캐리 (한 손 케틀벨 들고 걷기)'],
-                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트' } },
+                 options:['플랭크','바디컨트롤 전면 코어','수트케이스 캐리 (한 손 케틀벨 들고 걷기)','시소프레스'],
+                 labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '시소프레스':'좌우 8회 × 2세트 (가볍게)' } },
                { why:'🏋️ 중량 — 하체 주운동 (통제되는 깊이까지 · 첫 세트는 가볍게)', sets:4, reps:'10~12회',
                  options:['스쿼트','가블릿 스쿼트','스티프 데드리프트','데드리프트'] },
                { why:'🏋️ 중량 — 한 다리: 덤벨 런지로 고관절 바르게 (중요)', sets:3, reps:'좌우 12회',
@@ -2415,6 +2416,9 @@ const PLAN = {
                  options:['어깨 가동성 영상'] },
                { why:'🧩 기능성 — 어깨 가동성 (어깨 안정화·흉추)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트',
                  options:['케틀벨 암바'] },
+               // 선생님 2026-10-18: 팔꿈치를 골반 쪽으로 찍어 누르며 반대쪽이 길어지게 프레스 — 옆 몸통으로 프레스를 잇는다
+               { why:'🧩 기능성 — 옆 몸통으로 프레스 잇기 (시소프레스 · 쌤 · 팔꿈치는 골반 쪽으로, 반대쪽은 길게)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트 (가볍게)',
+                 options:['시소프레스'] },
                { why:'🏋️ 중량 — 어깨 주운동 (첫 세트는 가볍게)', sets:4, reps:'12~15회',
                  options:['오버헤드프레스','밀리터리 프레스'] },
                { why:'🏋️ 중량 — 덤벨 숄더프레스 (좌우 높이 보기)', sets:3, reps:'15회',
