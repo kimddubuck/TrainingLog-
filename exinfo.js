@@ -259,10 +259,10 @@
   // 기본 글은 짧은 인포그래픽으로: 한 줄 목적 → 신체지도 사다리(가로) → 약속 딱지
   const PHILO = {
     goal: '내 몸을 자유롭게 쓰고, 아프지 않게',
-    sub: '근육은 그다음 · 무릎·허리 고치고 틀어진 몸 바로 세우기',
+    sub: '나머지는 근테크 — 다치지 않게 근육을 꾸준히 쌓아 가기',   // 2026-10-18 상필님: 자유롭게 · 아프지 않게 · 나머지는 근테크
     ladder: [ ['🍚', '바닥', '먹고·자고·마음'], ['🫀', '순환', '1순위'], ['🧱', '코어', '막는 힘'],
               ['⚖️', '밸런스', '흔들릴 때 잡기'], ['🩹', '재활', '풀→늘→깨→통합'], ['🚀', '파워', '지구력→근육→힘'] ],
-    promises: ['알고 하기', '목적 정하고 즐겁게', '편식 금지', '한 시간 안', '끝범위 · 통제되는 만큼', '앞은 풀고 뒤는 깨우기', '아프면 멈춤', '선생님 먼저'],
+    promises: ['연결된 근육까지', '알고 하기', '목적 정하고 즐겁게', '편식 금지', '한 시간 안', '끝범위 · 통제되는 만큼', '앞은 풀고 뒤는 깨우기', '아프면 멈춤', '선생님 먼저'],
   };
   function philoGraphic(){
     return `<div class="pg">
@@ -276,7 +276,7 @@
   function philoMiniHTML(text){
     const t = String(text || '').trim();
     const goal = (!t || t === PHILO_DEFAULT.trim()) ? PHILO.goal : t.split('\n')[0].replace(/^[^\w가-힣]+/, '').replace(/^목적\s*[—-]\s*/, '');
-    return `<div class="pm-goal">🎯 ${esc(goal)}</div>
+    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub"> · 나머지는 💰 근테크 · 🔗 연결된 근육까지</span></div>
       <div class="pm-ladder">${PHILO.ladder.map(s => `<span>${s[0]} ${esc(s[1])}</span>`).join('<i>→</i>')}</div>`;
   }
   // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
@@ -342,7 +342,8 @@
       <div class="pf-body">
         ${mine}
         <div class="pf-goal"><div class="pf-gt">🎯 ${esc(PHILO.goal)}</div>
-          <div class="pf-gs">근육을 키우는 건 그다음</div>
+          <div class="pf-gs">💰 나머지는 <b>근테크</b> — 다치지 않는 범위에서 근육을 꾸준히 쌓아 가기<br><small>근테크는 노후 준비예요 — 나이가 들면 근육이 저절로 줄어요(근감소). 지금 쌓아 둔 만큼 나중에 덜 잃어요</small></div>
+          <div class="pf-gs">🔗 근육은 다 <b>연결</b>돼 있어요 — 아픈 곳만 말고 이어진 근육까지 같이 운동해요<br><small>무릎이 아프면 위의 고관절·아래의 발목까지 · 어깨가 아프면 등·가슴까지</small></div>
           <div class="pf-tags"><span><em>고칠 곳</em>오른 무릎 · 허리 · 어깨</span><span><em>넓힐 곳</em>어깨 · 고관절 · 등</span><span><em>바로 세울 것</em>골반 앞기울기 · 둥근어깨</span></div></div>
         ${sec('🏠', '신체지도 — 집짓기처럼 바닥부터', house)}
         ${sec('🦴', '관절마다 맡은 일 — 내 몸에 대 보기', joints)}
@@ -1457,7 +1458,8 @@
     .pf-body{margin-top:10px;display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;}
     .pf-goal{text-align:center;padding:4px 0 2px;}
     .pf-gt{font-size:16px;font-weight:800;color:var(--accent-a);word-break:keep-all;}
-    .pf-gs{font-size:11.5px;color:var(--ink-faint);margin:2px 0 8px;}
+    .pf-gs{font-size:12px;color:var(--ink-dim);margin:2px 0 8px;word-break:keep-all;} .pf-gs b{color:var(--accent-a);} .pf-gs small{color:var(--ink-faint);font-size:10.5px;}
+    .pm-sub{font-size:.82em;font-weight:600;color:var(--ink-dim);}
     .pf-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;}
     .pf-tags span{font-size:11px;color:var(--ink);background:rgba(242,240,234,0.05);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
     .pf-tags em{font-style:normal;color:var(--ink-faint);margin-right:5px;font-size:10px;}
