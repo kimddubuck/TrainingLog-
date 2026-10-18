@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=151"></script>
+<script src="exinfo.js?v=152"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -401,6 +401,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 
   /* 날짜 칸 = 한 줄로 낮게 (2026-10-18) */
+  .vid-today{align-self:center;font-size:13.5px;min-width:0;word-break:keep-all;} .vid-today .pe-vid{color:var(--accent-b);font-weight:700;text-decoration:none;}
   .card.date-card{display:flex;align-items:center;gap:10px;padding:6px 10px;margin-bottom:8px;}
   /* 오늘 기록 = 한 화면에 (2026-10-18) — 칸 사이·안쪽 여백을 줄인다 */
   #panel-log .card{padding:10px 12px;margin-bottom:8px;}
@@ -1031,7 +1032,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v151</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v152</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -3613,7 +3614,15 @@ function renderTodayExercises(existing){
       return `<button class="setdone${tt?' done':''}" data-done="${ex.id}" data-set="${i}">${tt || '완료'}</button>`;
     };
     let setsHtml, cols;
-    if(bodyweight){
+    // 영상 종목: 그날 정해진 영상 링크 + "했어요" 하나. 기록은 1회로 남겨서 "가장 오래 안 한 것" 돌리기에도 잡힌다 (2026-10-18)
+    const isVid = /^(jointvid|mobvid|lacuda30|rv-)/.test(ex.id);
+    if(isVid){
+      const ds0 = currentEntryDate();
+      const link = mobLink(ex, ds0, WEEK_PLAN[dayOfWeek(ds0)]).replace(/^ · /, '');
+      cols = 'grid-template-columns:1fr auto;';
+      setsHtml = `<div class="vid-today">${link || '<span style="color:var(--ink-faint)">오늘 영상 확인 중</span>'}</div>`
+        + `<input type="hidden" data-ex="${ex.id}" data-field="reps" data-set="1">` + doneBtn(1).replace('>완료<', '>했어요<');
+    }else if(bodyweight){
       cols = 'grid-template-columns:auto 1fr auto;';
       setsHtml = `<div class="setno"></div><div class="colhead">횟수 (회)</div><div class="colhead">끝난 시각</div>`;
       for(let i=1;i<=n;i++) setsHtml += `<div class="setno">${i}세트</div><input type="number" inputmode="numeric" placeholder="0" min="0" data-ex="${ex.id}" data-field="reps" data-set="${i}">` + doneBtn(i);
@@ -3630,17 +3639,17 @@ function renderTodayExercises(existing){
     div.className = 'today-ex';
     div.innerHTML = `
       <div class="today-ex-head">
-        <span class="tex-name">${ex.name}<span class="tex-type ${t}">${tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
+        <span class="tex-name">${ex.name}<span class="tex-type ${isVid ? 'cardio' : t}">${isVid ? '영상' : tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
         <span class="tex-btns">${swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : ''}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
-      <div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}</div>
+      ${isVid ? '' : `<div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}</div>`}
       ${ptTipHtml(ex)}
-      ${pastPanelHtml(ex.id)}
+      ${isVid ? '' : pastPanelHtml(ex.id)}
       <div class="sets" style="${cols}">${setsHtml}</div>
-      <div class="set-ctrl">
+      ${isVid ? '' : `<div class="set-ctrl">
         <button class="set-btn" data-act="remove" data-ex="${ex.id}" ${n<=1?'disabled':''}>➖ 세트</button>
         <button class="set-btn" data-act="add" data-ex="${ex.id}">➕ 세트</button>
-      </div>`;
+      </div>`}`;
     list.appendChild(div);
   });
   // 값 복원
@@ -3657,6 +3666,9 @@ function renderTodayExercises(existing){
       setTimes[key] = nowHHMM();
       btn.textContent = setTimes[key];
       btn.classList.add('done');
+      // 영상 종목은 숨은 칸에 1회를 남긴다 (기록으로 잡히게)
+      const hid = list.querySelector(`input[type=hidden][data-ex="${btn.dataset.done}"][data-set="${btn.dataset.set}"]`);
+      if(hid && !hid.value) hid.value = '1';
       autoSave();
       showToast(btn.dataset.set + '세트 완료 · ' + setTimes[key]);
     };
