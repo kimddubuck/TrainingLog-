@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=145"></script>
+<script src="exinfo.js?v=146"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -131,7 +131,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
     display:grid;
     grid-template-columns:repeat(7,1fr);
     gap:6px;
-    margin:10px 0 18px;
+    margin:8px 0 10px;
   }
   .day-chip{
     background:var(--surface);
@@ -328,7 +328,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .plan-card .pc-ex.warm .pe-why{color:var(--accent-a);}
 
   /* Tabs */
-  .tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+  .tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
   /* 선생님 보기 전용 — 바꾸는 단추는 숨기고 입력칸은 못 누르게 */
   .vo-bar{display:none;}
   body.view-only .vo-bar{display:block;position:sticky;top:0;z-index:50;margin:-4px 0 10px;padding:7px 12px;border-radius:10px;background:var(--accent-b-dim);color:var(--accent-b);font-size:12.5px;font-weight:700;text-align:center;}
@@ -401,7 +401,17 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 
   /* 날짜 칸 = 한 줄로 낮게 (2026-10-18) */
-  .card.date-card{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:10px;}
+  .card.date-card{display:flex;align-items:center;gap:10px;padding:6px 10px;margin-bottom:8px;}
+  /* 오늘 기록 = 한 화면에 (2026-10-18) — 칸 사이·안쪽 여백을 줄인다 */
+  #panel-log .card{padding:10px 12px;margin-bottom:8px;}
+  #panel-log .card.date-card{padding:6px 10px;}
+  #panel-log .daily-head{margin-bottom:6px;}
+  #panel-log .mo-one{margin:0;padding:5px 10px;}
+  #panel-log .daily-card #dailyList:empty{display:none;}
+  #panel-log .ex-search-wrap input{padding-top:8px;padding-bottom:8px;}
+  #panel-log .pi-btn{padding:8px;}
+  #panel-log .pi-home{margin-top:6px;}
+  #panel-log .plan-inline{margin-top:6px;}
   .card.date-card label.field-label{margin:0;white-space:nowrap;}
   .card.date-card input[type=date]{flex:1;width:auto;padding:7px 10px;}
   /* 개인운동 날 · PT 받는 날 안내 상자는 숨긴다 — PT 는 이미 알고 있으니 (2026-10-18) */
@@ -1021,7 +1031,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v145</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v146</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1054,6 +1064,20 @@ if(!window.EXINFO) window.EXINFO = (function(){
     <div class="card date-card">
       <label class="field-label" for="dateInput">날짜</label>
       <input type="date" id="dateInput">
+    </div>
+
+    <!-- 매일 루틴: 오늘 기록 맨 위 (날짜 바로 아래 · 2026-10-18 상필님) -->
+    <div class="card daily-card">
+      <div class="daily-head">
+        <span class="field-label" style="margin:0;">📅 매일 루틴</span>
+        <button class="daily-manage-btn" id="dailyManageBtn">⚙︎ 편집</button>
+      </div>
+      <!-- 아침 뉴로빅: 세부 단계 없이 체크 하나 + 영상 (2026-10-18 상필님). 기록은 예전처럼 entry.morning 에 -->
+      <div class="mo-one" id="moOne">
+        <label class="mo-chk"><input type="checkbox" id="moCheck"><span class="mo-n">🌅 뉴로빅 · 기상 루틴</span><span class="mo-t" id="moTime"></span></label>
+        <a class="mo-link" href="https://youtu.be/CDY3DKA37cU" target="_blank" rel="noopener">▶ 영상</a>
+      </div>
+      <div id="dailyList"></div>
     </div>
 
     <!-- 스트레칭 미션: 1시간마다 하나. 알림은 앱이 열려 있을 때만 온다 (서버가 없어서) -->
@@ -1097,18 +1121,6 @@ if(!window.EXINFO) window.EXINFO = (function(){
       </div>
     </div>
 
-    <div class="card">
-      <div class="daily-head">
-        <span class="field-label" style="margin:0;">📅 매일 루틴</span>
-        <button class="daily-manage-btn" id="dailyManageBtn">⚙︎ 편집</button>
-      </div>
-      <!-- 아침 뉴로 웜업: 세부 단계 없이 체크 하나 + 영상 (2026-10-18 상필님). 기록은 예전처럼 entry.morning 에 -->
-      <div class="mo-one" id="moOne">
-        <label class="mo-chk"><input type="checkbox" id="moCheck"><span class="mo-n">🌅 뉴로빅 · 기상 루틴</span><span class="mo-t" id="moTime"></span></label>
-        <a class="mo-link" href="https://youtu.be/CDY3DKA37cU" target="_blank" rel="noopener">▶ 영상</a>
-      </div>
-      <div id="dailyList"></div>
-    </div>
 
     <!-- 매일루틴 관리 모달 -->
     <div class="modal-backdrop" id="dailyModal" style="display:none;">
@@ -3048,7 +3060,7 @@ function renderTodayPlan(W){
       inline.innerHTML = '';
     }else if(routine.length){
       inline.innerHTML = `<button class="pi-btn" id="planAddBtn2">⬇ 오늘 할 운동 담기 · ${p.title.replace(/\s*\(.*\)\s*$/, '')} · ${routine.length}개</button>
-        <div class="pi-sub">${done || '자세한 목록·↻ 바꾸기는 <b>프로그램</b> 탭에서'}</div>`;
+        ${done ? `<div class="pi-sub">${done}</div>` : ''}`;
       document.getElementById('planAddBtn2').onclick = ()=> addRoutineToToday(routine);
     }else{
       inline.innerHTML = `<div class="pi-sub">오늘은 <b>${p.title}</b> — ${p.how || '선생님께 맡기기'}</div>`;
@@ -3056,7 +3068,7 @@ function renderTodayPlan(W){
     // 바쁘거나 어디 가기 애매한 날: 집에서 라쿠다 밴드 30분 (2026-10-18 상필님)
     if(isToday){
       inline.insertAdjacentHTML('beforeend', `<button class="pi-btn pi-home" id="homeBtn">🏠 바쁜 날 · 집에서 라쿠다 밴드 30분</button>
-        <div class="pi-sub">누르면 오늘 기록에 담고 영상이 열려요 · <a href="https://www.youtube.com/watch?v=PV08L0Dqq9k" target="_blank" rel="noopener">▶ 영상만 보기</a></div>`);
+`);
       document.getElementById('homeBtn').onclick = ()=>{
         window.open('https://www.youtube.com/watch?v=PV08L0Dqq9k', '_blank', 'noopener');
         addRoutineToToday([{ id:'lacuda30', name:'라쿠다 밴드 30분 루틴', sets:1 }]);
@@ -3574,7 +3586,7 @@ function renderTodayExercises(existing){
   const list = document.getElementById('todayExerciseList');
   list.innerHTML = '';
   if(!todayExerciseIds.length){
-    list.innerHTML = `<div class="empty" style="padding:18px 6px;">위 검색창에서 오늘 한 운동을 찾아 추가하세요.</div>`;
+    list.innerHTML = '';   // 빈 안내 문구는 지웠다 (2026-10-18 상필님)
     return;
   }
   todayExerciseIds.forEach(exId=>{
@@ -4020,7 +4032,7 @@ function renderDaily(existing){
   const wrap = document.getElementById('dailyList');
   const shown = dailyShown(existing);
   if(!shown.length){
-    wrap.innerHTML = '<p class="section-label daily-off-note">지금 쓰는 매일 루틴이 없어요. 워밍업·회복 동작은 <b>프로그램</b> 탭의 "담기"로 기록해요. 다시 쓰려면 오른쪽 위 "편집".</p>';
+    wrap.innerHTML = '';   // 안내 문구는 지웠다 (2026-10-18 상필님)
     return;
   }
   // 저장돼 있던 시각을 먼저 되살린다 (완료 버튼에 찍어서 그려야 하므로 HTML 만들기 전에)
