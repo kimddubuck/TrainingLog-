@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=157"></script>
+<script src="exinfo.js?v=158"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1034,7 +1034,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v157</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v158</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1527,6 +1527,7 @@ const DEFAULT_MASTER = [
   {id:'rv-shoulderMob', name:'어깨 가동성 영상', part:'어깨',    type:'bodyweight'},   // 어깨팔 날 (2026-10-18 설계도)
   {id:'rv-knee',     name:'무릎 키우기 영상',      part:'무릎',    type:'bodyweight'},
   {id:'rv-foot',     name:'발·엉덩이 키우기 영상',  part:'발·엉덩이', type:'bodyweight'},
+  {id:'rv-hip',      name:'골반 맞추기 영상',      part:'골반',    type:'bodyweight'},   // 메디쌤 · 고관절 비대칭 (2026-10-18)
   {id:'rv-shoulder', name:'어깨·등 키우기 영상',    part:'어깨·등',  type:'bodyweight'},
   {id:'rv-back',     name:'허리·코어 키우기 영상',  part:'허리·코어', type:'bodyweight'},   // 운동날 — 손목·팔꿈치 / 무릎·발목 (exinfo.js jointVideo)   // 회복날 — 날마다 다른 영상 (exinfo.js mobVideo)
   {id:'bcfrontcore', name:'바디컨트롤 전면 코어', part:'코어', type:'bodyweight'},
@@ -2342,6 +2343,9 @@ const RECOVERY_ROUTINE = [
     options:['무릎 키우기 영상'] },
   { focus:'knee', why:'③ 근육 키우기 — 발·발목·엉덩이 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
     options:['발·엉덩이 키우기 영상'] },
+  // 상필님 2026-10-18: 고관절 비대칭 — 다리 길이 맞추는 셀프 골반 교정 (메디쌤 쇼츠)
+  { focus:'knee', why:'③ 근육 키우기 — 골반 좌우 맞추기 (고관절 비대칭 · 영상 따라하기)', sets:1, reps:'1~3분', label:'1~3분 · 짧은 영상',
+    options:['골반 맞추기 영상'] },
   { focus:'upper', why:'③ 근육 키우기 — 어깨·등 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
     options:['어깨·등 키우기 영상'] },
   { focus:'upper', why:'③ 근육 키우기 — 허리·코어 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
@@ -3128,9 +3132,11 @@ function msRecent(){ try{ return JSON.parse(localStorage.getItem('missionRecent'
 function renderMission(m){
   curMission = m;
   const b = document.getElementById('msBody'); if(!b || !m) return;
-  b.innerHTML = `<div class="ms-pic">${EXINFO.imgHTML(m.n, 34)}</div>
+  // 영상이 정해진 미션(m.vid)은 그 영상 썸네일 + 링크
+  const vurl = m.vid ? 'https://www.youtube.com/shorts/' + m.vid.id : '';
+  b.innerHTML = `<div class="ms-pic">${m.vid ? `<a href="${vurl}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${m.vid.id}/mqdefault.jpg" alt="" style="width:64px;border-radius:6px;display:block;"></a>` : EXINFO.imgHTML(m.n, 34)}</div>
     <div class="ms-txt"><div class="ms-p">${m.p}</div><div class="ms-n">${m.label || m.n.replace(/\s*\(.*?\)\s*$/, '')}</div>
-      <div class="ms-set">${m.set}</div><div class="ms-why">${m.why}</div>${EXINFO.vidHTML ? EXINFO.vidHTML(m.n) : ''}</div>`;
+      <div class="ms-set">${m.set}</div><div class="ms-why">${m.why}</div>${m.vid ? `<a class="pe-vid" href="${vurl}" target="_blank" rel="noopener">▶ ${m.vid.t}</a>` : (EXINFO.vidHTML ? EXINFO.vidHTML(m.n) : '')}</div>`;
 }
 function newMission(){
   const recent = msRecent();

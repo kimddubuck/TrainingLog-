@@ -677,6 +677,7 @@
     // 어깨팔 날 🧩 어깨 가동성 영상 (하루 5분 · 뻔더 · 휴먼밸런스, 맨몸)
     shoulderMob: ['Qz0U8GHs9_Q','wWUC_a8QnUk','Mey2Myd1BPw','nYhI5J3khuc','ypmLu6CrgyI','7-boBAcgoC4','oQ9z0LXsFbI','8cN6ln6VxZ0','uYdWoooEqpc','48gD-RW-jjg','mGjTgOyZDh0','tpkXdXxSRC0','rKsSbDY6-Mc','QjtX9qWHNjA'],
     knee:     ['R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM','-v-ZDIrVg0E'],
+    hip:      ['jm5HhxdJXiA'],   // 골반 좌우 맞추기 — 고관절 비대칭 (상필님 2026-10-18)
     foot:     ['9Olfw9_EATU','5UGwiN_yabI','BS0Zxr6C0xk','m91Pdesc0W8','avOcecxNWTg','f8kekYD0M2I','xLd9UK2J3b8','cPQXOtISCJk','rC_TK21aFdw','10ZNiEjRee8','fBByTVXCONA','8rGQzOeemRI','hrZQxlNijRU','w4pr9HllpNg'],
     shoulder: ['Qz0U8GHs9_Q','wWUC_a8QnUk','nYhI5J3khuc','Mey2Myd1BPw','7-boBAcgoC4','QjtX9qWHNjA','k0JNOQrsE0c','JsF8lersqxk','EqCgw8BPbTM','qQwUoq8ya3M','48gD-RW-jjg','lCSf9FuBm20','DU3pVnoEcd8','8cN6ln6VxZ0'],
     back:     ['LSJuhzT-00Y','MqtsvXYEZ_w','yx0o3fzVFvU','U3Uo3G6IApw','dJaBp1AxCs8','4ctg0QU4XaY','XcIFjvUIVxo','HbMsD1deA6k','dPrXUac3Njc','Z1O7kwObK8s','NVQwOXqupi8','Zxz_wTYJbyk','ypmLu6CrgyI'],
@@ -808,12 +809,16 @@
           '#라쿠다 밴드','PV08L0Dqq9k','Fn98cfpmzuk','VAvBed5lB5A'],
     cardio:['9uRP2_KQR3M','kQGutIiivw0'],
   };
-  const CH_TAG = { HB:'휴먼밸런스', HB2:'하루 5분', HB3:'라쿠다', BD:'뻔더' };
+  // 메디쌤 — 상필님이 직접 고른 영상만 (2026-10-18 · 무료 쇼츠)
+  const MD = { channel:'https://www.youtube.com/@%EB%A9%94%EB%94%94%EC%8C%A4', name:'메디쌤', groups:[
+    { t:'🦵 골반 · 다리 길이', items:[ { id:'jm5HhxdJXiA', n:'다리길이 맞춰지는 셀프 골반 교정법', sh:true } ] },
+  ] };
+  const CH_TAG = { HB:'휴먼밸런스', HB2:'하루 5분', HB3:'라쿠다', BD:'뻔더', MD:'메디쌤' };
   let vidMap = null;
   function vidLookup(){
     if(vidMap) return vidMap;
     vidMap = new Map();
-    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!it.wait && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
+    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!it.wait && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
     return vidMap;
   }
   // 종목 묶음 하나의 영상 목록 (없으면 '')
@@ -852,10 +857,16 @@
     { p:'허벅지 안쪽', n:'내전근 스트레칭', label:'내전근 스트레칭', set:'좌우 30초', why:'앉으면 굳는 허벅지 안쪽' },
     { p:'뒷벅지', n:'의자 햄스트링 스트레칭', label:'의자 햄스트링 스트레칭', set:'좌우 30초 (허벅지와 배 붙이기)', why:'앉아서 당겨진 뒷벅지' },
     { p:'종아리', n:'벽 종아리 스트레칭', label:'벽 종아리 스트레칭', set:'좌우 30초', why:'앉아서 굳는 종아리 · 발목' },
+    // 상필님 2026-10-18 "미션에 자주 나오게" — often: 최근 3개 안에 없으면 30% 로 먼저 뽑힌다
+    { p:'허리 · 서 있을 때', n:'서 있을 때 허리 영상', label:'서 있을 때 허리 — 영상 따라하기', set:'영상 따라 1분', why:'오래 서 있으면 아픈 허리 (닥터 마디마디 쇼츠)',
+      vid:{ id:'ZlAOi6B5_wE', t:'닥터 마디마디 · 서 있을 때 허리가 아프세요?' }, often:true },
   ];
   // 최근 한 것(avoid: 이름 배열)은 피하고, 부위를 먼저 뽑아서 골고루
   function pickMission(avoid){
     const av = new Set(avoid || []);
+    const near = new Set((avoid || []).slice(0, 3));
+    const fav = MISSIONS.filter(m => m.often && !near.has(m.label || m.n));
+    if(fav.length && Math.random() < 0.3) return fav[Math.floor(Math.random() * fav.length)];
     const pool = MISSIONS.filter(m => !av.has(m.label || m.n));
     const list = pool.length ? pool : MISSIONS;
     const parts = [...new Set(list.map(m => m.p))];
