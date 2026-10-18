@@ -857,7 +857,7 @@
     const m = e && e.morning; if(!m || !m.steps) return '';
     const done = MORNING.steps.filter(s => m.steps[s.k]).length;
     if(!done) return '';
-    return `<b>🌅 기상 루틴</b> ${done}/${MORNING.steps.length}${done === MORNING.steps.length ? ' ✓' : ''}${m.t ? ` <span class="mslot-time">${esc(m.t)}</span>` : ''}`;
+    return `<b>🌅 뉴로 웜업</b> ${done === MORNING.steps.length ? '✓' : done + '/' + MORNING.steps.length}${m.t ? ` <span class="mslot-time">${esc(m.t)}</span>` : ''}`;
   }
 
   // ----- 종목 그림: free-exercise-db (퍼블릭 도메인, https://github.com/yuhonas/free-exercise-db) -----
