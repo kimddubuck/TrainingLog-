@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=141"></script>
+<script src="exinfo.js?v=142"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1010,7 +1010,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v141</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v142</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -2314,7 +2314,8 @@ const RECOVERY_ROUTINE = [
     options:['허리·코어 키우기 영상'] },
   // 2026-10-18 설계도(상필님): 회복날 ③ 끝에 전신 운동 — 월(무릎)·토(허리·어깨) 둘 다 · 가벼운 케틀벨까지
   { why:'③ 근육 키우기 — 전신 운동', sets:4, reps:'15회', label:'15회 × 4세트',
-    options:['겟업동작','바디컨트롤 전면 코어','케틀벨 스윙'] },
+    options:['겟업동작','바디컨트롤 전면 코어','케틀벨 스윙','라쿠다 밴드 30분 루틴'],   // 라쿠다: 2026-10-18 상필님
+    labels:{ '라쿠다 밴드 30분 루틴':'30분 · 영상 따라하기' } },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
     // 슬로우 조깅 ↔ 수영을 번갈아 (2026-10-17 상필님: 수영·슬로우 조깅 같은 유산소를 주 1~2번).
     // 회복날이 주 2번(월·토)이라 한 주에 하나씩 나온다. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
@@ -2665,6 +2666,7 @@ function candOrder(theme, last){
 }
 // 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
 function mobLink(ex, ds, dayKey){
+  if(ex && ex.id === 'lacuda30') return ' · <a class="pe-vid" href="https://www.youtube.com/watch?v=PV08L0Dqq9k" target="_blank" rel="noopener">▶ 레드밸런스 · 30분 체형교정 전신 루틴</a>';
   if(ex && /^rv-/.test(ex.id) && window.EXINFO && EXINFO.rehabVideo){
     const v = EXINFO.rehabVideo(ds, ex.id.slice(3));
     return v ? ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.chName} · ${v.n}</a>` : ' · (영상 확인 중)';
