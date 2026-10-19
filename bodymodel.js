@@ -326,13 +326,13 @@
       pts.forEach(p => { const x = p.x - c.x, y = p.y - c.y, z = p.z - c.z; xx += x * x; xy += x * y; xz += x * z; yy += y * y; yz += y * z; zz += z * z; });
       let a = new THREE.Vector3(0, 1, 0);
       for(let i = 0; i < 40; i++){ const n = new THREE.Vector3(xx * a.x + xy * a.y + xz * a.z, xy * a.x + yy * a.y + yz * a.z, xz * a.x + yz * a.y + zz * a.z); if(n.lengthSq() < 1e-14) break; a = n.normalize(); }
-      return { c, a };
+      return { c, a, pts };
     }
     function clearSel(){
       if(!sel) return;
       sel.items.forEach(it => { it.m.matrix.copy(it.M0); it.m.matrixAutoUpdate = true; });
       regionMeshes.forEach(m => { m.material.transparent = !!nerveOn; m.material.opacity = nerveOn ? 0.45 : 1; m.material.emissiveIntensity = 0.18; m.material.needsUpdate = true; });
-      labelSprites.forEach(sp => { sp.visible = true; if(sp.userData.s0){ sp.scale.copy(sp.userData.s0); sp.position.copy(sp.userData.c); } });
+      labelSprites.forEach(sp => { sp.visible = true; if(sp.userData.s0){ sp.scale.copy(sp.userData.s0); sp.position.copy(sp.userData.c); sp.center.set(0.5, 0.5); } });
       sel = null;
     }
     // 고른 근육 이름표는 근육 한가운데에 (위 끝에 두면 내전근처럼 골반에 붙은 근육은 이름이 골반 위에 떠서 헷갈림 · 2026-10-19)
@@ -341,16 +341,20 @@
       const ms = regionMeshes.filter(m => m.userData.anatK === k); if(!ms.length) return;
       body.updateMatrixWorld(true);
       const bodyInv = _mBodyInv.copy(body.matrixWorld).invert();
-      const { c, a } = longAxis(ms, bodyInv);
+      const { c, a, pts } = longAxis(ms, bodyInv);
       // 각 덩어리: 몸 기준 부모 행렬 P 와 원래 local 행렬 M0 — 움직일 땐 local = P⁻¹ · S · P · M0
       const items = ms.map(m => { const P = new THREE.Matrix4().multiplyMatrices(bodyInv, m.parent.matrixWorld); return { m, M0: m.matrix.clone(), P, Pinv: P.clone().invert() }; });
       // 긴 축 a 를 x 로 보내는 회전 R (열 = a 와 수직 두 방향)
       const b = Math.abs(a.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
       const u = new THREE.Vector3().crossVectors(a, b).normalize(), w = new THREE.Vector3().crossVectors(a, u).normalize();
       const R = new THREE.Matrix4().makeBasis(a, u, w), Rt = R.clone().transpose();
-      sel = { k, items, c, R, Rt, t:0, phase:'mid' };
+      // 이름표 붙일 후보 = 근육 가운데 높이(긴 축 기준 가운데 50%)의 겉 점들 — 매 화면 카메라 오른쪽으로 가장 튀어나온 점 바로 옆에 붙인다
+      let tMin = Infinity, tMax = -Infinity; const tv = pts.map(p => { const t = p.clone().sub(c).dot(a); tMin = Math.min(tMin, t); tMax = Math.max(tMax, t); return t; });
+      const mid = (tMin + tMax) / 2, half = (tMax - tMin) * 0.25;
+      const side = pts.filter((p, i) => Math.abs(tv[i] - mid) <= half);
+      sel = { k, items, c, R, Rt, t:0, phase:'mid', side: side.length ? side : pts, label: labelSprites.find(sp => sp.userData.k === k) || null };
       regionMeshes.forEach(m => { const on = m.userData.anatK === k; m.material.transparent = !on || !!nerveOn; m.material.opacity = on ? (nerveOn ? 0.45 : 1) : 0.22; m.material.emissiveIntensity = on ? 0.45 : 0.05; m.material.needsUpdate = true; });
-      labelSprites.forEach(sp => { const on = sp.userData.k === k; sp.visible = on; if(on && sp.userData.s0){ sp.scale.copy(sp.userData.s0).multiplyScalar(1.3); sp.position.copy(sp.userData.c); } });
+      labelSprites.forEach(sp => { const on = sp.userData.k === k; sp.visible = on; if(on && sp.userData.s0){ sp.scale.copy(sp.userData.s0).multiplyScalar(1.3); sp.center.set(0, 0.5); } });
     }
     function animSel(dt){
       sel.t += dt;
@@ -359,6 +363,16 @@
       _mS.copy(_mT1.makeTranslation(sel.c.x, sel.c.y, sel.c.z)).multiply(sel.R).multiply(_mSc.makeScale(along, across, across)).multiply(sel.Rt).multiply(_mT2.makeTranslation(-sel.c.x, -sel.c.y, -sel.c.z));
       sel.items.forEach(it => { it.m.matrixAutoUpdate = false; it.m.matrix.copy(it.Pinv).multiply(_mS).multiply(it.P).multiply(it.M0); });
       sel.phase = p > 0.3 ? 'contract' : (p < -0.3 ? 'stretch' : 'mid');
+    }
+    // 고른 근육 이름표를 근육 바로 옆(화면에서 오른쪽)에 — 몸을 돌려도 따라간다 (2026-10-19 상필님: "근육 바로 옆에 적어줘")
+    const _right = new THREE.Vector3(), _qInv = new THREE.Quaternion();
+    function placeSelLabel(){
+      const sp = sel && sel.label; if(!sp) return;
+      _qInv.copy(body.quaternion).invert();
+      _right.set(1, 0, 0).applyQuaternion(camera.quaternion).applyQuaternion(_qInv);   // 화면 오른쪽 = 몸 기준 좌표로
+      let best = -Infinity, bp = null;
+      sel.side.forEach(p => { const d = p.dot(_right); if(d > best){ best = d; bp = p; } });
+      if(bp) sp.position.copy(bp).addScaledVector(_right, 0.012);
     }
     window.body3dSelect = function(k){ if(k == null) clearSel(); else selectK(k); return !!sel; };
     window.body3dSelPhase = () => sel ? sel.phase : null;
@@ -514,12 +528,12 @@
       if(!markers.__snapped){ markers.__snapped = true; snapMarkers(); }
       // 표시점이 몸 뒤편(지금 안 보이는 쪽)에 있으면 흐리게 — 앞에서 볼 때 등 쪽 점이 앞에 떠 보이지 않게 (2026-10-19)
       markers.forEach(mk => { if(!mk.__nrm || !mk.visible) return; const wp = mk.getWorldPosition(_v); const wn = _n.copy(mk.__nrm).applyQuaternion(body.quaternion); mk.material.opacity = wn.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : 0.22; });
-      if(sel) animSel(dt);
+      if(sel){ animSel(dt); placeSelLabel(); }
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
     window.addEventListener('resize', ()=>{ const w = mount.clientWidth || W, h = Math.max(380, Math.round(w * 1.15)); renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); });
-    window.__body3d = { scene, body, J, REG, markers, regionBox, cam, camera, animSel, selState: () => sel };   // 확인용
+    window.__body3d = { scene, body, J, REG, markers, regionBox, cam, camera, animSel, placeSelLabel, selState: () => sel };   // 확인용
   };
 })();
