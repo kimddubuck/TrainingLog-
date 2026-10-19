@@ -181,6 +181,8 @@
     '위 승모근 스트레칭 (목 옆 늘리기)':['RNTlUaKeuXE','NASM · 위 승모근 스트레칭'],
     '폼롤러 등 펴기 (흉추)':['NS73eSohTbc','NASM · 등(흉추) 폼롤러 — 비슷'],
     'Y 레이즈':['rXcLUXzEA-w','NASM 자격 트레이너 · 엎드려 Y·T·W'],
+    'T 레이즈':['rXcLUXzEA-w','NASM 자격 트레이너 · 엎드려 Y·T·W'],   // 같은 영상에 Y·T·W 가 다 나온다
+    'W 레이즈':['rXcLUXzEA-w','NASM 자격 트레이너 · 엎드려 Y·T·W'],
     '엎드려 코브라':['keErJXdp2lE','NASM · 바닥 코브라'],
     '원암 케이블 회전 로우 (불균형 교정)':['8fAJEs3L110','NASM · 한 팔 회전 로우'],
     '마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이':['asigNf1sh-k','NASM · 골반 옆(TFL) 폼롤러'],

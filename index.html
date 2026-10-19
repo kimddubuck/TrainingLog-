@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=175"></script>
+<script src="exinfo.js?v=176"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -213,7 +213,10 @@ if(!window.EXINFO) window.EXINFO = (function(){
     grid-column:1 / -1;font-size:11px;color:var(--ink-faint);line-height:1.45;
     word-break:keep-all;overflow-wrap:anywhere;
   }
-  .plan-card .pe-detail{grid-column:1 / -1;display:none;}
+  .plan-card .pe-detail{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:2px;}   /* 3D 근육 · 유튜브 — 늘 보이게 (2026-10-19) */
+  .plan-card .pe-detail:empty{display:none;}
+  .plan-card .pe-detail .m3d-btn{margin:0;} .plan-card .pe-detail .rh-vid{font-size:12px;}
+  .plan-card .pe-detail .m3d-inline{flex-basis:100%;}
   .plan-card .pc-ex.open .pe-detail{display:block;}
   /* 근육 풀기 지도 줄 = 제목 + 3D 지도만 (2026-10-19 상필님) */
   .plan-card .pc-ex.relmap .pe-why, .plan-card .pc-ex.relmap .pe-set, .plan-card .pc-ex.relmap .m3d-btn{display:none;}
@@ -1063,7 +1066,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v175</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v176</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -2999,6 +3002,12 @@ function buildWeekProgram(W){
 }
 
 let programDay = null;   // 프로그램 탭에서 고른 날 (기본은 오늘)
+// 프로그램 줄의 유튜브 링크 — 영상 종목(그날 영상이 이미 붙음)·근육 풀기 지도·유산소는 빼고 (2026-10-19 상필님)
+function planVidLink(r){
+  const ex = exById(r.id) || {};
+  if(/^(jointvid|mobvid|lacuda30|rv-|relmap-)/.test(r.id || '') || /영상$|3D 지도/.test(r.name) || ex.type === 'cardio' || !EXINFO.vidHTML) return '';
+  return ' ' + EXINFO.vidHTML(r.name).replace('▶ 영상 찾기', '▶ 유튜브에서 찾기');
+}
 function renderRoutineTab(){
   const wrap = document.getElementById('panel-routine');
   if(!wrap) return;
@@ -3039,7 +3048,7 @@ function renderRoutineTab(){
             <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
             <span class="pe-why">${EXINFO.chipsHTML(info)}${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why || ''}</span>
-            <div class="pe-detail">${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(r.name) : ''}</div>   <!-- 맨몸·양쪽 같이·분류 설명 상자는 뺌 (2026-10-19 상필님) -->
+            <div class="pe-detail">${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(r.name) : ''}${planVidLink(r)}</div>   <!-- 맨몸·양쪽 같이·분류 설명 상자는 뺌 (2026-10-19 상필님) -->
           </div>`; }).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
         return `<div class="plan-card ${day.kind}${day.ds===W.today?' on':''}">
           <div class="pc-head"><span><b>${dow}</b> ${md} · ${day.title}</span>${mark}</div>
