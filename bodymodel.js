@@ -570,11 +570,19 @@
       // 표시점이 몸 뒤편(지금 안 보이는 쪽)에 있으면 흐리게 — 앞에서 볼 때 등 쪽 점이 앞에 떠 보이지 않게 (2026-10-19)
       markers.forEach(mk => { if(!mk.__nrm || !mk.visible) return; const wp = mk.getWorldPosition(_v); const wn = _n.copy(mk.__nrm).applyQuaternion(body.quaternion); mk.material.opacity = wn.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : 0.22; });
       if(sel){ animSel(dt); placeSelLabel(); }
+      if(away && !away.isConnected){ window.body3dUnmount(); window.body3dRegion(null); }   // 옮겨 간 카드가 다시 그려져 사라지면 제자리로
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
-    window.addEventListener('resize', ()=>{ const w = mount.clientWidth || W, h = Math.max(380, Math.round(w * 1.15)); renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); });
+    // ----- 3D 화면을 다른 자리(종목 카드)로 옮겨 보이기 (2026-10-19 상필님: "여기서 바로 볼 수 있게") -----
+    // 모델을 두 번 불러오지 않게 화면(canvas) 하나를 옮긴다. 카드 안에서는 세로로 밀면 페이지가 내려가고 가로로 밀면 돈다
+    let away = null;
+    function fit(w, h){ renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    function fitHome(){ const w = mount.clientWidth || W; fit(w, Math.max(380, Math.round(w * 1.15))); }
+    window.body3dMount = function(slot){ if(!slot) return; away = slot; slot.appendChild(el); el.style.touchAction = 'pan-y'; fit(slot.clientWidth || 300, slot.clientHeight || 230); };
+    window.body3dUnmount = function(){ if(!away) return; away = null; mount.appendChild(el); el.style.touchAction = 'none'; fitHome(); };
+    window.addEventListener('resize', ()=>{ if(away) fit(away.clientWidth || 300, away.clientHeight || 230); else fitHome(); });
     window.__body3d = { scene, body, J, REG, markers, regionBox, cam, camera, animSel, placeSelLabel, selState: () => sel };   // 확인용
   };
 })();
