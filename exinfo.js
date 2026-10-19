@@ -679,11 +679,11 @@
   const REHAB_VID = {
     // 어깨팔 날 🧩 어깨 가동성 영상 (하루 5분 · 뻔더 · 휴먼밸런스, 맨몸)
     shoulderMob: ['Qz0U8GHs9_Q','wWUC_a8QnUk','Mey2Myd1BPw','nYhI5J3khuc','ypmLu6CrgyI','7-boBAcgoC4','oQ9z0LXsFbI','8cN6ln6VxZ0','uYdWoooEqpc','48gD-RW-jjg','mGjTgOyZDh0','tpkXdXxSRC0','rKsSbDY6-Mc','QjtX9qWHNjA'],
-    knee:     ['R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM','-v-ZDIrVg0E'],
+    knee:     ['HePERr7RNg4','ZeU-6Fn7doA','R-y8PiIrL10','xayphsXCvmw','CQ-y9pVp__Q','yetSXpXQolA','DAwIKTGlSSE','V_8s9gQGd18','KPOvkM_y020','KJdm8eXAKFM','-v-ZDIrVg0E'],
     hip:      ['jm5HhxdJXiA'],   // 골반 좌우 맞추기 — 고관절 비대칭 (상필님 2026-10-18)
-    foot:     ['9Olfw9_EATU','5UGwiN_yabI','BS0Zxr6C0xk','m91Pdesc0W8','avOcecxNWTg','f8kekYD0M2I','xLd9UK2J3b8','cPQXOtISCJk','rC_TK21aFdw','10ZNiEjRee8','fBByTVXCONA','8rGQzOeemRI','hrZQxlNijRU','w4pr9HllpNg'],
-    shoulder: ['Qz0U8GHs9_Q','wWUC_a8QnUk','nYhI5J3khuc','Mey2Myd1BPw','7-boBAcgoC4','QjtX9qWHNjA','k0JNOQrsE0c','JsF8lersqxk','EqCgw8BPbTM','qQwUoq8ya3M','48gD-RW-jjg','lCSf9FuBm20','DU3pVnoEcd8','8cN6ln6VxZ0'],
-    back:     ['LSJuhzT-00Y','MqtsvXYEZ_w','yx0o3fzVFvU','U3Uo3G6IApw','dJaBp1AxCs8','4ctg0QU4XaY','XcIFjvUIVxo','HbMsD1deA6k','dPrXUac3Njc','Z1O7kwObK8s','NVQwOXqupi8','Zxz_wTYJbyk','ypmLu6CrgyI'],
+    foot:     ['SaewunzU1mk','zFKvX2ngkBc','CuIl-3k7_38','hM4EU0TyiJU','9Olfw9_EATU','5UGwiN_yabI','BS0Zxr6C0xk','m91Pdesc0W8','avOcecxNWTg','f8kekYD0M2I','xLd9UK2J3b8','cPQXOtISCJk','rC_TK21aFdw','10ZNiEjRee8','fBByTVXCONA','8rGQzOeemRI','hrZQxlNijRU','w4pr9HllpNg'],
+    shoulder: ['5YhdhtWIb8c','YwrVXWUNWwc','U_cu6O7Dllk','BnbLO0UJqW4','GJIB5gvJUTs','uomvQmSsBzY','fNb6BxiB6fQ','Qz0U8GHs9_Q','wWUC_a8QnUk','nYhI5J3khuc','Mey2Myd1BPw','7-boBAcgoC4','QjtX9qWHNjA','k0JNOQrsE0c','JsF8lersqxk','EqCgw8BPbTM','qQwUoq8ya3M','48gD-RW-jjg','lCSf9FuBm20','DU3pVnoEcd8','8cN6ln6VxZ0'],
+    back:     ['clySYS-_F74','ySZgG0_Rx9c','LSJuhzT-00Y','MqtsvXYEZ_w','yx0o3fzVFvU','U3Uo3G6IApw','dJaBp1AxCs8','4ctg0QU4XaY','XcIFjvUIVxo','HbMsD1deA6k','dPrXUac3Njc','Z1O7kwObK8s','NVQwOXqupi8','Zxz_wTYJbyk','ypmLu6CrgyI'],
   };
   function rehabVideo(ds, key){
     const m = vidLookup();
@@ -973,7 +973,34 @@
   const MD = { channel:'https://www.youtube.com/@%EB%A9%94%EB%94%94%EC%8C%A4', name:'메디쌤', groups:[
     { t:'🦵 골반 · 다리 길이', items:[ { id:'jm5HhxdJXiA', n:'다리길이 맞춰지는 셀프 골반 교정법', sh:true } ] },
   ] };
-  const CH_TAG = { HB:'휴먼밸런스', HB2:'하루 5분', HB3:'라쿠다', BD:'뻔더', MD:'메디쌤' };
+  // 데스런 기능성운동 (2026-10-20 상필님) — 근육 기능 회복 · 움직임 교정 채널. 제목으로 고른 것 (영상을 다 본 건 아님)
+  const DS = { channel:'https://www.youtube.com/@deslun_yoonhyunyong/videos', name:'데스런 기능성운동',
+    tip:'근육의 기능 회복과 움직임 교정을 다루는 채널이에요.\n상필님 문제 부위(무릎·고관절·어깨·허리)에 맞는 영상만 골랐어요.\n제목으로 고른 거라 영상을 다 본 건 아니에요.',
+    groups:[
+      { t:'🦵 무릎 · 고관절', items:[
+        { id:'HePERr7RNg4', n:'효과 좋은 고관절 스트레칭 3가지 — 무릎이 아프다면' },
+        { id:'ZeU-6Fn7doA', n:'한 다리 균형 잡기 운동 (균형감각)' },
+        { id:'SaewunzU1mk', n:'고관절이 찝힌다면 이 2가지 — 중둔근 강화' },
+        { id:'zFKvX2ngkBc', n:'엉덩이 근육을 깨우는 브릿지 2가지' },
+        { id:'CuIl-3k7_38', n:'고관절 내회전 기능 운동 5가지 (고관절 찝힘)' },
+        { id:'hM4EU0TyiJU', n:'다리가 뭉쳤을 때 고관절 스트레칭 루틴 5가지' },
+      ] },
+      { t:'🫱 어깨 (어깨통증 완화 단계)', items:[
+        { id:'5YhdhtWIb8c', n:'Step 1 · 어깨 통증 스트레칭 3가지' },
+        { id:'YwrVXWUNWwc', n:'Step 2 · 회전근개 운동' },
+        { id:'U_cu6O7Dllk', n:'Step 3 · 견갑골 운동' },
+        { id:'BnbLO0UJqW4', n:'Step 4 · 어깨를 잘 움직이기' },
+        { id:'GJIB5gvJUTs', n:'Step 5 · 어깨 회전' },
+        { id:'uomvQmSsBzY', n:'Step 6 · 플랭크로 어깨 재활' },
+        { id:'fNb6BxiB6fQ', n:'어깨 스트레칭 필수 동작 10개' },
+        { id:'oluHjosmoJE', n:'어깨 통증 — 밴드로 하는 견갑골 운동 2가지', gear:'band' },
+      ] },
+      { t:'🧍 허리 · 척추', items:[
+        { id:'clySYS-_F74', n:'허리·골반이 뻣뻣하다면 고관절 스트레칭 4가지' },
+        { id:'ySZgG0_Rx9c', n:'12분 척추 리셋 — 굽은 등·뻣뻣한 허리 펴기' },
+      ] },
+    ] };
+  const CH_TAG = { HB:'휴먼밸런스', HB2:'하루 5분', HB3:'라쿠다', BD:'뻔더', MD:'메디쌤', DS:'데스런' };
   let vidMap = null;
   // 상필님이 뺀 영상 (index.html 이 log/data.vidHide 로 채운다 · 2026-10-19)
   const HIDDEN = new Set();
@@ -982,13 +1009,13 @@
   // 뺀 영상 이름 찾기 (거르지 않고 전부에서)
   function vidInfo(id){
     let r = null;
-    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!r && it.id === id) r = { ...it, chName: CH_TAG[k] || '' }; })));
+    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD], ['DS', DS]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!r && it.id === id) r = { ...it, chName: CH_TAG[k] || '' }; })));
     return r;
   }
   function vidLookup(){
     if(vidMap) return vidMap;
     vidMap = new Map();
-    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(vok(it) && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
+    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD], ['DS', DS]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(vok(it) && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
     return vidMap;
   }
   // 종목 묶음 하나의 영상 목록 (없으면 '')
@@ -1008,7 +1035,7 @@
   }
   function hbHTML(){
     HB.tip = '신체지도 강의를 한 곳의 채널이에요.\n내 문제 부위에 맞는 영상만 골랐어요.\n제목으로 고른 거라 영상을 다 본 건 아니에요.\n대부분 그 회사 기구를 써요. 맨몸으로 되는 건 표시했어요.';
-    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}${hbChannelHTML(HB3, false)}${hbChannelHTML(BD, false)}</div>`;
+    return `<div class="hb">${hbChannelHTML(HB, true)}${hbChannelHTML(HB2, false)}${hbChannelHTML(HB3, false)}${hbChannelHTML(BD, false)}${hbChannelHTML(DS, false)}</div>`;
   }
 
   // ----- 스트레칭 미션 (30분마다 하나): 문제 부위별 1분 안 · 사무실에서 가능한 것 위주 -----
@@ -1767,5 +1794,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, setHiddenVids, vidInfo, m3dOf, m3dBtnHTML, M3D_G, m2dOf, m2dHTML, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, MD, DS, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, setHiddenVids, vidInfo, m3dOf, m3dBtnHTML, M3D_G, m2dOf, m2dHTML, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
