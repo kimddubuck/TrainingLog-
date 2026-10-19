@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=172"></script>
+<script src="exinfo.js?v=173"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -422,6 +422,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   /* 미션 그림 출처는 한 줄로 (누르면 출처가 열린다) */
   .m3d-btn{display:inline-block;margin:4px 0 0 6px;font-size:11.5px;padding:3px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--accent-b);cursor:pointer;vertical-align:middle;}
   .m3d-back{margin-top:8px;font-size:12px;}
+  .rel-list{display:block;font-size:13px;line-height:1.6;color:var(--ink);font-weight:400;}
   .vid-del.armed, .today-ex-head .tex-swap.vid-del.armed{width:auto !important;padding:0 8px;font-size:12px;color:#fff !important;background:#C1666B !important;border-color:#C1666B !important;}
   .bd-del{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;height:26px;min-width:30px;font-size:13px;cursor:pointer;margin-left:auto;}
   .vh-box{margin:0 0 10px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);font-size:13px;}
@@ -1058,7 +1059,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v172</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v173</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1532,6 +1533,8 @@ const DEFAULT_MASTER = [
   {id:'fx-hipflex',  name:'반무릎 장요근 스트레칭',     part:'고관절 앞', type:'bodyweight'},
   {id:'fx-clam',     name:'클램쉘',                   part:'엉덩이 옆', type:'bodyweight'},
   {id:'fx-calf',     name:'벽 종아리 스트레칭',         part:'종아리',   type:'bodyweight'},
+  {id:'relmap-knee',  name:'근육 풀기 — 무릎·고관절 (3D 지도)', part:'무릎·고관절', type:'bodyweight'},   // 회복날 ① (2026-10-19)
+  {id:'relmap-upper', name:'근육 풀기 — 허리·어깨 (3D 지도)',  part:'허리·어깨',   type:'bodyweight'},
   {id:'fx-quadstand',name:'서서 허벅지 앞 늘리기',      part:'허벅지 앞', type:'bodyweight'},   // 회복날 ② 스트레칭 (2026-10-19)
   {id:'fx-piri',     name:'이상근 스트레칭 (4자)',      part:'엉덩이',    type:'bodyweight'},
   {id:'fx-ballcalf', name:'마사지볼 풀기 — 종아리·정강이 앞', part:'종아리', type:'bodyweight'},
@@ -2339,21 +2342,12 @@ function themeOf(ds){
 //  강의의 4단계(풀기→늘리기→깨우기→통합)를 깨우기·통합은 영상으로 합쳤다. 무게 없이, 숨이 안 찰 만큼.
 const RECOVERY_ROUTINE = [
   // 전날 운동한 부위로 (focusOf): focus:'knee' = 하체 다음날(월) 무릎 / focus:'upper' = 가슴등·어깨팔 다음(토) 허리·어깨
-  { why:'준비 — 호흡: 배로 천천히', sets:1, reps:'3분', label:'3분',
-    options:['악어호흡'] },
-  // ① 근육 풀기
-  { focus:'knee', why:'① 근육 풀기 — 발바닥 (공 굴리기 · 왼발 아치)', sets:1, reps:'좌우 1분', label:'좌우 1분',
-    options:['발바닥 마사지'] },
-  { focus:'knee', why:'① 근육 풀기 — 종아리·정강이 앞 (무릎은 발목이 굳으면 고생)', sets:1, reps:'좌우 1분', label:'좌우 1분',
-    options:['마사지볼 풀기 — 종아리·정강이 앞'] },
-  { focus:'knee', why:'① 근육 풀기 — 골반 옆·허벅지 앞 (무릎 바깥으로 당기는 곳)', sets:1, reps:'좌우 2분', label:'좌우 2분',
-    options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이'] },
-  { focus:'upper', why:'① 근육 풀기 — 쇄골 아래·겨드랑이·어깨 뒤 (둥근어깨)', sets:1, reps:'좌우 1분', label:'좌우 1분',
-    options:['마사지볼 풀기 — 쇄골 아래·겨드랑이·어깨 뒤'] },
-  { focus:'upper', why:'① 근육 풀기 — 겨드랑이 옆 광배근 (팔 올리기 막는 곳)', sets:1, reps:'좌우 1분', label:'좌우 1분',
-    options:['폼롤러 광배근 풀기'] },
-  { focus:'upper', why:'① 근육 풀기 — 골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)', sets:1, reps:'좌우 2분', label:'좌우 2분',
-    options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','고관절 운동(폼롤러)'] },
+  // 2026-10-19 상필님 회복날 5단계: ① 근육 풀기(3D 지도 한 장) → ② 스트레칭(부위마다 30초 × 2) → ③ 강화(부위마다 3세트) → ④ 복합(영상 1개) → 심폐
+  // ① 근육 풀기 — 풀어야 할 곳을 3D 한 장으로 (카드에 저절로 열림). 순서·시간은 카드 글(REL_TEXT)
+  { focus:'knee', why:'① 근육 풀기 — 무릎·고관절 (3D 지도 보고 공·폼롤러로 · 아픈 곳은 10초 머물기)', sets:1, reps:'약 10분', label:'약 10분 · 좌우',
+    options:['근육 풀기 — 무릎·고관절 (3D 지도)'] },
+  { focus:'upper', why:'① 근육 풀기 — 허리·어깨 (3D 지도 보고 공·폼롤러로 · 아픈 곳은 10초 머물기)', sets:1, reps:'약 10분', label:'약 10분 · 좌우',
+    options:['근육 풀기 — 허리·어깨 (3D 지도)'] },
   // ② 스트레칭 — 풀어야 할 부위마다 한 자리씩, 모두 좌우 30초 × 2 (2026-10-19 상필님 · ACSM: 한 동작 모두 60초)
   { focus:'knee', why:'② 스트레칭 — 고관절 앞 · 장요근 (골반 말고 엉덩이 조이기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['반무릎 장요근 스트레칭'] },
@@ -2375,24 +2369,38 @@ const RECOVERY_ROUTINE = [
     options:['반무릎 장요근 스트레칭'] },
   { focus:'upper', why:'② 스트레칭 — 엉덩이 깊은 곳 · 이상근', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['이상근 스트레칭 (4자)'] },
-  { focus:'upper', why:'② 스트레칭 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
+  { focus:'upper', why:'② 스트레칭 — 허리·목 뒤로 젖히기 (디스크 예방 · 버티지 않고 움직이는 동작)', sets:2, reps:'10회', label:'10회 × 2세트',
     options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
-  // ③ 근육 키우기 — 영상 따라하기 (휴먼밸런스·하루 5분·뻔더, 맨몸으로 되는 것만 · 날마다 다른 영상)
-  { focus:'knee', why:'③ 근육 키우기 — 무릎 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
-    options:['무릎 키우기 영상'] },
-  { focus:'knee', why:'③ 근육 키우기 — 발·발목·엉덩이 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
-    options:['발·엉덩이 키우기 영상'] },
-  // 상필님 2026-10-18: 고관절 비대칭 — 다리 길이 맞추는 셀프 골반 교정 (메디쌤 쇼츠)
-  { focus:'knee', why:'③ 근육 키우기 — 골반 좌우 맞추기 (고관절 비대칭 · 영상 따라하기)', sets:1, reps:'1~3분', label:'1~3분 · 짧은 영상',
-    options:['골반 맞추기 영상'] },
-  { focus:'upper', why:'③ 근육 키우기 — 어깨·등 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
-    options:['어깨·등 키우기 영상'] },
-  { focus:'upper', why:'③ 근육 키우기 — 허리·코어 (영상 따라하기)', sets:1, reps:'5~10분', label:'5~10분 · 영상 하나',
-    options:['허리·코어 키우기 영상'] },
-  // 2026-10-18 설계도(상필님): 회복날 ③ 끝에 전신 운동 — 월(무릎)·토(허리·어깨) 둘 다 · 가벼운 케틀벨까지
-  { why:'③ 근육 키우기 — 전신 운동', sets:4, reps:'15회', label:'15회 × 4세트',
-    options:['겟업동작','바디컨트롤 전면 코어','케틀벨 스윙','라쿠다 밴드 30분 루틴'],   // 라쿠다: 2026-10-18 상필님
-    labels:{ '라쿠다 밴드 30분 루틴':'30분 · 영상 따라하기' } },
+  // ③ 강화 — 부위마다 한 자리씩 3세트. 동작·횟수는 근육 지도(exinfo ANAT)의 "깨우기" 그대로
+  { focus:'knee', why:'③ 강화 — 엉덩이 옆 · 중둔근 (무릎이 안으로 안 모이게)', sets:3, reps:'좌우 15회', label:'좌우 15회 × 3세트',
+    options:['클램쉘'] },
+  { focus:'knee', why:'③ 강화 — 엉덩이 · 대둔근 (꼭대기에서 2초 조이기)', sets:3, reps:'15회', label:'15회 × 3세트',
+    options:['글루트 브릿지'] },
+  { focus:'knee', why:'③ 강화 — 무릎 안쪽 · 내측광근 (아프지 않은 각도로)', sets:3, reps:'20초', label:'20초 × 3세트',
+    options:['월싯(벽 스쿼트)'] },
+  { focus:'knee', why:'③ 강화 — 종아리·정강이 (끝까지 내려 2초 버티기)', sets:3, reps:'15회', label:'15회 × 3세트',
+    options:['카프 레이즈'] },
+  { focus:'knee', why:'③ 강화 — 발바닥 (뒤꿈치는 바닥에)', sets:3, reps:'15회', label:'15회 × 3세트',
+    options:['발가락 수건 잡기'] },
+  { focus:'upper', why:'③ 강화 — 아래 승모근 (어깨 내리기)', sets:3, reps:'10회', label:'10회 × 3세트',
+    options:['승모근 아래 깨우기 (손바닥 뒤로 내리기)','Y 레이즈'] },
+  { focus:'upper', why:'③ 강화 — 마름근 (날개뼈 모으기)', sets:3, reps:'10회', label:'10회 × 3세트',
+    options:['T 레이즈'] },
+  { focus:'upper', why:'③ 강화 — 회전근개 (어깨 공을 소켓에)', sets:3, reps:'10회', label:'10회 × 3세트',
+    options:['W 레이즈'] },
+  { focus:'upper', why:'③ 강화 — 앞톱니근 (꼭대기에서 벽 밀기)', sets:3, reps:'10회', label:'10회 × 3세트',
+    options:['월 슬라이드'] },
+  { focus:'upper', why:'③ 강화 — 깊은 목 근육 (뒤통수 벽에 대고)', sets:3, reps:'5초씩 10회', label:'5초씩 10회 × 3세트',
+    options:['턱 당기기 (깊은 목 근육)'] },
+  { focus:'upper', why:'③ 강화 — 깊은 코어 (허리 대신 잡기)', sets:3, reps:'좌우 8회', label:'좌우 8회 × 3세트',
+    options:['데드버그'] },
+  { focus:'upper', why:'③ 강화 — 엉덩이 · 대둔근 (골반 세우기)', sets:3, reps:'15회', label:'15회 × 3세트',
+    options:['글루트 브릿지'] },
+  // ④ 복합 — 그 부위 영상 1개 (휴먼밸런스·하루 5분·뻔더·메디쌤, 맨몸 · 회원 전용 빼고 · ↻ 로 다른 영상)
+  { focus:'knee', why:'④ 복합 — 무릎·발·골반 영상 1개 (따라하기)', sets:1, reps:'5~10분', label:'영상 1개',
+    options:['무릎 키우기 영상','발·엉덩이 키우기 영상','골반 맞추기 영상'] },
+  { focus:'upper', why:'④ 복합 — 어깨·등·허리 영상 1개 (따라하기)', sets:1, reps:'5~10분', label:'영상 1개',
+    options:['어깨·등 키우기 영상','허리·코어 키우기 영상'] },
   { why:'심폐 — 1순위 · 코로 숨 쉬며 대화할 수 있는 속도 (붓기 있는 날은 걷기로)', sets:1, reps:'20분', label:'20분',
     // 슬로우 조깅 ↔ 수영을 번갈아 (2026-10-17 상필님: 수영·슬로우 조깅 같은 유산소를 주 1~2번).
     // 회복날이 주 2번(월·토)이라 한 주에 하나씩 나온다. 무릎 붓기 중에는 그냥 걷기로 바꿔서 (기록은 안 해도 됨)
@@ -2413,13 +2421,13 @@ const WARMUP = { kind:'free', routine:[
 const PLAN = {
   // 회복날은 "아무것도 안 하는 날"이 아니라 기능성 동작으로 몸을 되돌리는 날.
   // 선생님이 알려주신 움직임·교정·호흡 동작으로 채운다. 무거운 것은 하나도 없다.
-  rest:    { tag:'회복', kind:'free', title:'회복 — 재활 (근육 풀기 → 스트레칭 → 근육 키우기)',
+  rest:    { tag:'회복', kind:'free', title:'회복 — 재활 (풀기 → 스트레칭 → 강화 → 복합 → 심폐)',
              tip:'무게는 가벼운 케틀벨까지만 · 숨이 안 찰 만큼 · 잠을 충분히 (7시간 이상)',
              routine: RECOVERY_ROUTINE },
-  walk:    { tag:'회복', kind:'free', title:'회복 — 재활 (근육 풀기 → 스트레칭 → 근육 키우기) + 걷기',
+  walk:    { tag:'회복', kind:'free', title:'회복 — 재활 (풀기 → 스트레칭 → 강화 → 복합 → 심폐) + 걷기',
              tip:'헬스장이 쉬는 날 · 집에서 매트 하나로 · 걷기는 코로 숨 쉬며 대화할 수 있는 속도로',
              routine: RECOVERY_ROUTINE },
-  recover: { tag:'회복', kind:'free', title:'회복 — 재활 (근육 풀기 → 스트레칭 → 근육 키우기)',
+  recover: { tag:'회복', kind:'free', title:'회복 — 재활 (풀기 → 스트레칭 → 강화 → 복합 → 심폐)',
              tip:'이틀 연속 근력을 했어요 · 오늘은 무게 대신 움직임으로',
              routine: RECOVERY_ROUTINE },
   pt:      { tag:'PT', kind:'pt', title:'PT 수업', routine:[],
@@ -2608,8 +2616,8 @@ function stageOf(why){
   if(/^준비/.test(w)) return '🫁 준비';
   if(/^①/.test(w)) return '① 근육 풀기';
   if(/^②/.test(w)) return '② 스트레칭';
-  if(/^③/.test(w)) return '③ 근육 키우기';
-  if(/^④/.test(w)) return '④ 통합';
+  if(/^③/.test(w)) return '③ 강화';
+  if(/^④/.test(w)) return '④ 복합';
   if(/^가동성/.test(w)) return '🎬 가동성 영상';
   if(/^심폐/.test(w)) return '🫀 심폐';
   return '';
@@ -2747,6 +2755,11 @@ function candOrder(theme, last){
 // 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
 // 오늘 기록에서 ↻ 로 바꾼 영상 { 종목id: 영상id } — 그날 기록에 vidpick 으로 저장 (2026-10-19)
 let vidPick = {};
+// 회복날 ① 근육 풀기 지도 — 순서와 시간 (공 = 테니스공·마사지볼). 3D 색은 exinfo M3D_RULES "근육 풀기 —"
+const REL_TEXT = {
+  'relmap-knee':  '공·폼롤러로 천천히 · 아픈 곳은 10초 머물기<br>① 발바닥 좌우 1분 → ② 종아리·정강이 앞 좌우 1분 → ③ 허벅지 안쪽(내전근) 폼롤러 좌우 1분 → ④ 골반 옆·허벅지 앞 좌우 2분',
+  'relmap-upper': '공·폼롤러로 천천히 · 아픈 곳은 10초 머물기 · 골프공은 쓰지 않기<br>① 쇄골 아래·겨드랑이 앞(작은가슴근) 좌우 1분 → ② 어깨 뒤(회전근개) 좌우 1분 → ③ 겨드랑이 옆 광배근 폼롤러 좌우 1분 → ④ 골반 옆·허벅지 앞·엉덩이 깊은 곳(이상근) 좌우 2분',
+};
 let vidHide = [];   // 🚫 뺀 영상 id — log/data.vidHide (2026-10-19)
 function mobLink(ex, ds, dayKey){
   // 바꾼 영상이 있으면 그것 (오늘 기록 화면의 그 날짜에서만)
@@ -3787,9 +3800,10 @@ function renderTodayExercises(existing){
     let setsHtml, cols;
     // 영상 종목: 그날 정해진 영상 링크 + "했어요" 하나. 기록은 1회로 남겨서 "가장 오래 안 한 것" 돌리기에도 잡힌다 (2026-10-18)
     const isVid = /^(jointvid|mobvid|lacuda30|rv-)/.test(ex.id);
-    if(isVid){
+    const isRel = /^relmap-/.test(ex.id);   // 회복날 ① 근육 풀기 지도
+    if(isVid || isRel){
       const ds0 = currentEntryDate();
-      const link = mobLink(ex, ds0, WEEK_PLAN[dayOfWeek(ds0)]).replace(/^ · /, '');
+      const link = isRel ? `<span class="rel-list">${REL_TEXT[ex.id] || ''}</span>` : mobLink(ex, ds0, WEEK_PLAN[dayOfWeek(ds0)]).replace(/^ · /, '');
       cols = 'grid-template-columns:1fr auto;';
       setsHtml = `<div class="vid-today">${link || '<span style="color:var(--ink-faint)">오늘 영상 확인 중</span>'}</div>`
         + `<input type="hidden" data-ex="${ex.id}" data-field="reps" data-set="1">` + doneBtn(1).replace('>완료<', '>했어요<');
@@ -3810,19 +3824,22 @@ function renderTodayExercises(existing){
     div.className = 'today-ex';
     div.innerHTML = `
       <div class="today-ex-head">
-        <span class="tex-name">${ex.name}<span class="tex-type ${isVid ? 'cardio' : t}">${isVid ? '영상' : tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
+        <span class="tex-name">${ex.name}<span class="tex-type ${isVid ? 'cardio' : (isRel ? 'bodyweight' : t)}">${isVid ? '영상' : (isRel ? '풀기' : tl)}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
         <span class="tex-btns">${isVid && ex.id !== 'lacuda30' ? `<button class="tex-swap vid-del" data-viddel="${ex.id}" title="이 영상 빼기 (다시 안 나와요)">🚫</button>` : ''}${isVid && window.EXINFO && EXINFO.vidPool && EXINFO.vidPool(ex.id, WEEK_PLAN[dayOfWeek(currentEntryDate())]).length > 1 ? `<button class="tex-swap" data-vidswap="${ex.id}" title="다른 영상으로">↻</button>` : (swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : '')}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
-      ${isVid ? '' : `<div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(ex.name) : ''}</div>`}
+      ${isVid ? '' : `<div class="tex-img">${isRel ? '' : EXINFO.imgHTML(ex.name, 60)}${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(ex.name) : ''}</div>`}
       ${ptTipHtml(ex)}
-      ${isVid ? '' : pastPanelHtml(ex.id)}
+      ${(isVid || isRel) ? '' : pastPanelHtml(ex.id)}
       <div class="sets" style="${cols}">${setsHtml}</div>
-      ${isVid ? '' : `<div class="set-ctrl">
+      ${(isVid || isRel) ? '' : `<div class="set-ctrl">
         <button class="set-btn" data-act="remove" data-ex="${ex.id}" ${n<=1?'disabled':''}>➖ 세트</button>
         <button class="set-btn" data-act="add" data-ex="${ex.id}">➕ 세트</button>
       </div>`}`;
     list.appendChild(div);
   });
+  // 회복날 ① 근육 풀기 지도: 오늘 기록에서 처음 그릴 때 3D 를 저절로 연다 (그 날짜 한 번만 · 닫으면 다시 안 엶)
+  const relBtn = list.querySelector('[data-m3d^="근육 풀기 —"]'), dsA = currentEntryDate();
+  if(relBtn && window.__relAuto !== dsA && !window.__m3dKeep && !document.querySelector('.m3d-inline') && (document.querySelector('.tab.active') || {}).dataset && document.querySelector('.tab.active').dataset.tab === 'log'){ window.__relAuto = dsA; window.__m3dKeep = relBtn.dataset.m3d; }
   // 값 복원
   prefillExerciseInputs(existing);
   // 이벤트 연결
