@@ -238,11 +238,64 @@
     // 근육에 색 입히기 + 표시점
     const REG = {};
     legMuscleMeshes.forEach(m => { const n = norm(m.userData.orig); for(const k in MUSCLE_MAP){ if(MUSCLE_MAP[k].includes(n)) (REG[k] = REG[k] || []).push(m); } });
+    // 거울로 만든 왼쪽 근육도 등록 — L_glute 처럼 왼쪽 이름이면 같은 근육의 왼쪽 거울 (2026-10-19: 왼쪽 엉덩이에 색이 안 입혀지던 것)
+    mirrorMeshes.forEach(m => { const n = norm(m.userData.orig); for(const k in MUSCLE_MAP){ if(/^R_/.test(k) && MUSCLE_MAP[k].includes(n)){ const lk = 'L_' + k.slice(2); (REG[lk] = REG[lk] || []).push(m); } } });
+    // ----- 표시점을 몸 겉면에 붙이기 (2026-10-19 상필님: "공중에 떠 있어서 어딘지 모르겠다 · 근육에 표시") -----
+    // 정해 둔 좌표(mk.x·y·z)에서 가장 가까운 겉면 점을 찾는다: 근육이 있으면 그 근육에서, 없으면 보이는 뼈·근육 전체에서.
+    // 몸 가운데를 넘어 반대쪽 다리에 붙지 않게, 좌표가 오른쪽(x<0)이면 오른쪽 점만 · 왼쪽이면 왼쪽 점만 본다.
+    body.updateMatrixWorld(true);
+    const shownNow = o => { for(let p = o; p; p = p.parent){ if(!p.visible) return false; } return true; };
+    const _v = new THREE.Vector3(), _n = new THREE.Vector3(), _nm = new THREE.Matrix3(), _bx = new THREE.Box3();
+    function snapToSurface(target, meshes, side){
+      let best = Infinity, bp = null, bn = null;
+      meshes.forEach(m => {
+        if(!shownNow(m) || !m.geometry || !m.geometry.attributes.position) return;
+        _bx.setFromObject(m); if(_bx.distanceToPoint(target) ** 2 > best) return;   // 멀리 있는 덩어리는 건너뛴다
+        const pos = m.geometry.attributes.position, nor = m.geometry.attributes.normal;
+        _nm.getNormalMatrix(m.matrixWorld);
+        for(let i = 0; i < pos.count; i++){
+          _v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+          if(side < 0 && _v.x > 0.005 || side > 0 && _v.x < -0.005) continue;
+          const d = _v.distanceToSquared(target);
+          if(d < best){ best = d; bp = _v.clone(); bn = nor ? _n.fromBufferAttribute(nor, i).applyMatrix3(_nm).normalize().clone() : null; }
+        }
+      });
+      if(!bp) return null;
+      // 겉면에서 살짝 바깥으로 (공이 근육 속에 묻히지 않게). 거울 쪽은 법선이 뒤집혀 있을 수 있어 바깥(표시점 쪽)을 향하게 맞춘다
+      if(bn){ const out = target.clone().sub(bp); if(out.lengthSq() > 1e-8 && out.dot(bn) < 0) bn.negate(); bp.addScaledVector(bn, 0.008); }
+      return { p:bp, n:bn };
+    }
     const markers = [];
     DATA.markers.forEach(mk=>{
       const col = new THREE.Color(COLOR[mk.kind] || COLOR.pain);
-      const s = new THREE.Mesh(new THREE.SphereGeometry(0.018, 20, 14), new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.45, depthTest:false }));
+      const s = new THREE.Mesh(new THREE.SphereGeometry(0.016, 20, 14), new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.45, depthTest:false }));
       s.renderOrder = 15; s.position.set(mk.x, mk.y, mk.z); s.userData = mk; body.add(s); markers.push(s);
+      s.__want = new THREE.Vector3(mk.x, mk.y, mk.z);
+    });
+    // 몸이 다 세워진 뒤(첫 화면 그릴 때) 붙인다 — 자세 기울이기가 끝나기 전에 재면 다리 아래쪽이 엇나간다 (2026-10-19 확인)
+    // 몸을 잠깐 정면(회전 0)으로 돌려 놓고 잰다 — 좌우(x) 가르기를 몸 기준으로 하려고
+    function snapMarkers(){
+      const r0 = body.rotation.clone(); body.rotation.set(0, 0, 0);
+      body.updateMatrixWorld(true);
+      // 붙일 곳 = 지금 몸에 있는 뼈·근육 전부 (자세 기울이기가 정강이·발을 다른 묶음으로 옮기므로 그때그때 body 에서 모은다)
+      const surfaceAll = meshesOf(body).filter(m => !markers.includes(m) && !m.parent.isLine && m.userData.orig);
+      markers.forEach(s => { const mk = s.userData;
+      try{
+        const want = body.localToWorld(s.__want.clone());
+        const own = [].concat(...(mk.muscles || []).map(k => REG[k] || [])).filter(shownNow);
+        const side = mk.x < -0.02 ? -1 : (mk.x > 0.02 ? 1 : 0);
+        const hit = snapToSurface(want, own.length ? own : surfaceAll, side) || (own.length ? snapToSurface(want, surfaceAll, side) : null);
+        if(hit){
+          const tip = hit.n ? hit.p.clone().add(hit.n) : null;
+          body.worldToLocal(hit.p); s.position.copy(hit.p); s.__snap = own.length ? 'muscle' : 'surface';
+          if(tip){ body.worldToLocal(tip); s.__nrm = tip.sub(hit.p).normalize(); s.material.transparent = true; }   // 몸 안에서 본 방향 — 뒤쪽에 있으면 흐리게 (tick)
+        }
+      }catch(e){ console.warn('marker snap', e); }
+      });
+      body.rotation.copy(r0); body.updateMatrixWorld(true);
+    }
+    DATA.markers.forEach(mk => {
+      const col = new THREE.Color(COLOR[mk.kind] || COLOR.pain);
       (mk.muscles || []).forEach(k => (REG[k] || []).forEach(mesh=>{
         mesh.material = mesh.material.clone();
         mesh.material.color.lerp(col, 0.75); mesh.material.emissive = col.clone(); mesh.material.emissiveIntensity = 0.15;
@@ -405,6 +458,9 @@
         blink.scale.set(s, s, s); blinkMeshes.forEach(x=> x.material.emissiveIntensity = 0.15 + 0.7 * p);
         if(blinkT > 2.5){ blink.scale.set(1,1,1); blinkMeshes.forEach(x=> x.material.emissiveIntensity = 0.15); blink = null; blinkMeshes = []; }
       }
+      if(!markers.__snapped){ markers.__snapped = true; snapMarkers(); }
+      // 표시점이 몸 뒤편(지금 안 보이는 쪽)에 있으면 흐리게 — 앞에서 볼 때 등 쪽 점이 앞에 떠 보이지 않게 (2026-10-19)
+      markers.forEach(mk => { if(!mk.__nrm || !mk.visible) return; const wp = mk.getWorldPosition(_v); const wn = _n.copy(mk.__nrm).applyQuaternion(body.quaternion); mk.material.opacity = wn.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : 0.22; });
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
