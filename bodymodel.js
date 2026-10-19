@@ -335,6 +335,7 @@
       labelSprites.forEach(sp => { sp.visible = true; if(sp.userData.s0){ sp.scale.copy(sp.userData.s0); sp.position.copy(sp.userData.c); } });
       sel = null;
     }
+    // 고른 근육 이름표는 근육 한가운데에 (위 끝에 두면 내전근처럼 골반에 붙은 근육은 이름이 골반 위에 떠서 헷갈림 · 2026-10-19)
     function selectK(k){
       clearSel();
       const ms = regionMeshes.filter(m => m.userData.anatK === k); if(!ms.length) return;
@@ -349,7 +350,7 @@
       const R = new THREE.Matrix4().makeBasis(a, u, w), Rt = R.clone().transpose();
       sel = { k, items, c, R, Rt, t:0, phase:'mid' };
       regionMeshes.forEach(m => { const on = m.userData.anatK === k; m.material.transparent = !on || !!nerveOn; m.material.opacity = on ? (nerveOn ? 0.45 : 1) : 0.22; m.material.emissiveIntensity = on ? 0.45 : 0.05; m.material.needsUpdate = true; });
-      labelSprites.forEach(sp => { const on = sp.userData.k === k; sp.visible = on; if(on && sp.userData.s0){ sp.scale.copy(sp.userData.s0).multiplyScalar(1.5); sp.position.set(sp.userData.c.x, sp.userData.top + 0.035, sp.userData.c.z); } });
+      labelSprites.forEach(sp => { const on = sp.userData.k === k; sp.visible = on; if(on && sp.userData.s0){ sp.scale.copy(sp.userData.s0).multiplyScalar(1.3); sp.position.copy(sp.userData.c); } });
     }
     function animSel(dt){
       sel.t += dt;
