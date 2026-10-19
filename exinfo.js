@@ -644,7 +644,7 @@
   };
   const GEAR_TXT = { bw:'맨몸으로도 가능', cable:'필라케이블·코어케이블 필요', band:'라쿠다 밴드 필요' };
   function hbChannelHTML(ch, showGear){
-    const g = ch.groups.filter(gr => gr.items.some(it => !it.wait)).map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.filter(it => !it.wait).map(it => `
+    const g = ch.groups.filter(gr => gr.items.some(it => vok(it))).map(gr => `<div class="hb-g"><div class="hb-t">${esc(gr.t)}</div>${gr.items.filter(it => vok(it)).map(it => `
       <a class="hb-i" href="https://www.youtube.com/${it.sh ? 'shorts/' : 'watch?v='}${it.id}" target="_blank" rel="noopener">
         <img src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" loading="lazy" alt="">
         <span class="hb-x"><span class="hb-n">${it.pick ? '⭐ ' : ''}${esc(it.n)}</span>${(showGear || it.gear) ? `<span class="hb-gear ${it.gear}">${GEAR_TXT[it.gear] || it.gear}</span>` : (it.sh ? '<span class="hb-gear bw">짧은 영상 · 맨몸</span>' : '<span class="hb-gear bw">맨몸</span>')}${it.note ? `<span class="hb-note">${esc(it.note)}</span>` : ''}</span></a>`).join('')}</div>`).join('');
@@ -658,7 +658,7 @@
   const JOINT_PICK = { chestback:'🦴 손목 · 팔꿈치', shoulderarm:'🦴 손목 · 팔꿈치', legs:'🦵 무릎 · 발 · 발목' };
   // 매일 루틴 "오늘의 뻔더" — 뻔더 영상 중 회원 전용이 아닌 것(확인된 것, wait 아님)에서 날마다 하나
   function bdDaily(ds){
-    const all = []; BD.groups.forEach(g => g.items.forEach(it => { if(!it.wait) all.push(it); }));
+    const all = []; BD.groups.forEach(g => g.items.forEach(it => { if(vok(it)) all.push(it); }));
     if(!all.length) return null;
     const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
     const it = all[((d * 11) % all.length + all.length) % all.length];
@@ -666,7 +666,7 @@
   }
   function jointVideo(ds, key){
     const g = BD.groups.find(x => x.t === JOINT_PICK[key]); if(!g) return null;
-    const all = g.items.filter(it => !it.wait); if(!all.length) return null;
+    const all = g.items.filter(it => vok(it)); if(!all.length) return null;
     const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
     const it = all[((d * 3) % all.length + all.length) % all.length];
     return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
@@ -694,8 +694,8 @@
   function vidPool(exId, dayKey){
     const U = it => ({ ...it, chName: it.ch ? (CH_TAG[it.ch] || '') : '', url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id });
     if(/^rv-/.test(exId)){ const m = vidLookup(); return (REHAB_VID[exId.slice(3)] || []).map(id => m.get(id)).filter(v => v && (!v.gear || v.gear === 'bw')).map(U); }
-    if(exId === 'jointvid'){ const g = BD.groups.find(x => x.t === JOINT_PICK[dayKey]); return g ? g.items.filter(it => !it.wait).map(it => U({ ...it, ch:'BD' })) : []; }
-    if(exId === 'mobvid'){ const gi = MOB_PICK[dayKey]; const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => { if(!it.wait) all.push(U({ ...it, ch:'HB2' })); }); }); return all; }
+    if(exId === 'jointvid'){ const g = BD.groups.find(x => x.t === JOINT_PICK[dayKey]); return g ? g.items.filter(it => vok(it)).map(it => U({ ...it, ch:'BD' })) : []; }
+    if(exId === 'mobvid'){ const gi = MOB_PICK[dayKey]; const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => { if(vok(it)) all.push(U({ ...it, ch:'HB2' })); }); }); return all; }
     return [];
   }
   // ----- 종목 → 3D 근육 (2026-10-19 상필님: "각 종목 운동 부위를 3D 모델로 · 근육 움직임") -----
@@ -845,7 +845,8 @@
   function m3dBtnHTML(name){ if(!m3dOf(name) && m2dOf(name)) return `<button class="m3d-btn" data-m3d="${esc(name)}" title="그림에서 이 운동이 쓰는 근육 보기">🦴 근육 그림</button>`; return m3dOf(name) ? `<button class="m3d-btn" data-m3d="${esc(name)}" title="3D 모델에서 이 운동이 쓰는 근육 보기">🦴 3D 근육</button>` : ''; }
   function mobVideo(ds, key){
     const gi = MOB_PICK[key];
-    const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => all.push(it)); });
+    const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => { if(vok(it)) all.push(it); }); });
+    if(!all.length) return null;
     const d = Math.floor((new Date(String(ds || '').slice(0, 10) + 'T00:00:00') - new Date('2026-01-04T00:00:00')) / 86400000);
     const it = all[((d * 7) % all.length + all.length) % all.length];   // 7칸씩 건너뛰어 묶음이 섞이게
     return { ...it, url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
@@ -968,10 +969,20 @@
   ] };
   const CH_TAG = { HB:'휴먼밸런스', HB2:'하루 5분', HB3:'라쿠다', BD:'뻔더', MD:'메디쌤' };
   let vidMap = null;
+  // 상필님이 뺀 영상 (index.html 이 log/data.vidHide 로 채운다 · 2026-10-19)
+  const HIDDEN = new Set();
+  function vok(it){ return !it.wait && !HIDDEN.has(it.id); }
+  function setHiddenVids(a){ HIDDEN.clear(); (a || []).forEach(x => HIDDEN.add(x)); vidMap = null; }
+  // 뺀 영상 이름 찾기 (거르지 않고 전부에서)
+  function vidInfo(id){
+    let r = null;
+    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!r && it.id === id) r = { ...it, chName: CH_TAG[k] || '' }; })));
+    return r;
+  }
   function vidLookup(){
     if(vidMap) return vidMap;
     vidMap = new Map();
-    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(!it.wait && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
+    [['HB', HB], ['HB2', HB2], ['HB3', HB3], ['BD', BD], ['MD', MD]].forEach(([k, ch]) => ch.groups.forEach(g => g.items.forEach(it => { if(vok(it) && !vidMap.has(it.id)) vidMap.set(it.id, { ...it, ch:k }); })));
     return vidMap;
   }
   // 종목 묶음 하나의 영상 목록 (없으면 '')
@@ -1029,7 +1040,7 @@
   function missionPool(key){
     if(key === 'bdKnee' || key === 'bdWrist'){
       const g = BD.groups.find(x => x.t === JOINT_PICK[key === 'bdKnee' ? 'legs' : 'chestback']);
-      return g ? g.items.filter(it => !it.wait) : [];
+      return g ? g.items.filter(it => vok(it)) : [];
     }
     const m = vidLookup();
     return (REHAB_VID[key] || []).map(id => m.get(id)).filter(v => v && (!v.gear || v.gear === 'bw'));
@@ -1749,5 +1760,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, m3dOf, m3dBtnHTML, M3D_G, m2dOf, m2dHTML, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, setHiddenVids, vidInfo, m3dOf, m3dBtnHTML, M3D_G, m2dOf, m2dHTML, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

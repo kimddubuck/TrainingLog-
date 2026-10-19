@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=171"></script>
+<script src="exinfo.js?v=172"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -332,7 +332,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   /* 선생님 보기 전용 — 바꾸는 단추는 숨기고 입력칸은 못 누르게 */
   .vo-bar{display:none;}
   body.view-only .vo-bar{display:block;position:sticky;top:0;z-index:50;margin:-4px 0 10px;padding:7px 12px;border-radius:10px;background:var(--accent-b-dim);color:var(--accent-b);font-size:12.5px;font-weight:700;text-align:center;}
-  body.view-only :is(#logoutBtn,#shareReportBtn,#shareFallback,#missionCard,#saveBtn,#addExToggle,#addMasterBtn,#addDailyBtn,#dailyManageBtn,#ibSaveBtn,#planAddBtn,#planAddBtn2,#homeBtn,#waterPlus,#waterMinus,#cupEditBtn,.pe-swap,.del-btn,.tex-remove,.tex-swap,.mdel,.medit,.didel,.diedit,.dioff,.cup-edit,.mx-save,.pc-add){display:none !important;}
+  body.view-only :is(.vid-del,#bdHide,.vh-restore,#logoutBtn,#shareReportBtn,#shareFallback,#missionCard,#saveBtn,#addExToggle,#addMasterBtn,#addDailyBtn,#dailyManageBtn,#ibSaveBtn,#planAddBtn,#planAddBtn2,#homeBtn,#waterPlus,#waterMinus,#cupEditBtn,.pe-swap,.del-btn,.tex-remove,.tex-swap,.mdel,.medit,.didel,.diedit,.dioff,.cup-edit,.mx-save,.pc-add){display:none !important;}
   body.view-only :is(#panel-log,#panel-inbody,#panel-meal) :is(input,textarea,select:not(#ibMetricSelect)){pointer-events:none;opacity:.75;}
   .tabs::-webkit-scrollbar{display:none;}
   .tab{
@@ -422,6 +422,12 @@ if(!window.EXINFO) window.EXINFO = (function(){
   /* 미션 그림 출처는 한 줄로 (누르면 출처가 열린다) */
   .m3d-btn{display:inline-block;margin:4px 0 0 6px;font-size:11.5px;padding:3px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--accent-b);cursor:pointer;vertical-align:middle;}
   .m3d-back{margin-top:8px;font-size:12px;}
+  .vid-del.armed, .today-ex-head .tex-swap.vid-del.armed{width:auto !important;padding:0 8px;font-size:12px;color:#fff !important;background:#C1666B !important;border-color:#C1666B !important;}
+  .bd-del{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;height:26px;min-width:30px;font-size:13px;cursor:pointer;margin-left:auto;}
+  .vh-box{margin:0 0 10px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);font-size:13px;}
+  .vh-box summary{cursor:pointer;font-weight:700;} .vh-dim{color:var(--ink-faint);font-weight:400;font-size:12px;}
+  .vh-row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);}
+  .vh-row a{color:var(--accent-b);text-decoration:none;word-break:keep-all;} .vh-restore{flex:none;font-size:12px;padding:3px 8px;border-radius:7px;border:1px solid var(--border);background:var(--surface-1, #242A2F);color:var(--ink);cursor:pointer;}
   .m3d-btn.on{background:var(--accent-b);color:#1B1F23;border-color:var(--accent-b);}
   .tr-img.m3d-on{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
   .tex-img.m3d-on{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
@@ -1052,7 +1058,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v171</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v172</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1101,6 +1107,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
       <!-- 오늘의 뻔더: 날마다 다른 뻔더 쇼츠 하나 (회원 전용 제외) · 체크 하나 (2026-10-18 상필님) -->
       <div class="mo-one bd-one" id="bdOne">
         <label class="mo-chk"><input type="checkbox" id="bdCheck"><span class="mo-n">🎬 오늘의 뻔더</span><span class="mo-t" id="bdTime"></span></label>
+        <button class="vid-del bd-del" id="bdHide" title="이 영상 빼기 (다시 안 나와요)">🚫</button>
         <a class="bd-link" id="bdLink" href="#" target="_blank" rel="noopener">▶ 영상</a>
       </div>
       <div id="dailyList"></div>
@@ -1843,6 +1850,8 @@ async function loadAllData(){
   // ----- 설정: 물 컵 용량 -----
   if(typeof data.cupMl === 'number' && data.cupMl > 0) CUP_ML = data.cupMl;
   proteinFoods = Array.isArray(data.proteinFoods) ? data.proteinFoods : [];
+  vidHide = Array.isArray(data.vidHide) ? data.vidHide.slice() : [];
+  if(window.EXINFO && EXINFO.setHiddenVids) EXINFO.setHiddenVids(vidHide);
   proteinGoal = (typeof data.proteinGoal === 'number' && data.proteinGoal > 0) ? data.proteinGoal : null;
   philosophy = (typeof data.philosophy === 'string' && data.philosophy.trim()) ? data.philosophy : '';
   renderPhilo();
@@ -2738,6 +2747,7 @@ function candOrder(theme, last){
 // 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
 // 오늘 기록에서 ↻ 로 바꾼 영상 { 종목id: 영상id } — 그날 기록에 vidpick 으로 저장 (2026-10-19)
 let vidPick = {};
+let vidHide = [];   // 🚫 뺀 영상 id — log/data.vidHide (2026-10-19)
 function mobLink(ex, ds, dayKey){
   // 바꾼 영상이 있으면 그것 (오늘 기록 화면의 그 날짜에서만)
   if(ex && vidPick[ex.id] && ds === currentEntryDate() && window.EXINFO && EXINFO.vidPool){
@@ -2755,7 +2765,7 @@ function mobLink(ex, ds, dayKey){
   }
   if(!ex || ex.id !== 'mobvid' || !window.EXINFO || !EXINFO.mobVideo) return '';
   const v = EXINFO.mobVideo(ds, dayKey);
-  return ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.n}</a>`;
+  return v ? ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.n}</a>` : ' · (남은 영상 없음)';
 }
 function orderedRoutine(p, W, opt){
   opt = opt || {};
@@ -3288,7 +3298,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
       renderMeals();
     }
     if(tab.dataset.tab==='body') openBodyTab();
-    if(tab.dataset.tab==='extree') renderExTree();
+    if(tab.dataset.tab==='extree'){ renderExTree(); renderVidHideList(); }
   });
 });
 
@@ -3348,6 +3358,37 @@ async function openBodyTab(){
   });
 }
 // ----- 🦴 3D 근육: 종목이 쓰는 근육을 내 몸 탭 3D 에서 (2026-10-19 상필님) -----
+// ----- 🚫 영상 빼기 / 되살리기 (log/data.vidHide) -----
+async function saveVidHide(){
+  if(saveBlocked()) return false;
+  try{ await docRef.set({ vidHide }, { merge:true }); return true; }
+  catch(e){ console.error('vidHide save failed', e); showToast('⚠️ 저장하지 못했어요 — 다시 눌러 주세요'); return false; }
+}
+async function hideVideo(id, after){
+  if(!id || vidHide.includes(id)) return;
+  vidHide.push(id); EXINFO.setHiddenVids(vidHide);
+  if(after) after();
+  if(await saveVidHide()) showToast('영상을 뺐어요 · 다시 안 나와요 (종목 탭 맨 위에서 되살릴 수 있어요)');
+  renderVidHideList();
+}
+async function unhideVideo(id){
+  vidHide = vidHide.filter(x => x !== id); EXINFO.setHiddenVids(vidHide);
+  if(await saveVidHide()) showToast('영상을 되살렸어요');
+  renderVidHideList();
+  renderTodayExercises(buildEntryFromForm()); renderBd(entryForDate(currentEntryDate()));
+}
+// 종목 탭 맨 위: 뺀 영상 목록 + 되살리기
+function renderVidHideList(){
+  const panel = document.getElementById('panel-extree'); if(!panel) return;
+  let box = document.getElementById('vidHideBox');
+  if(!vidHide.length){ if(box) box.remove(); return; }
+  if(!box){ box = document.createElement('details'); box.id = 'vidHideBox'; box.className = 'vh-box'; panel.insertBefore(box, panel.firstChild); }
+  const open = box.open;
+  box.innerHTML = `<summary>🚫 뺀 영상 ${vidHide.length}개 <span class="vh-dim">· 누르면 목록</span></summary>`
+    + vidHide.map(id => { const v = EXINFO.vidInfo ? EXINFO.vidInfo(id) : null; return `<div class="vh-row"><a href="https://www.youtube.com/${v && v.sh ? 'shorts/' : 'watch?v='}${id}" target="_blank" rel="noopener">${v ? (v.chName ? v.chName + ' · ' : '') + v.n : id}</a><button class="vh-restore" data-unhide="${id}">되살리기</button></div>`; }).join('');
+  box.open = open;
+  box.querySelectorAll('[data-unhide]').forEach(b => b.onclick = () => unhideVideo(b.dataset.unhide));
+}
 // 그 자리에서 바로 (2026-10-19 상필님: 오늘 기록 카드면 사진 오른쪽, 다른 데선 단추 아래). 한 번에 하나만 · 다시 누르면 닫힘
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-m3d]'); if(!b) return;
@@ -3770,7 +3811,7 @@ function renderTodayExercises(existing){
     div.innerHTML = `
       <div class="today-ex-head">
         <span class="tex-name">${ex.name}<span class="tex-type ${isVid ? 'cardio' : t}">${isVid ? '영상' : tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
-        <span class="tex-btns">${isVid && window.EXINFO && EXINFO.vidPool && EXINFO.vidPool(ex.id, WEEK_PLAN[dayOfWeek(currentEntryDate())]).length > 1 ? `<button class="tex-swap" data-vidswap="${ex.id}" title="다른 영상으로">↻</button>` : (swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : '')}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
+        <span class="tex-btns">${isVid && ex.id !== 'lacuda30' ? `<button class="tex-swap vid-del" data-viddel="${ex.id}" title="이 영상 빼기 (다시 안 나와요)">🚫</button>` : ''}${isVid && window.EXINFO && EXINFO.vidPool && EXINFO.vidPool(ex.id, WEEK_PLAN[dayOfWeek(currentEntryDate())]).length > 1 ? `<button class="tex-swap" data-vidswap="${ex.id}" title="다른 영상으로">↻</button>` : (swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : '')}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
       ${isVid ? '' : `<div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(ex.name) : ''}</div>`}
       ${ptTipHtml(ex)}
@@ -3814,6 +3855,16 @@ function renderTodayExercises(existing){
       const snapshot = buildEntryFromForm();
       renderTodayExercises(snapshot);
       autoSave();
+    };
+  });
+  // 🚫 이 영상 빼기 — 두 번 눌러야 빠진다 (실수 방지)
+  list.querySelectorAll('[data-viddel]').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(!btn.classList.contains('armed')){ btn.classList.add('armed'); btn.textContent = '정말 뺄까요?'; setTimeout(() => { btn.classList.remove('armed'); btn.textContent = '🚫'; }, 3000); return; }
+      const exId = btn.dataset.viddel, a = btn.closest('.today-ex').querySelector('.vid-today a');
+      const vid = ((a && a.href.match(/(?:shorts\/|v=)([\w-]{11})/)) || [])[1];
+      if(!vid){ showToast('뺄 영상이 없어요'); return; }
+      hideVideo(vid, () => { if(vidPick[exId] === vid) delete vidPick[exId]; const snap = buildEntryFromForm(); snap.vidpick = Object.keys(vidPick).length ? { ...vidPick } : undefined; renderTodayExercises(snap); autoSave(); });
     };
   });
   list.querySelectorAll('.tex-swap[data-swapex]').forEach(btn=>{
@@ -4578,6 +4629,13 @@ function collectBd(){
   if(!cb || !cb.checked || !a.dataset.id) return undefined;
   return { id: a.dataset.id, n: a.dataset.n || '', t: bdTime || nowHHMM() };
 }
+document.getElementById('bdHide').addEventListener('click', e=>{
+  const btn = e.currentTarget, a = document.getElementById('bdLink');
+  if(!btn.classList.contains('armed')){ btn.classList.add('armed'); btn.textContent = '정말 뺄까요?'; setTimeout(() => { btn.classList.remove('armed'); btn.textContent = '🚫'; }, 3000); return; }
+  btn.classList.remove('armed'); btn.textContent = '🚫';
+  if(document.getElementById('bdCheck').checked){ showToast('본 영상은 뺄 수 없어요 — 체크를 풀고 빼 주세요'); return; }
+  hideVideo(a.dataset.id, () => renderBd(null));
+});
 document.getElementById('bdCheck').addEventListener('change', e=>{
   bdTime = e.target.checked ? nowHHMM() : '';
   document.getElementById('bdOne').classList.toggle('on', e.target.checked);
