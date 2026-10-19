@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=161"></script>
+<script src="exinfo.js?v=162"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -420,6 +420,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   /* 개인운동 날 · PT 받는 날 안내 상자는 숨긴다 — PT 는 이미 알고 있으니 (2026-10-18) */
   #daytypeBanner{display:none;}
   /* 미션 그림 출처는 한 줄로 (누르면 출처가 열린다) */
+  .pk-anim{font-size:12.5px;color:var(--accent-b);margin-bottom:6px;padding:5px 8px;border-radius:8px;background:var(--surface-2);line-height:1.5;} .pk-anim .pk-note{color:var(--ink-faint);font-size:11px;}
   .ms-pic .xi-credit{display:block;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   label.field-label{
     font-size:12px;color:var(--ink-dim);
@@ -1034,7 +1035,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v161</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v162</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -3295,7 +3296,7 @@ async function openBodyTab(){
     if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
     if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
     if(!window.BODY_DATA)  await loadScript('bodydata.js?v=116');
-    if(!window.initBody3D) await loadScript('bodymodel.js?v=161');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=162');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';
@@ -3317,6 +3318,7 @@ function showBodyPick(hit){
     box.innerHTML = `<span class="pk-k ${KIND[0]}">${hit.marker + 1}</span><b>${d.name || ''}</b> <span style="color:var(--ink-faint)">${KIND[1]}</span><br>${d.note || ''}<br><span style="color:var(--ink-faint)">자세한 근육 분석은 위 단추에서 부위를 골라 보세요</span>`;
     return;
   }
+  if(hit.deselect){ box.innerHTML = '고른 근육을 풀었어요 · 근육을 누르면 <b>그 근육만 밝아지고</b> 짧아졌다 길어졌다 움직여요'; return; }
   const a = EXINFO.ANAT && EXINFO.ANAT[hit.part];
   if(hit.nerve != null){
     const nv = a && a.nerves && a.nerves[hit.nerve]; if(!nv) return;
@@ -3327,7 +3329,14 @@ function showBodyPick(hit){
   const m = a && a.muscles.find(x => x.k === hit.k);
   if(!m){ box.textContent = hit.orig || ''; return; }
   const br = t => String(t || '').replace(/\n/g, '<br>');
-  box.innerHTML = `${EXINFO.anatThumbHTML ? EXINFO.anatThumbHTML(hit.part, m, 84) : ''}<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${br(m.where)}<br>${br(m.does)}${EXINFO.anatPlanHTML ? EXINFO.anatPlanHTML(m) : ''}`;
+  // 3D 에서 지금 수축 중인지 늘어나는 중인지 (bodymodel.js body3dSelPhase) — 단순한 그림이라 설명을 붙인다
+  box.innerHTML = `<div class="pk-anim" id="pkAnim">…</div>${EXINFO.anatThumbHTML ? EXINFO.anatThumbHTML(hit.part, m, 84) : ''}<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${br(m.where)}<br>${br(m.does)}${EXINFO.anatPlanHTML ? EXINFO.anatPlanHTML(m) : ''}`;
+  if(!window.__pkAnimTimer) window.__pkAnimTimer = setInterval(()=>{
+    const el = document.getElementById('pkAnim'); if(!el) return;
+    const ph = window.body3dSelPhase ? body3dSelPhase() : null;
+    const T = { contract:'⟶⟵ <b>수축</b> — 짧아지고 두꺼워져요', stretch:'⟵⟶ <b>늘어남</b> — 길어지고 얇아져요', mid:'↔ 사이' };
+    el.innerHTML = ph ? '🎞 3D 이 근육만 밝게 · ' + T[ph] + ' <span class="pk-note">(긴 축으로 늘였다 줄인 그림 · 다시 누르면 멈춤)</span>' : '🎞 근육을 누르면 그 근육만 밝아지고 움직여요';
+  }, 150);
 }
 let bodyRegion = 'all';
 document.querySelectorAll('.body-btn[data-reg]').forEach(b=> b.addEventListener('click', ()=>{
@@ -3338,7 +3347,7 @@ document.querySelectorAll('.body-btn[data-reg]').forEach(b=> b.addEventListener(
   setBodyAutoBtn(bodyRegion === 'all');
   const nb = document.getElementById('bodyNerveBtn'); nb.disabled = !r; nb.classList.remove('on'); nb.textContent = '⚡ 신경 보기';
   document.getElementById('bodyLegend').innerHTML = r
-    ? '<span><i class="r"></i>풀고 늘리기</span><span><i class="g"></i>깨우기</span><span><i class="p"></i>조심</span><span><i class="n"></i>신경</span><span class="lg-note">근육을 누르면 설명</span>'
+    ? '<span><i class="r"></i>풀고 늘리기</span><span><i class="g"></i>깨우기</span><span><i class="p"></i>조심</span><span><i class="n"></i>신경</span><span class="lg-note">근육을 누르면 그것만 밝게 · 움직임 · 설명</span>'
     : '<span><i class="pain"></i>지금 아픈 곳</span><span><i class="rel"></i>풀어줄 곳</span><span><i class="str"></i>힘 기를 곳</span><span class="lg-note">공을 누르면 메모</span>';
   const box = document.getElementById('bodyPick');
   if(r){ const a = EXINFO.ANAT && EXINFO.ANAT[bodyRegion]; box.innerHTML = `<b>${r.name}</b> — 근육 ${r.count}개예요. 근육을 누르면 설명이 나와요.${a ? '<br><br>💡 ' + String(a.link).replace(/\n/g, '<br>') : ''}`; }

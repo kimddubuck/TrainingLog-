@@ -312,6 +312,55 @@
     const dimBone = new THREE.MeshStandardMaterial({ color:0xBFC5CC, transparent:true, opacity:0.18, depthWrite:false });
     const dimMus  = new THREE.MeshStandardMaterial({ color:0x6E7B86, transparent:true, opacity:0.12, depthWrite:false });
     let region = null, regionMeshes = [], pickHL = [], pickT = 0, labelSprites = [];
+    // ----- 근육 하나 고르기 (2026-10-19 상필님: "누르면 어디 근육인지 구분되게 · 늘어나고 수축되는 것도") -----
+    // 고른 근육만 밝게, 나머지는 흐리게, 이름표는 그것만 크게. 그리고 근육의 긴 축을 따라 짧아졌다(수축 · 두꺼워짐) 길어졌다(늘어남 · 얇아짐) 한다.
+    // ※ 단순한 그림이다 — 긴 축 방향으로 늘였다 줄이는 것뿐, 실제 힘줄·뼈 움직임까지 흉내 내진 않는다
+    let sel = null;
+    const _mBodyInv = new THREE.Matrix4(), _mS = new THREE.Matrix4(), _mSc = new THREE.Matrix4(), _mT1 = new THREE.Matrix4(), _mT2 = new THREE.Matrix4();
+    function longAxis(meshes, bodyInv){
+      // 꼭짓점을 몸 기준 좌표로 모아 가장 긴 방향(주축)을 구한다 — 공분산 행렬 + 거듭제곱 반복
+      const pts = [], v = new THREE.Vector3();
+      meshes.forEach(m => { const pos = m.geometry.attributes.position; const step = Math.max(1, Math.floor(pos.count / 400)); for(let i = 0; i < pos.count; i += step){ v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld).applyMatrix4(bodyInv); pts.push(v.clone()); } });
+      const c = new THREE.Vector3(); pts.forEach(p => c.add(p)); c.divideScalar(pts.length || 1);
+      let xx = 0, xy = 0, xz = 0, yy = 0, yz = 0, zz = 0;
+      pts.forEach(p => { const x = p.x - c.x, y = p.y - c.y, z = p.z - c.z; xx += x * x; xy += x * y; xz += x * z; yy += y * y; yz += y * z; zz += z * z; });
+      let a = new THREE.Vector3(0, 1, 0);
+      for(let i = 0; i < 40; i++){ const n = new THREE.Vector3(xx * a.x + xy * a.y + xz * a.z, xy * a.x + yy * a.y + yz * a.z, xz * a.x + yz * a.y + zz * a.z); if(n.lengthSq() < 1e-14) break; a = n.normalize(); }
+      return { c, a };
+    }
+    function clearSel(){
+      if(!sel) return;
+      sel.items.forEach(it => { it.m.matrix.copy(it.M0); it.m.matrixAutoUpdate = true; });
+      regionMeshes.forEach(m => { m.material.transparent = !!nerveOn; m.material.opacity = nerveOn ? 0.45 : 1; m.material.emissiveIntensity = 0.18; m.material.needsUpdate = true; });
+      labelSprites.forEach(sp => { sp.visible = true; if(sp.userData.s0){ sp.scale.copy(sp.userData.s0); sp.position.copy(sp.userData.c); } });
+      sel = null;
+    }
+    function selectK(k){
+      clearSel();
+      const ms = regionMeshes.filter(m => m.userData.anatK === k); if(!ms.length) return;
+      body.updateMatrixWorld(true);
+      const bodyInv = _mBodyInv.copy(body.matrixWorld).invert();
+      const { c, a } = longAxis(ms, bodyInv);
+      // 각 덩어리: 몸 기준 부모 행렬 P 와 원래 local 행렬 M0 — 움직일 땐 local = P⁻¹ · S · P · M0
+      const items = ms.map(m => { const P = new THREE.Matrix4().multiplyMatrices(bodyInv, m.parent.matrixWorld); return { m, M0: m.matrix.clone(), P, Pinv: P.clone().invert() }; });
+      // 긴 축 a 를 x 로 보내는 회전 R (열 = a 와 수직 두 방향)
+      const b = Math.abs(a.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+      const u = new THREE.Vector3().crossVectors(a, b).normalize(), w = new THREE.Vector3().crossVectors(a, u).normalize();
+      const R = new THREE.Matrix4().makeBasis(a, u, w), Rt = R.clone().transpose();
+      sel = { k, items, c, R, Rt, t:0, phase:'mid' };
+      regionMeshes.forEach(m => { const on = m.userData.anatK === k; m.material.transparent = !on || !!nerveOn; m.material.opacity = on ? (nerveOn ? 0.45 : 1) : 0.22; m.material.emissiveIntensity = on ? 0.45 : 0.05; m.material.needsUpdate = true; });
+      labelSprites.forEach(sp => { const on = sp.userData.k === k; sp.visible = on; if(on && sp.userData.s0){ sp.scale.copy(sp.userData.s0).multiplyScalar(1.5); sp.position.set(sp.userData.c.x, sp.userData.top + 0.035, sp.userData.c.z); } });
+    }
+    function animSel(dt){
+      sel.t += dt;
+      const p = Math.sin(sel.t * 1.6);                                 // +1 수축 … -1 늘어남 (약 4초에 한 바퀴)
+      const along = 1 - 0.22 * p, across = 1 / Math.sqrt(along);      // 짧아지면 두꺼워지고 길어지면 얇아진다 (부피 비슷하게)
+      _mS.copy(_mT1.makeTranslation(sel.c.x, sel.c.y, sel.c.z)).multiply(sel.R).multiply(_mSc.makeScale(along, across, across)).multiply(sel.Rt).multiply(_mT2.makeTranslation(-sel.c.x, -sel.c.y, -sel.c.z));
+      sel.items.forEach(it => { it.m.matrixAutoUpdate = false; it.m.matrix.copy(it.Pinv).multiply(_mS).multiply(it.P).multiply(it.M0); });
+      sel.phase = p > 0.3 ? 'contract' : (p < -0.3 ? 'stretch' : 'mid');
+    }
+    window.body3dSelect = function(k){ if(k == null) clearSel(); else selectK(k); return !!sel; };
+    window.body3dSelPhase = () => sel ? sel.phase : null;
     // 부위마다 근육 덩어리 중심(회전 전에 잰다)
     const regionBox = {};
     Object.keys(REGIONS).forEach(k => {
@@ -342,7 +391,7 @@
     window.body3dNerves = async function(on){
       nerveOn = !!on;
       nerveMeshes.forEach(m => { m.visible = false; }); nerveMeshes = []; nervePick = [];
-      regionMeshes.forEach(m => { m.material.transparent = !!nerveOn; m.material.opacity = nerveOn ? 0.45 : 1; m.material.needsUpdate = true; });
+      regionMeshes.forEach(m => { const on = !sel || m.userData.anatK === sel.k; m.material.transparent = !!nerveOn || !on; m.material.opacity = on ? (nerveOn ? 0.45 : 1) : 0.22; m.material.needsUpdate = true; });
       if(!nerveOn || !region) return { on:false, count:0 };
       const anat = (window.EXINFO && EXINFO.ANAT && EXINFO.ANAT[region]) || {};
       const list = anat.nerves || []; if(!list.length) return { on:false, count:0 };
@@ -354,7 +403,7 @@
       return { on:true, count:list.length };
     };
     window.body3dRegion = function(key){
-      pickHL = []; region = REGIONS[key] ? key : null;
+      clearSel(); pickHL = []; region = REGIONS[key] ? key : null;
       labelSprites.forEach(sp => body.remove(sp)); labelSprites = [];
       if(!region){
         restoreAll(); markers.forEach(s => s.visible = true); lines.visible = linesOn;
@@ -386,6 +435,7 @@
         const c = bx.getCenter(new THREE.Vector3());
         const sp = textSprite((info.s || info.n), '#' + new THREE.Color(TCOL[info.t] || TCOL.r).getHexString());
         sp.scale.multiplyScalar(0.55); sp.center.set(0.5, 0.5); sp.position.copy(c); sp.renderOrder = 21;
+        sp.userData.k = +k; sp.userData.c = c.clone(); sp.userData.top = bx.max.y; sp.userData.s0 = sp.scale.clone();   // 고르기에서 그것만 크게 올리려고
         body.add(sp); labelSprites.push(sp);
       });
       nerveOn = false; nerveMeshes.forEach(m => { m.visible = false; }); nerveMeshes = []; nervePick = [];
@@ -411,9 +461,11 @@
       if(!regionMeshes.length) return null;
       const hitN = nervePick.length ? ray.intersectObjects(nervePick, false)[0] : null;   // 신경이 켜져 있으면 신경 먼저 (근육 속에 묻혀 있어서)
       const hit = hitN || ray.intersectObjects(regionMeshes, false)[0];
-      if(!hit) return null;
+      if(!hit){ if(sel){ clearSel(); return { part: region, deselect:true }; } return null; }   // 빈 데를 누르면 고른 것 풀기
       if(hit.object.userData.nerveIdx != null) return { part: region, nerve: hit.object.userData.nerveIdx, orig: hit.object.userData.orig };
-      const k = hit.object.userData.anatK; window.body3dHighlight(k);
+      const k = hit.object.userData.anatK;
+      if(sel && sel.k === k){ clearSel(); return { part: region, k, orig: hit.object.userData.orig, deselect:true }; }   // 같은 근육 다시 누르면 풀기
+      selectK(k);
       return { part: region, k, orig: hit.object.userData.orig };
     }
 
@@ -461,11 +513,12 @@
       if(!markers.__snapped){ markers.__snapped = true; snapMarkers(); }
       // 표시점이 몸 뒤편(지금 안 보이는 쪽)에 있으면 흐리게 — 앞에서 볼 때 등 쪽 점이 앞에 떠 보이지 않게 (2026-10-19)
       markers.forEach(mk => { if(!mk.__nrm || !mk.visible) return; const wp = mk.getWorldPosition(_v); const wn = _n.copy(mk.__nrm).applyQuaternion(body.quaternion); mk.material.opacity = wn.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : 0.22; });
+      if(sel) animSel(dt);
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
     window.addEventListener('resize', ()=>{ const w = mount.clientWidth || W, h = Math.max(380, Math.round(w * 1.15)); renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); });
-    window.__body3d = { scene, body, J, REG, markers, regionBox, cam, camera };   // 확인용
+    window.__body3d = { scene, body, J, REG, markers, regionBox, cam, camera, animSel, selState: () => sel };   // 확인용
   };
 })();
