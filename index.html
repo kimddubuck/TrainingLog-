@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=176"></script>
+<script src="exinfo.js?v=177"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1066,7 +1066,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v176</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v177</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1532,7 +1532,7 @@ const DEFAULT_MASTER = [
   {id:'fx-latstr',   name:'광배근 스트레칭 (짐볼·벤치)', part:'등·겨드랑이', type:'bodyweight'},
   {id:'fx-deadbug',  name:'데드버그',                  part:'코어',      type:'bodyweight'},
   {id:'fx-childpose',name:'아기 자세 (차일드 포즈)',     part:'허리',      type:'bodyweight'},
-  {id:'fx-warmlow',  name:'내 몸풀기 (하체부터 · WGS · 점프)', part:'전신',   type:'bodyweight'},
+  {id:'fx-warmlow',  name:'내 몸풀기 (강의 8가지 · 하체부터 → 점프)', part:'전신',   type:'bodyweight'},
   // 부위별 재활 4단계(어깨·허리·무릎)에 필요한 동작
   {id:'fx-chest',    name:'문틀 가슴 스트레칭',         part:'가슴 앞',   type:'bodyweight'},
   {id:'fx-lowtrap',  name:'승모근 아래 깨우기 (손바닥 뒤로 내리기)', part:'등·어깨 뒤', type:'bodyweight'},
@@ -1834,7 +1834,8 @@ async function loadAllData(){
   //       이걸 덮어쓰면 기본 라이브러리를 고쳐도 앱에 반영되지 않는다.
   // 선생님 이름이 헷갈리는 것은 여기서 바로잡는다 (번호는 그대로)
   const RENAME = { '커틀벨': { name:'케틀벨 스윙', part:'엉덩이·뒷벅지' },
-                   '하체부터몸풀기(강의8가지)': { name:'내 몸풀기 (하체부터 · WGS · 점프)' } };   // v100: WGS 를 몸풀기 안으로 합침
+                   '하체부터몸풀기(강의8가지)': { name:'내 몸풀기 (강의 8가지 · 하체부터 → 점프)' },
+                   '내몸풀기(하체부터·WGS·점프)': { name:'내 몸풀기 (강의 8가지 · 하체부터 → 점프)' } };   // v177: 강의 원래 8가지로 되돌림 (WGS 뺌 · 시간으로)
   (Array.isArray(data.masterExercises)?data.masterExercises:[]).forEach(e=>{
     const rn = RENAME[(e.name||'').replace(/\s+/g,'')];
     if(rn){ e = { ...e, ...rn }; }
@@ -2421,8 +2422,8 @@ const RECOVERY_ROUTINE = [
 // WGS 가 강의의 런지·허리 돌리기 자리를 대신하므로 WGS 따로 하던 2세트는 뺐다 (2026-10-17 상필님: 합치자)
 const WARMUP = { kind:'free', routine:[
   // 2026-10-18 설계도(상필님): 공통 몸풀기는 내 몸풀기 하나 — 하체부터 상체로 순환. PT 날엔 안 붙인다
-  { why:'🔥 열 내기 — 몸풀기: 하체(고관절)부터 → WGS → 점프 10번으로 순환 (강의 틀 + 내 WGS)', sets:1, reps:'약 4분', label:'약 4분 · 7가지 정해진 횟수',
-    options:['내 몸풀기 (하체부터 · WGS · 점프)'] },
+  { why:'🔥 열 내기 — 몸풀기: 강의 8가지 · 하체(고관절)부터 → 마지막 점프로 순환 (동작마다 시간)', sets:1, reps:'약 3분', label:'약 3분 · 8가지 · 시간으로',
+    options:['내 몸풀기 (강의 8가지 · 하체부터 → 점프)'] },
 ]};
 
 const PLAN = {
@@ -3738,7 +3739,7 @@ function ptTipHtml(ex){
   if(t) return `<div class="pt-tip">💬 ${t}</div>`;
   // 교정운동이면 무엇을 바로잡는지 + 하는 법 (출처는 종목·원리 탭)
   const f = window.EXINFO && EXINFO.fixTip(ex && ex.name);
-  return f ? `<div class="pt-tip fix-tip">🧩 <b>${f.for}</b> · ${f.how}</div>` : '';
+  return f ? `<div class="pt-tip fix-tip">🧩 <b>${f.for}</b>${/\n/.test(f.how) ? '<br>' : ' · '}${String(f.how).replace(/\n/g, '<br>')}</div>` : '';
 }
 
 function renderSearchResults(query){
