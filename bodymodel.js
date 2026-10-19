@@ -387,19 +387,39 @@
     }
     // ----- 종목 보기: 그 운동이 쓰는 근육 묶음들만 밝히고 움직인다 (index.html 🦴 3D 근육 단추) -----
     // list = [{ n:'대퇴사두근', m:[모델 근육 이름…], v:'front'|'back'|'side' }], mode = 'work' | 'stretch'
-    const EX_COL = [0xE8A33D, 0x4FA8C9, 0x5CC08A, 0xE36F8E];
+    const EX_COL = [0xE8A33D, 0x4FA8C9, 0x5CC08A, 0xE36F8E, 0xB58CE0, 0xD9C24A];
+    // 팔 근육 (models/arm-right.glb · 878KB) — 팔 종목을 처음 열 때만 받는다. 뼈대 팔이 올라간 만큼(자세) 같이 옮긴다
+    let armMeshes = [], armLoading = null;
+    function loadArm(){
+      if(armLoading) return armLoading;
+      armLoading = (async () => {
+        status('팔 근육 불러오는 중…');
+        try{
+          const g = await loadGLB(loader, base + 'arm-right.glb'); tagNames(g);
+          const grp = new THREE.Group(); grp.add(g.scene);
+          grp.position.set(0, F.shoulderRightUp * 0.004 * POSE, F.roundShoulder * 0.005 * POSE);   // pose() 의 어깨·팔 올림과 같은 양
+          midAndRight.add(grp);
+          armMeshes = meshesOf(grp); armMeshes.forEach(m => { m.visible = false; });
+        }catch(e){ console.warn('arm model', e); }
+        status('');
+      })();
+      return armLoading;
+    }
     const EX_HIDE = ['pectoralismajor.r', 'deltoidmuscle.r', 'trapeziusmuscle.r'];   // 어깨 모델의 "전체" 덩어리 (부분 덩어리와 겹친다)
-    window.body3dShowEx = function(list, mode){
+    window.body3dShowEx = async function(list, mode){
+      if((list || []).some(g => g.arm)) await loadArm();
       window.body3dRegion(null);
       region = '__ex';
       boneMeshes.forEach(m => { m.material = dimBone; m.visible = true; });
       legMuscleMeshes.forEach(m => { m.material = dimMus; m.visible = !EX_HIDE.includes(norm(m.userData.orig)); delete m.userData.anatK; });
+      armMeshes.forEach(m => { m.material = dimMus; m.visible = true; delete m.userData.anatK; });
       mirrorMeshes.forEach(m => { m.visible = false; });
       markers.forEach(s => s.visible = false); lines.visible = false;
       regionMeshes = [];
+      const pool = legMuscleMeshes.concat(armMeshes);
       const groups = [], all = new THREE.Box3();
       (list || []).forEach((g, gi) => {
-        const ms = legMuscleMeshes.filter(m => (g.m || []).includes(norm(m.userData.orig))); if(!ms.length) return;
+        const ms = pool.filter(m => (g.m || []).includes(norm(m.userData.orig))); if(!ms.length) return;
         const col = new THREE.Color(EX_COL[gi % EX_COL.length]);
         ms.forEach(m => { m.material = new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.4, roughness:0.6 }); m.userData.anatK = 100 + gi; regionMeshes.push(m); all.expandByObject(m); });
         const sp = textSprite(g.n, '#' + col.getHexString());
@@ -426,6 +446,7 @@
     });
     function restoreAll(){
       [].concat(boneMeshes, legMuscleMeshes).forEach(m => { m.material = origMat.get(m); m.visible = true; delete m.userData.anatK; });
+      armMeshes.forEach(m => { m.visible = false; delete m.userData.anatK; });   // 팔 근육은 종목 보기에서만
       mirrorMeshes.forEach(m => { m.visible = true; });
       nerveOn = false; nerveMeshes.forEach(m => { m.visible = false; }); nervePick = [];
     }

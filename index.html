@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=168"></script>
+<script src="exinfo.js?v=169"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -423,6 +423,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .m3d-btn{display:inline-block;margin:4px 0 0 6px;font-size:11.5px;padding:3px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--accent-b);cursor:pointer;vertical-align:middle;}
   .m3d-back{margin-top:8px;font-size:12px;}
   .m3d-btn.on{background:var(--accent-b);color:#1B1F23;border-color:var(--accent-b);}
+  .tr-img.m3d-on{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
   .tex-img.m3d-on{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
   .m3d-inline{flex:1 1 220px;min-width:200px;margin-top:4px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);overflow:hidden;}
   .m3d-view{height:230px;position:relative;} .m3d-view canvas{display:block;}
@@ -1043,7 +1044,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v168</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v169</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -3324,7 +3325,7 @@ async function openBodyTab(){
     if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
     if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
     if(!window.BODY_DATA)  await loadScript('bodydata.js?v=116');
-    if(!window.initBody3D) await loadScript('bodymodel.js?v=168');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=169');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';
@@ -3350,26 +3351,29 @@ document.addEventListener('click', async e => {
   if(same) return;
   const wrap = document.createElement('div'); wrap.className = 'm3d-inline'; wrap.__btn = b;
   wrap.innerHTML = '<div class="m3d-view"><div class="m3d-wait">3D 불러오는 중…</div></div><div class="m3d-cap"></div>';
-  const host = b.closest('.tex-img');
+  const host = b.closest('.tex-img, .tr-img');
   if(host){ host.classList.add('m3d-on'); host.appendChild(wrap); } else b.insertAdjacentElement('afterend', wrap);
   b.classList.add('on');
   if(!bodyTabReady) openBodyTab();
   for(let i = 0; i < 160 && !(window.body3dShowEx && window.body3dMount && window.__body3d); i++) await new Promise(r => setTimeout(r, 250));
-  if(!wrap.isConnected) return;
+  if(!wrap.isConnected){ const nb = [...document.querySelectorAll("[data-m3d]")].find(x => x.dataset.m3d === name && x.offsetParent); if(nb && !document.querySelector(".m3d-inline")) nb.click(); return; }
   if(!window.body3dMount){ wrap.querySelector('.m3d-wait').textContent = '3D 모델을 불러오지 못했어요'; return; }
-  const r = body3dShowEx(spec.groups, spec.mode);
+  if(spec.groups.some(g => g.arm)) wrap.querySelector('.m3d-wait').textContent = '팔 근육 불러오는 중…';
+  const r = await body3dShowEx(spec.groups, spec.mode);
+  // 받는 동안 카드가 다시 그려졌으면 새 단추에서 한 번 더 (팔 모델은 이미 받아 둬서 바로 뜬다)
+  if(!wrap.isConnected){ const nb = [...document.querySelectorAll("[data-m3d]")].find(x => x.dataset.m3d === name && x.offsetParent); if(nb && !document.querySelector(".m3d-inline")) nb.click(); return; }
   const view = wrap.querySelector('.m3d-view'); view.innerHTML = ''; body3dMount(view);
-  const COL = ['#E8A33D', '#4FA8C9', '#5CC08A', '#E36F8E'];
-  const chips = spec.groups.map((g, i) => `<b style="color:${COL[i % 4]}">${g.n}</b>`).join(' · ');
+  const COL = ['#E8A33D', '#4FA8C9', '#5CC08A', '#E36F8E', '#B58CE0', '#D9C24A'];
+  const chips = spec.groups.map((g, i) => `<b style="color:${COL[i % 6]}">${g.n}</b>`).join(' · ');
   wrap.querySelector('.m3d-cap').innerHTML = `${spec.mode === 'stretch' ? '늘어나는 근육' : (spec.mode === 'release' ? '푸는 근육' : '주로 쓰는 근육')}: ${chips}<div class="pk-anim pk-live"></div>`
-    + `<span class="pk-note">옆으로 밀면 돌아가요 · 3D 모델엔 오른쪽 다리·어깨 둘레 근육만 있어요 (팔·복근·허리 세움근 없음) · 주동근 기준</span>`
+    + `<span class="pk-note">옆으로 밀면 돌아가요 · 3D 모델은 오른쪽 팔·다리·어깨 근육이에요 (복근·허리 세움근은 없어요) · 주로 쓰는 근육(주동근) 기준</span>`
     + (r ? '' : '<br>이 근육은 3D 모델에 없어요');
   if(!window.__pkAnimTimer) startPkAnim();
 }, true);
 function closeM3dInline(){
   const w = document.querySelector('.m3d-inline'); if(!w) return;
   if(w.__btn) w.__btn.classList.remove('on');
-  const h = w.closest('.tex-img'); if(h) h.classList.remove('m3d-on');
+  const h = w.closest('.tex-img, .tr-img'); if(h) h.classList.remove('m3d-on');
   if(window.body3dUnmount){ body3dUnmount(); body3dRegion(null); document.querySelectorAll('.body-btn[data-reg]').forEach(x => x.classList.toggle('on', x.dataset.reg === 'all')); }
   w.remove();
 }

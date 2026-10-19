@@ -8,3 +8,4 @@
   - 라이선스: Creative Commons Attribution-ShareAlike 4.0 — 출처를 적고, 바꿔 쓴 것도 같은 조건으로 공개
 
 앱의 "내 몸" 탭 아래에도 출처를 적어 두었다.
+- arm-right.glb: **Open3DModel** upper-limb-glb.zip (caskanatomy.info, 2025-07) 의 upper-limb.glb 에서 "Arm - muscles" · "Forearm - muscles" 묶음만 남긴 것 (2026-10-19, 878KB), CC BY-SA 4.0 — 종목 3D 보기에서 팔 종목일 때만 받음

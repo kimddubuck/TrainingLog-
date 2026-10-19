@@ -386,7 +386,7 @@
                    + (w && wk ? `<span class="tr-b w" style="--wk:${wk.color}">${w.key}</span>` : '');
       return `<details class="tr-leaf"><summary><span class="tr-ln">${esc(x.name)}</span>${badges}${roleTag(r)}</summary>
         <div class="tr-detail">
-          <div class="tr-img">${imgHTML(x.name, 64)}</div>
+          <div class="tr-img">${imgHTML(x.name, 64)}${m3dBtnHTML(x.name)}</div>
           ${r ? `<div class="tr-row">🎯 <b>${esc(r.muscles)}</b> · ${esc(r.role)} · ${esc(r.joint)}<br><span class="tr-dim">${esc(r.note)}</span></div>` : ''}
           ${x.tip ? `<div class="tr-row tr-tip">💬 쌤: ${esc(x.tip)}</div>` : ''}
           ${f ? `<div class="tr-row tr-fix">🧩 <b>${esc(f.for)}</b><br>${esc(f.how)}</div>` : ''}
@@ -727,10 +727,30 @@
     LS: { n:'어깨올림근', v:'back', m:['levatorscapulae.r'] },
     PM: { n:'작은가슴근', v:'front', m:['pectoralisminormuscle.r'] },
     FT: { n:'발바닥', v:'back', m:['plantaraponeurosis.r','abductorhallucis.r','flexordigitorumbrevis.r'] },
+    // 팔 (models/arm-right.glb — 팔 종목을 열 때만 받는다)
+    BI: { n:'이두근', v:'front', arm:true, m:['longheadofbicepsbrachii.r','shortheadofbicepsbrachii.r'] },
+    BR: { n:'상완근', v:'front', arm:true, m:['brachialismuscle.r'] },
+    BRR:{ n:'상완요골근', v:'side', arm:true, m:['brachioradialismuscle.r'] },
+    TRI:{ n:'삼두근', v:'back', arm:true, m:['longheadoftricepsbrachii.r','lateralheadoftricepsbrachii.r','medialheadoftricepsbrachii.r'] },
+    FF: { n:'손목 굽힘근', v:'front', arm:true, m:['flexorcarpiradialis.r','palmarislongusmuscle.r','humeralheadofflexorcarpiulnaris.r','ulnarheadofflexorcarpiulnaris.r','flexordigitorumsuperficialishumeroulnarhead.r','flexordigitorumsuperficialisradialhead.r'] },
   };
   // 위에서부터 처음 맞는 줄. s = 스트레칭(늘어나는 근육) · r = 풀기(공·폼롤러로 누르는 곳 · 움직임 없음)
   const M3D_RULES = [
-    [/슬로우|조깅|러닝|걷기|수영|자전거|등산|줄넘기|데드버그|코브라|슈퍼맨|플랭크|크런치|싯업|레그\s*레이즈|버피|마운틴|점핑잭/, null],   // 유산소·코어·허리 — 모델에 없거나 전신
+    // 복근·허리 세움근·목 깊은 근육·호흡 — 3D 모델에 없음
+    [/데드버그|코브라|슈퍼맨|플랭크|크런치|바디컨트롤|턱\s*당기기|악어호흡|디스크|흉추|그라운드|RMT\s*로프|책\s*위|내\s*몸풀기/, null],
+    // 유산소 — 주로 쓰는 다리·등 근육
+    [/수트케이스|캐리/, ['GM','TU','FF']],
+    [/로잉/, ['LAT','Q','H','BI']],
+    [/수영/, ['LAT','PEC','DF']],
+    [/자전거|사이클/, ['Q','G','CA']],
+    [/스텝밀|천국의\s*계단|등산/, ['Q','G','CA']],
+    [/줄넘기|점핑잭/, ['CA','Q']],
+    [/슬로우|조깅|러닝|일립티컬|걷기/, ['Q','H','G','CA']],
+    [/싯업|레그\s*레이즈/, ['IP','RF']],                 // 복근은 모델에 없음 — 다리 들어 올리는 고관절 굽힘근
+    [/마운틴/, ['IP','Q','DF']],
+    [/버피/, ['Q','G','PEC','DF']],
+    [/WGS/, ['IP','H','AD'], 's'],
+    [/아기\s*자세|차일드/, ['LAT','G'], 's'],
     [/폼롤러\s*광배근/, ['LAT'], 'r'],
     [/마사지볼.*종아리/, ['CA','TA'], 'r'],
     [/마사지볼.*(골반|허벅지\s*앞)/, ['TFL','Q','G'], 'r'],
@@ -746,7 +766,9 @@
     [/가슴\s*스트레칭/, ['PEC','DF'], 's'],
     [/광배근\s*스트레칭/, ['LAT'], 's'],
     [/승모근\s*스트레칭|목\s*옆\s*늘리기/, ['TU','LS'], 's'],
-    [/트라이셉스|오버헤드\s*익스텐션|푸쉬다운|푸시다운|킥백|(바벨|덤벨|해머|케이블|이두|프리처|컨센트레이션|EZ)\s*컬|해머컬/, null],          // 팔 근육 — 모델에 없음
+    [/해머\s*컬/, ['BR','BRR','BI']],
+    [/(바벨|덤벨|케이블|이두|프리처|컨센트레이션|EZ)\s*컬/, ['BI','BR']],
+    [/트라이셉스|오버헤드\s*익스텐션|푸쉬다운|푸시다운|킥백/, ['TRI']],
     [/레그\s*익스텐션/, ['Q']],
     [/레그\s*컬|레그컬|노르딕|노드릭/, ['H']],
     [/카프/, ['CA']],
@@ -761,12 +783,14 @@
     [/^W\s*레이즈/, ['RC','TM']],
     [/월\s*슬라이드/, ['SA','TM']],
     [/스쿼트|레그\s*프레스|런지|스플릿|스텝\s*업|핵/, ['Q','G','AD']],
-    [/벤치|체스트\s*프레스|푸쉬\s*업|푸시\s*업|딥스|펙덱|플라이(?!.*(리어|후면|리버스))|크로스\s*오버|인클라인|덤벨\s*프레스/, ['PEC','DF']],
+    [/딥스/, ['PEC','TRI','DF']],
+    [/벤치|체스트\s*프레스|푸쉬\s*업|푸시\s*업|인클라인|덤벨\s*프레스/, ['PEC','DF','TRI']],
+    [/펙덱|플라이(?!.*(리어|후면|리버스))|크로스\s*오버/, ['PEC','DF']],
     [/레터럴|사이드\s*레이즈|업라이트/, ['DS','TU']],
-    [/숄더\s*프레스|오버헤드|밀리터리|시소/, ['DF','DS']],
+    [/숄더\s*프레스|오버헤드|밀리터리|시소/, ['DF','DS','TRI']],
     [/프론트\s*레이즈/, ['DF']],
-    [/풀\s*업|친\s*업|풀다운|랫|턱걸이/, ['LAT','RH','TM']],
-    [/로우/, ['LAT','RH','TM','DR']],
+    [/풀\s*업|친\s*업|풀다운|랫|턱걸이/, ['LAT','RH','TM','BI']],
+    [/로우/, ['LAT','RH','TM','DR','BI']],
     [/슈러그/, ['TU','LS']],
     [/암바/, ['RC','SA']],
     [/겟업/, ['DS','RC','G']],
