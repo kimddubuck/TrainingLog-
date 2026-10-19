@@ -800,7 +800,49 @@
     for(const [re, keys, mode] of M3D_RULES){ if(re.test(n)) return keys ? { mode: mode === 's' ? 'stretch' : (mode === 'r' ? 'release' : 'work'), groups: keys.map(k => ({ key:k, ...M3D_G[k] })) } : null; }
     return null;
   }
-  function m3dBtnHTML(name){ return m3dOf(name) ? `<button class="m3d-btn" data-m3d="${esc(name)}" title="3D 모델에서 이 운동이 쓰는 근육 보기">🦴 3D 근육</button>` : ''; }
+  // ----- 3D 모델에 없는 근육(복근·허리 세움근·목 깊은 근육) = 2D 해부 그림에 점과 이름 (2026-10-19 상필님 "2D 그림으로") -----
+  // 그림: img/anat (CREDITS.md) — 점 자리는 그림 속 이름표가 가리키는 곳을 % 로 (가로 x · 세로 y), crop = 보여 줄 세로 범위 %
+  const M2D_IMG = {
+    abd:  { f:'img/anat/abdomen.jpg', w:852, h:1100, by:'OpenStax 해부생리학 · CC BY 4.0' },
+    back: { f:'img/anat/neck-back.jpg', w:947, h:1100, by:'OpenStax 해부생리학 · CC BY 4.0' },
+    lc:   { f:'img/anat/longus-colli.jpg', w:443, h:600, by:"Gray's Anatomy · 퍼블릭 도메인" },
+  };
+  const M2D_G = {
+    RA:  { n:'복직근', img:'abd', x:35, y:27, crop:[0, 44] },
+    EO:  { n:'배 바깥 빗근', img:'abd', x:48, y:17, crop:[0, 44], l:true },   // 이름을 왼쪽에 (복횡근 이름과 겹치지 않게)
+    TA:  { n:'복횡근 (깊은 코어)', img:'abd', x:85, y:20, crop:[0, 44] },
+    QL:  { n:'허리네모근', img:'abd', x:35, y:57, crop:[44, 100] },
+    ES:  { n:'척추세움근', img:'back', x:42, y:64, crop:[33, 93] },
+    DNF: { n:'목 깊은 굽힘근', img:'lc', x:57, y:55, crop:[0, 100] },
+  };
+  const M2D_RULES = [
+    [/플랭크/, ['RA','TA','EO']],
+    [/크런치/, ['RA']],
+    [/데드버그|바디컨트롤/, ['TA','RA']],
+    [/슈퍼맨/, ['ES']],
+    [/코브라/, ['RA'], 's'],
+    [/디스크|젖히기/, ['ES']],
+    [/흉추|등\s*펴기/, ['ES'], 'r'],
+    [/턱\s*당기기/, ['DNF']],
+  ];
+  function m2dOf(name){
+    const n = String(name || '');
+    for(const [re, keys, mode] of M2D_RULES){ if(re.test(n)) return { two:true, mode: mode === 's' ? 'stretch' : (mode === 'r' ? 'release' : 'work'), groups: keys.map(k => ({ key:k, ...M2D_G[k] })) }; }
+    return null;
+  }
+  // 그림 한 장마다 잘라서 보여 주고, 근육 자리에 점 + 바로 옆에 이름
+  function m2dHTML(spec){
+    const COL = ['#E8A33D', '#4FA8C9', '#5CC08A', '#E36F8E'];
+    const byImg = {};
+    spec.groups.forEach((g, i) => { (byImg[g.img] = byImg[g.img] || []).push({ ...g, col: COL[i % 4] }); });
+    return Object.keys(byImg).map(k => {
+      const im = M2D_IMG[k], L = byImg[k];
+      const c0 = Math.min(...L.map(g => g.crop[0])), c1 = Math.max(...L.map(g => g.crop[1])), span = c1 - c0;
+      const pins = L.map(g => { const top = (g.y - c0) / span * 100, right = g.l != null ? g.l : g.x > 60; return `<i class="m2d-pin" style="left:${g.x}%;top:${top.toFixed(1)}%;--c:${g.col}"><b class="${right ? 'l' : ''}">${esc(g.n)}</b></i>`; }).join('');
+      return `<div class="m2d-fig" style="aspect-ratio:${im.w} / ${(im.h * span / 100).toFixed(0)}"><img src="${im.f}" alt="" style="top:${(-c0 / span * 100).toFixed(1)}%">${pins}</div><div class="m2d-by">그림: ${esc(im.by)}</div>`;
+    }).join('');
+  }
+  function m3dBtnHTML(name){ if(!m3dOf(name) && m2dOf(name)) return `<button class="m3d-btn" data-m3d="${esc(name)}" title="그림에서 이 운동이 쓰는 근육 보기">🦴 근육 그림</button>`; return m3dOf(name) ? `<button class="m3d-btn" data-m3d="${esc(name)}" title="3D 모델에서 이 운동이 쓰는 근육 보기">🦴 3D 근육</button>` : ''; }
   function mobVideo(ds, key){
     const gi = MOB_PICK[key];
     const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => all.push(it)); });
@@ -1707,5 +1749,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, m3dOf, m3dBtnHTML, M3D_G, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, m3dOf, m3dBtnHTML, M3D_G, m2dOf, m2dHTML, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

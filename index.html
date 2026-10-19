@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=169"></script>
+<script src="exinfo.js?v=170"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -427,6 +427,14 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .tex-img.m3d-on{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
   .m3d-inline{flex:1 1 220px;min-width:200px;margin-top:4px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);overflow:hidden;}
   .m3d-view{height:230px;position:relative;} .m3d-view canvas{display:block;}
+  .m3d-inline.two .m3d-view{height:auto;padding:6px;background:#fff;}
+  .m2d-fig{position:relative;overflow:hidden;width:100%;border-radius:6px;}
+  .m2d-fig img{position:absolute;left:0;width:100%;height:auto;}
+  .m2d-pin{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--c);border:2px solid #fff;box-shadow:0 0 0 2px var(--c),0 0 8px rgba(0,0,0,.4);animation:m2dBlink 1.4s ease-in-out infinite;}
+  .m2d-pin b{position:absolute;left:18px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:12px;font-style:normal;color:#fff;background:var(--c);padding:1px 6px;border-radius:6px;}
+  .m2d-pin b.l{left:auto;right:18px;}
+  @keyframes m2dBlink{50%{transform:scale(1.35);}}
+  .m2d-by{font-size:10px;color:#666;text-align:right;padding:2px 2px 0;}
   .m3d-wait{padding:100px 0;text-align:center;color:var(--ink-faint);font-size:12px;}
   .m3d-cap{padding:6px 8px;font-size:12px;line-height:1.55;} .m3d-cap .pk-live{color:var(--accent-b);} .m3d-cap .pk-note{display:block;color:var(--ink-faint);font-size:11px;}
   .pk-anim{font-size:12.5px;color:var(--accent-b);margin-bottom:6px;padding:5px 8px;border-radius:8px;background:var(--surface-2);line-height:1.5;} .pk-anim .pk-note{color:var(--ink-faint);font-size:11px;}
@@ -1044,7 +1052,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v169</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v170</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -3344,7 +3352,7 @@ async function openBodyTab(){
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-m3d]'); if(!b) return;
   e.preventDefault(); e.stopPropagation();
-  const name = b.dataset.m3d, spec = EXINFO.m3dOf && EXINFO.m3dOf(name); if(!spec) return;
+  const name = b.dataset.m3d, spec = (EXINFO.m3dOf && EXINFO.m3dOf(name)) || (EXINFO.m2dOf && EXINFO.m2dOf(name)); if(!spec) return;
   const open = document.querySelector('.m3d-inline');
   const same = open && open.__btn === b;
   closeM3dInline();
@@ -3354,6 +3362,15 @@ document.addEventListener('click', async e => {
   const host = b.closest('.tex-img, .tr-img');
   if(host){ host.classList.add('m3d-on'); host.appendChild(wrap); } else b.insertAdjacentElement('afterend', wrap);
   b.classList.add('on');
+  // 3D 모델에 없는 근육(복근·허리·목 깊은 곳) = 2D 그림 — 바로 그린다 (받을 것 없음)
+  if(spec.two){
+    const COL = ['#E8A33D', '#4FA8C9', '#5CC08A', '#E36F8E'];
+    wrap.classList.add('two');
+    wrap.querySelector('.m3d-view').innerHTML = EXINFO.m2dHTML(spec);
+    wrap.querySelector('.m3d-cap').innerHTML = `${spec.mode === 'stretch' ? '늘어나는 근육' : (spec.mode === 'release' ? '푸는 곳' : '주로 쓰는 근육')}: ${spec.groups.map((g, i) => `<b style="color:${COL[i % 4]}">${g.n}</b>`).join(' · ')}`
+      + '<span class="pk-note">복근·허리·목 깊은 근육은 3D 모델에 없어서 해부 그림으로 보여 줘요 · 점 = 그 근육 자리</span>';
+    return;
+  }
   if(!bodyTabReady) openBodyTab();
   for(let i = 0; i < 160 && !(window.body3dShowEx && window.body3dMount && window.__body3d); i++) await new Promise(r => setTimeout(r, 250));
   if(!wrap.isConnected){ const nb = [...document.querySelectorAll("[data-m3d]")].find(x => x.dataset.m3d === name && x.offsetParent); if(nb && !document.querySelector(".m3d-inline")) nb.click(); return; }
