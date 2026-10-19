@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=166"></script>
+<script src="exinfo.js?v=167"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -420,6 +420,8 @@ if(!window.EXINFO) window.EXINFO = (function(){
   /* 개인운동 날 · PT 받는 날 안내 상자는 숨긴다 — PT 는 이미 알고 있으니 (2026-10-18) */
   #daytypeBanner{display:none;}
   /* 미션 그림 출처는 한 줄로 (누르면 출처가 열린다) */
+  .m3d-btn{display:inline-block;margin:4px 0 0 6px;font-size:11.5px;padding:3px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--accent-b);cursor:pointer;vertical-align:middle;}
+  .m3d-back{margin-top:8px;font-size:12px;}
   .pk-anim{font-size:12.5px;color:var(--accent-b);margin-bottom:6px;padding:5px 8px;border-radius:8px;background:var(--surface-2);line-height:1.5;} .pk-anim .pk-note{color:var(--ink-faint);font-size:11px;}
   .ms-pic .xi-credit{display:block;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   label.field-label{
@@ -1035,7 +1037,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v166</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v167</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1508,6 +1510,8 @@ const DEFAULT_MASTER = [
   {id:'fx-hipflex',  name:'반무릎 장요근 스트레칭',     part:'고관절 앞', type:'bodyweight'},
   {id:'fx-clam',     name:'클램쉘',                   part:'엉덩이 옆', type:'bodyweight'},
   {id:'fx-calf',     name:'벽 종아리 스트레칭',         part:'종아리',   type:'bodyweight'},
+  {id:'fx-quadstand',name:'서서 허벅지 앞 늘리기',      part:'허벅지 앞', type:'bodyweight'},   // 회복날 ② 스트레칭 (2026-10-19)
+  {id:'fx-piri',     name:'이상근 스트레칭 (4자)',      part:'엉덩이',    type:'bodyweight'},
   {id:'fx-ballcalf', name:'마사지볼 풀기 — 종아리·정강이 앞', part:'종아리', type:'bodyweight'},
   {id:'fx-reach',    name:'밸런스 리치 (한 발 서서 앞·뒤 터치)', part:'균형', type:'bodyweight'},
   {id:'seesawpress', name:'시소프레스',      part:'어깨', type:'strength'},   // 선생님 2026-10-18 · 케틀벨 두 개 번갈아 프레스
@@ -2326,17 +2330,27 @@ const RECOVERY_ROUTINE = [
     options:['폼롤러 광배근 풀기'] },
   { focus:'upper', why:'① 근육 풀기 — 골반 옆·허벅지 앞·엉덩이 (허리 통증의 앞쪽 원인)', sets:1, reps:'좌우 2분', label:'좌우 2분',
     options:['마사지볼 풀기 — 골반 옆·허벅지 앞·엉덩이','고관절 운동(폼롤러)'] },
-  // ② 스트레칭
-  { focus:'knee', why:'② 스트레칭 — 고관절 앞 (골반 말고 엉덩이 조이기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+  // ② 스트레칭 — 풀어야 할 부위마다 한 자리씩, 모두 좌우 30초 × 2 (2026-10-19 상필님 · ACSM: 한 동작 모두 60초)
+  { focus:'knee', why:'② 스트레칭 — 고관절 앞 · 장요근 (골반 말고 엉덩이 조이기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['반무릎 장요근 스트레칭'] },
-  { focus:'knee', why:'② 스트레칭 — 허벅지 안쪽·뒤', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
-    options:['내전근 스트레칭','의자 햄스트링 스트레칭'] },
+  { focus:'knee', why:'② 스트레칭 — 허벅지 앞 · 대퇴사두근 (벽 잡고)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['서서 허벅지 앞 늘리기'] },
+  { focus:'knee', why:'② 스트레칭 — 허벅지 안쪽 · 내전근', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['내전근 스트레칭'] },
+  { focus:'knee', why:'② 스트레칭 — 허벅지 뒤 · 햄스트링', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['의자 햄스트링 스트레칭'] },
   { focus:'knee', why:'② 스트레칭 — 종아리 (발목 끝범위)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['벽 종아리 스트레칭'] },
   { focus:'upper', why:'② 스트레칭 — 가슴 앞 (둥근어깨 펴기)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
     options:['문틀 가슴 스트레칭'] },
-  { focus:'upper', why:'② 스트레칭 — 광배근 · 목 옆', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
-    options:['광배근 스트레칭 (짐볼·벤치)','위 승모근 스트레칭 (목 옆 늘리기)'] },
+  { focus:'upper', why:'② 스트레칭 — 겨드랑이 옆 · 광배근', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['광배근 스트레칭 (짐볼·벤치)'] },
+  { focus:'upper', why:'② 스트레칭 — 목 옆 · 위 승모근', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['위 승모근 스트레칭 (목 옆 늘리기)'] },
+  { focus:'upper', why:'② 스트레칭 — 고관절 앞 · 장요근 (허리 통증의 앞쪽 원인)', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['반무릎 장요근 스트레칭'] },
+  { focus:'upper', why:'② 스트레칭 — 엉덩이 깊은 곳 · 이상근', sets:2, reps:'좌우 30초', label:'좌우 30초 × 2',
+    options:['이상근 스트레칭 (4자)'] },
   { focus:'upper', why:'② 스트레칭 — 허리·목 뒤로 젖히기 (디스크 예방)', sets:2, reps:'10회', label:'10회 × 2세트',
     options:['백년척추 디스크 예방 (허리·목 뒤로 젖히기)'] },
   // ③ 근육 키우기 — 영상 따라하기 (휴먼밸런스·하루 5분·뻔더, 맨몸으로 되는 것만 · 날마다 다른 영상)
@@ -2983,7 +2997,7 @@ function renderRoutineTab(){
             <span class="pe-name">${r.name}${r.slotKey ? `<button class="pe-swap" data-slot="${r.slotKey}" title="다른 종목으로">↻</button>` : ''}</span>
             <span class="pe-set">${r.set}</span>
             <span class="pe-why">${EXINFO.chipsHTML(info)}${r.extra ? '⏱ 시간 남으면 · ' : ''}${r.why || ''}</span>
-            <div class="pe-detail">${EXINFO.detailHTML(info)}</div>
+            <div class="pe-detail">${EXINFO.detailHTML(info)}${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(r.name) : ''}</div>
           </div>`; }).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
         return `<div class="plan-card ${day.kind}${day.ds===W.today?' on':''}">
           <div class="pc-head"><span><b>${dow}</b> ${md} · ${day.title}</span>${mark}</div>
@@ -3303,7 +3317,7 @@ async function openBodyTab(){
     if(!THREE.GLTFLoader)  await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
     if(!THREE.DRACOLoader) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js');
     if(!window.BODY_DATA)  await loadScript('bodydata.js?v=116');
-    if(!window.initBody3D) await loadScript('bodymodel.js?v=166');
+    if(!window.initBody3D) await loadScript('bodymodel.js?v=167');
   }catch(e){
     bodyTabReady = false;
     mount.innerHTML = '<div class="body-loading">3D를 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.</div>';
@@ -3317,6 +3331,35 @@ async function openBodyTab(){
     showStatus('3D 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 탭을 다시 눌러 주세요.');
   });
 }
+// ----- 🦴 3D 근육: 종목이 쓰는 근육을 내 몸 탭 3D 에서 (2026-10-19 상필님) -----
+document.addEventListener('click', async e => {
+  const b = e.target.closest && e.target.closest('[data-m3d]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const name = b.dataset.m3d, spec = EXINFO.m3dOf && EXINFO.m3dOf(name); if(!spec) return;
+  const from = (document.querySelector('.tab.active') || {}).dataset ? document.querySelector('.tab.active').dataset.tab : 'log';
+  document.querySelector('.tab[data-tab="body"]').click();
+  const box = document.getElementById('bodyPick');
+  box.innerHTML = '3D 불러오는 중…';
+  for(let i = 0; i < 120 && !(window.body3dShowEx && window.__body3d); i++) await new Promise(r => setTimeout(r, 250));
+  if(!window.body3dShowEx){ box.textContent = '3D 모델을 불러오지 못했어요'; return; }
+  const r = body3dShowEx(spec.groups, spec.mode);
+  document.querySelectorAll('.body-btn[data-reg]').forEach(x => x.classList.remove('on'));
+  setBodyAutoBtn(false);
+  const COL = ['#E8A33D', '#4FA8C9', '#5CC08A', '#E36F8E'];
+  const chips = spec.groups.map((g, i) => `<b style="color:${COL[i % 4]}">${g.n}</b>`).join(' · ');
+  box.innerHTML = `<div class="pk-anim" id="pkAnim">…</div><b>🦴 ${name}</b><br>${spec.mode === 'stretch' ? '늘어나는 근육' : (spec.mode === 'release' ? '푸는 근육' : '주로 쓰는 근육')}: ${chips}`
+    + `<br><span style="color:var(--ink-faint);font-size:12px;">3D 모델엔 오른쪽 다리·어깨 둘레 근육만 있어요. 팔·복근·허리 세움근은 안 보여요. 근육 분류는 교과서에서 흔히 쓰는 주동근 기준이에요.</span>`
+    + `<br><button class="body-btn m3d-back" data-back="${from}">← 돌아가기</button> <button class="body-btn m3d-back" data-back="__all">전체 보기</button>`;
+  if(!r) box.innerHTML += '<br>이 근육은 3D 모델에 없어요';
+  if(!window.__pkAnimTimer) startPkAnim();
+  document.getElementById('bodyMount').scrollIntoView({ behavior:'smooth', block:'start' });
+}, true);
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.m3d-back'); if(!b) return;
+  if(b.dataset.back === '__all'){ const all = document.querySelector('.body-btn[data-reg="all"]'); if(all) all.click(); return; }
+  const t = document.querySelector('.tab[data-tab="' + b.dataset.back + '"]'); if(t) t.click();
+  window.scrollTo({ top:0 });
+});
 // 근육 보기: 누른 근육 설명
 function showBodyPick(hit){
   const box = document.getElementById('bodyPick'); if(!box) return;
@@ -3338,10 +3381,13 @@ function showBodyPick(hit){
   const br = t => String(t || '').replace(/\n/g, '<br>');
   // 3D 에서 지금 수축 중인지 늘어나는 중인지 (bodymodel.js body3dSelPhase) — 단순한 그림이라 설명을 붙인다
   box.innerHTML = `<div class="pk-anim" id="pkAnim">…</div>${EXINFO.anatThumbHTML ? EXINFO.anatThumbHTML(hit.part, m, 84) : ''}<span class="pk-k ${m.t}">${m.k}</span><b>${m.n}</b> <span style="color:var(--ink-faint)">${m.en}</span><br>📍 ${br(m.where)}<br>${br(m.does)}${EXINFO.anatPlanHTML ? EXINFO.anatPlanHTML(m) : ''}`;
-  if(!window.__pkAnimTimer) window.__pkAnimTimer = setInterval(()=>{
+  if(!window.__pkAnimTimer) startPkAnim();
+}
+function startPkAnim(){
+  window.__pkAnimTimer = setInterval(()=>{
     const el = document.getElementById('pkAnim'); if(!el) return;
     const ph = window.body3dSelPhase ? body3dSelPhase() : null;
-    const T = { contract:'⟶⟵ <b>수축</b> — 짧아지고 두꺼워져요', stretch:'⟵⟶ <b>늘어남</b> — 길어지고 얇아져요', mid:'↔ 사이' };
+    const T = { contract:'⟶⟵ <b>수축</b> — 짧아지고 두꺼워져요', stretch:'⟵⟶ <b>늘어남</b> — 길어지고 얇아져요', mid:'↔ 사이', release:'● <b>푸는 곳</b> — 공·폼롤러로 눌러 풀어요' };
     el.innerHTML = ph ? '🎞 3D 이 근육만 밝게 · ' + T[ph] + ' <span class="pk-note">(긴 축으로 늘였다 줄인 그림 · 다시 누르면 멈춤)</span>' : '🎞 근육을 누르면 그 근육만 밝아지고 움직여요';
   }, 150);
 }
@@ -3675,7 +3721,7 @@ function renderTodayExercises(existing){
         <span class="tex-name">${ex.name}<span class="tex-type ${isVid ? 'cardio' : t}">${isVid ? '영상' : tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
         <span class="tex-btns">${isVid && window.EXINFO && EXINFO.vidPool && EXINFO.vidPool(ex.id, WEEK_PLAN[dayOfWeek(currentEntryDate())]).length > 1 ? `<button class="tex-swap" data-vidswap="${ex.id}" title="다른 영상으로">↻</button>` : (swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : '')}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
-      ${isVid ? '' : `<div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}</div>`}
+      ${isVid ? '' : `<div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(ex.name) : ''}</div>`}
       ${ptTipHtml(ex)}
       ${isVid ? '' : pastPanelHtml(ex.id)}
       <div class="sets" style="${cols}">${setsHtml}</div>
@@ -3973,7 +4019,7 @@ function renderManageMaster(msg){
         <span class="mtype ${t}">${typeLabel(t)}</span>
         <button class="medit" data-exedit="${ex.id}">✏️</button>
         <button class="mdel${armed?' armed':''}" data-exdel="${ex.id}">${armed?'정말 삭제?':'×'}</button>
-        <div class="mx-info">${EXINFO.imgHTML(ex.name, 48)}<br>${EXINFO.chipsHTML(info)}<span class="xi-basis b-${info.weck.basis}">${info.weck.basis}</span>
+        <div class="mx-info">${EXINFO.imgHTML(ex.name, 48)}${EXINFO.m3dBtnHTML ? EXINFO.m3dBtnHTML(ex.name) : ''}<br>${EXINFO.chipsHTML(info)}<span class="xi-basis b-${info.weck.basis}">${info.weck.basis}</span>
           <div class="mx-why">${info.icon} ${info.toolText} · ${info.weck.why}</div></div>
         <div class="gpick">${picks}</div>
       </div>`;

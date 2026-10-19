@@ -698,6 +698,85 @@
     if(exId === 'mobvid'){ const gi = MOB_PICK[dayKey]; const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => { if(!it.wait) all.push(U({ ...it, ch:'HB2' })); }); }); return all; }
     return [];
   }
+  // ----- 종목 → 3D 근육 (2026-10-19 상필님: "각 종목 운동 부위를 3D 모델로 · 근육 움직임") -----
+  // 주로 쓰는 근육(주동근)만 — 운동 교과서에서 흔히 쓰는 분류. 3D 모델에는 오른쪽 다리·어깨 둘레 근육만 있어서
+  // 팔(이두·삼두)·복근·허리 세움근은 못 보여 준다 (그런 종목은 단추가 안 나온다)
+  // v: 그 근육이 잘 보이는 쪽 (front 앞 · back 뒤 · side 오른쪽 옆)
+  const M3D_G = {
+    Q:  { n:'대퇴사두근', v:'front', m:['rectusfemoris.r','vastuslateralismuscle.r','vastusmedialismuscle.r','vastusintermediusmuscle.r'] },
+    RF: { n:'대퇴직근', v:'front', m:['rectusfemoris.r'] },
+    G:  { n:'대둔근', v:'back', m:['gluteusmaximusmuscle.r'] },
+    GM: { n:'중둔근', v:'side', m:['gluteusmediusmuscle.r','gluteusminimusmuscle.r'] },
+    H:  { n:'햄스트링', v:'back', m:['semitendinosusmuscle.r','semimembranosusmuscle.r','longheadofbicepsfemoris.r','shortheadofbicepsfemoris.r'] },
+    AD: { n:'내전근', v:'front', m:['adductorlongus.r','adductormagnus.r','adductorbrevis.r','gracilismuscle.r','pectineusmuscle.r'] },
+    CA: { n:'종아리', v:'back', m:['medialheadofgastrocnemius.r','lateralheadofgastrocnemius.r','soleusmuscle.r'] },
+    TA: { n:'정강이 앞', v:'front', m:['tibialisanteriormuscle.r'] },
+    IP: { n:'장요근', v:'front', m:['psoasmajor.r','psoasminor.r','iliacusmuscle.r'] },
+    PI: { n:'이상근', v:'back', m:['piriformismuscle.r'] },
+    TFL:{ n:'TFL', v:'side', m:['tensorfasciaelatae.r'] },
+    PEC:{ n:'가슴', v:'front', m:['clavicularheadofpectoralismajormuscle.r','sternocostalheadofpectoralismajormuscle.r','abdominalheadofpectoralismajormuscle.r'] },
+    DF: { n:'앞 어깨', v:'front', m:['clavicularpartofdeltoidmuscle.r'] },
+    DS: { n:'옆 어깨', v:'side', m:['acromialpartofdeltoidmuscle.r'] },
+    DR: { n:'뒤 어깨', v:'back', m:['spinalpartofdeltoidmuscle.r'] },
+    LAT:{ n:'광배근', v:'back', m:['latissimusdorsi.r','teresmajormuscle.r'] },
+    TU: { n:'위 승모근', v:'back', m:['descendingpartoftrapeziusmuscle.r'] },
+    TM: { n:'중·아래 승모근', v:'back', m:['transversepartoftrapeziusmuscle.r','ascendingpartoftrapeziusmuscle.r'] },
+    RH: { n:'능형근', v:'back', m:['rhomboidmajormuscle.r','rhomboidminormuscle.r'] },
+    SA: { n:'전거근', v:'side', m:['serratusanteriormuscle.r'] },
+    RC: { n:'회전근개', v:'back', m:['infraspinatusmuscle.r','supraspinatusmuscle.r','teresminormuscle.r','subscapularismuscle.r'] },
+    LS: { n:'어깨올림근', v:'back', m:['levatorscapulae.r'] },
+    PM: { n:'작은가슴근', v:'front', m:['pectoralisminormuscle.r'] },
+    FT: { n:'발바닥', v:'back', m:['plantaraponeurosis.r','abductorhallucis.r','flexordigitorumbrevis.r'] },
+  };
+  // 위에서부터 처음 맞는 줄. s = 스트레칭(늘어나는 근육) · r = 풀기(공·폼롤러로 누르는 곳 · 움직임 없음)
+  const M3D_RULES = [
+    [/슬로우|조깅|러닝|걷기|수영|자전거|등산|줄넘기|데드버그|코브라|슈퍼맨|플랭크|크런치|싯업|레그\s*레이즈|버피|마운틴|점핑잭/, null],   // 유산소·코어·허리 — 모델에 없거나 전신
+    [/폼롤러\s*광배근/, ['LAT'], 'r'],
+    [/마사지볼.*종아리/, ['CA','TA'], 'r'],
+    [/마사지볼.*(골반|허벅지\s*앞)/, ['TFL','Q','G'], 'r'],
+    [/마사지볼.*쇄골/, ['PM','RC'], 'r'],
+    [/발바닥\s*마사지/, ['FT'], 'r'],
+    [/발가락\s*수건/, ['FT']],
+    [/장요근\s*스트레칭/, ['IP','RF'], 's'],
+    [/허벅지\s*앞\s*늘리기/, ['Q'], 's'],
+    [/내전근\s*스트레칭/, ['AD'], 's'],
+    [/햄스트링\s*스트레칭/, ['H'], 's'],
+    [/종아리\s*스트레칭/, ['CA'], 's'],
+    [/이상근\s*스트레칭|4자/, ['PI','G'], 's'],
+    [/가슴\s*스트레칭/, ['PEC','DF'], 's'],
+    [/광배근\s*스트레칭/, ['LAT'], 's'],
+    [/승모근\s*스트레칭|목\s*옆\s*늘리기/, ['TU','LS'], 's'],
+    [/트라이셉스|오버헤드\s*익스텐션|푸쉬다운|푸시다운|킥백|(바벨|덤벨|해머|케이블|이두|프리처|컨센트레이션|EZ)\s*컬|해머컬/, null],          // 팔 근육 — 모델에 없음
+    [/레그\s*익스텐션/, ['Q']],
+    [/레그\s*컬|레그컬|노르딕|노드릭/, ['H']],
+    [/카프/, ['CA']],
+    [/어브덕션|크랩|클램|사이드\s*스텝|밴드\s*워크/, ['GM','TFL']],
+    [/어덕션|내전근|이너타이/, ['AD']],
+    [/밸런스\s*리치/, ['GM','G']],
+    [/힙\s*쓰러스트|브릿지|글루트/, ['G','H']],
+    [/데드|루마니안|스티프|굿모닝|힌지|스윙/, ['H','G']],
+    [/리어|후면|페이스\s*풀|리버스\s*플라이/, ['DR','TM','RH']],
+    [/^T\s*레이즈/, ['TM','RH','DR']],
+    [/^Y\s*레이즈|승모근\s*아래/, ['TM','DR']],
+    [/^W\s*레이즈/, ['RC','TM']],
+    [/월\s*슬라이드/, ['SA','TM']],
+    [/스쿼트|레그\s*프레스|런지|스플릿|스텝\s*업|핵/, ['Q','G','AD']],
+    [/벤치|체스트\s*프레스|푸쉬\s*업|푸시\s*업|딥스|펙덱|플라이(?!.*(리어|후면|리버스))|크로스\s*오버|인클라인|덤벨\s*프레스/, ['PEC','DF']],
+    [/레터럴|사이드\s*레이즈|업라이트/, ['DS','TU']],
+    [/숄더\s*프레스|오버헤드|밀리터리|시소/, ['DF','DS']],
+    [/프론트\s*레이즈/, ['DF']],
+    [/풀\s*업|친\s*업|풀다운|랫|턱걸이/, ['LAT','RH','TM']],
+    [/로우/, ['LAT','RH','TM','DR']],
+    [/슈러그/, ['TU','LS']],
+    [/암바/, ['RC','SA']],
+    [/겟업/, ['DS','RC','G']],
+  ];
+  function m3dOf(name){
+    const n = String(name || '');
+    for(const [re, keys, mode] of M3D_RULES){ if(re.test(n)) return keys ? { mode: mode === 's' ? 'stretch' : (mode === 'r' ? 'release' : 'work'), groups: keys.map(k => ({ key:k, ...M3D_G[k] })) } : null; }
+    return null;
+  }
+  function m3dBtnHTML(name){ return m3dOf(name) ? `<button class="m3d-btn" data-m3d="${esc(name)}" title="3D 모델에서 이 운동이 쓰는 근육 보기">🦴 3D 근육</button>` : ''; }
   function mobVideo(ds, key){
     const gi = MOB_PICK[key];
     const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => all.push(it)); });
@@ -1604,5 +1683,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, m3dOf, m3dBtnHTML, M3D_G, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();

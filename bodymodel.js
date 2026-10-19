@@ -330,15 +330,14 @@
     }
     function clearSel(){
       if(!sel) return;
-      sel.items.forEach(it => { it.m.matrix.copy(it.M0); it.m.matrixAutoUpdate = true; });
+      sel.groups.forEach(g => g.items.forEach(it => { it.m.matrix.copy(it.M0); it.m.matrixAutoUpdate = true; }));
       regionMeshes.forEach(m => { m.material.transparent = !!nerveOn; m.material.opacity = nerveOn ? 0.45 : 1; m.material.emissiveIntensity = 0.18; m.material.needsUpdate = true; });
       labelSprites.forEach(sp => { sp.visible = true; if(sp.userData.s0){ sp.scale.copy(sp.userData.s0); sp.position.copy(sp.userData.c); sp.center.set(0.5, 0.5); } });
       sel = null;
     }
     // 고른 근육 이름표는 근육 한가운데에 (위 끝에 두면 내전근처럼 골반에 붙은 근육은 이름이 골반 위에 떠서 헷갈림 · 2026-10-19)
-    function selectK(k){
-      clearSel();
-      const ms = regionMeshes.filter(m => m.userData.anatK === k); if(!ms.length) return;
+    // 근육 덩어리 묶음 하나 → 움직임 정보 (긴 축 · 이름표 붙일 겉 점)
+    function makeGroup(ms, label){
       body.updateMatrixWorld(true);
       const bodyInv = _mBodyInv.copy(body.matrixWorld).invert();
       const { c, a, pts } = longAxis(ms, bodyInv);
@@ -352,28 +351,69 @@
       let tMin = Infinity, tMax = -Infinity; const tv = pts.map(p => { const t = p.clone().sub(c).dot(a); tMin = Math.min(tMin, t); tMax = Math.max(tMax, t); return t; });
       const mid = (tMin + tMax) / 2, half = (tMax - tMin) * 0.25;
       const side = pts.filter((p, i) => Math.abs(tv[i] - mid) <= half);
-      sel = { k, items, c, R, Rt, t:0, phase:'mid', side: side.length ? side : pts, label: labelSprites.find(sp => sp.userData.k === k) || null };
+      return { items, c, R, Rt, side: side.length ? side : pts, label };
+    }
+    function selectK(k){
+      clearSel();
+      const ms = regionMeshes.filter(m => m.userData.anatK === k); if(!ms.length) return;
+      sel = { k, mode:'work', t:0, phase:'mid', groups:[ makeGroup(ms, labelSprites.find(sp => sp.userData.k === k) || null) ] };
       regionMeshes.forEach(m => { const on = m.userData.anatK === k; m.material.transparent = !on || !!nerveOn; m.material.opacity = on ? (nerveOn ? 0.45 : 1) : 0.22; m.material.emissiveIntensity = on ? 0.45 : 0.05; m.material.needsUpdate = true; });
       labelSprites.forEach(sp => { const on = sp.userData.k === k; sp.visible = on; if(on && sp.userData.s0){ sp.scale.copy(sp.userData.s0).multiplyScalar(1.3); sp.center.set(0, 0.5); } });
     }
     function animSel(dt){
       sel.t += dt;
-      const p = Math.sin(sel.t * 1.6);                                 // +1 수축 … -1 늘어남 (약 4초에 한 바퀴)
+      // 운동: +1 수축 … -1 늘어남 (약 4초에 한 바퀴) / 스트레칭: 늘어났다 돌아왔다만
+      if(sel.mode === 'release'){ sel.phase = 'release'; return; }   // 풀기: 늘이거나 줄이지 않고 밝게만
+      const p = sel.mode === 'stretch' ? -Math.abs(Math.sin(sel.t * 1.1)) : Math.sin(sel.t * 1.6);
       const along = 1 - 0.22 * p, across = 1 / Math.sqrt(along);      // 짧아지면 두꺼워지고 길어지면 얇아진다 (부피 비슷하게)
-      _mS.copy(_mT1.makeTranslation(sel.c.x, sel.c.y, sel.c.z)).multiply(sel.R).multiply(_mSc.makeScale(along, across, across)).multiply(sel.Rt).multiply(_mT2.makeTranslation(-sel.c.x, -sel.c.y, -sel.c.z));
-      sel.items.forEach(it => { it.m.matrixAutoUpdate = false; it.m.matrix.copy(it.Pinv).multiply(_mS).multiply(it.P).multiply(it.M0); });
+      sel.groups.forEach(g => {
+        _mS.copy(_mT1.makeTranslation(g.c.x, g.c.y, g.c.z)).multiply(g.R).multiply(_mSc.makeScale(along, across, across)).multiply(g.Rt).multiply(_mT2.makeTranslation(-g.c.x, -g.c.y, -g.c.z));
+        g.items.forEach(it => { it.m.matrixAutoUpdate = false; it.m.matrix.copy(it.Pinv).multiply(_mS).multiply(it.P).multiply(it.M0); });
+      });
       sel.phase = p > 0.3 ? 'contract' : (p < -0.3 ? 'stretch' : 'mid');
     }
     // 고른 근육 이름표를 근육 바로 옆(화면에서 오른쪽)에 — 몸을 돌려도 따라간다 (2026-10-19 상필님: "근육 바로 옆에 적어줘")
     const _right = new THREE.Vector3(), _qInv = new THREE.Quaternion();
     function placeSelLabel(){
-      const sp = sel && sel.label; if(!sp) return;
+      if(!sel) return;
       _qInv.copy(body.quaternion).invert();
       _right.set(1, 0, 0).applyQuaternion(camera.quaternion).applyQuaternion(_qInv);   // 화면 오른쪽 = 몸 기준 좌표로
-      let best = -Infinity, bp = null;
-      sel.side.forEach(p => { const d = p.dot(_right); if(d > best){ best = d; bp = p; } });
-      if(bp) sp.position.copy(bp).addScaledVector(_right, 0.012);
+      sel.groups.forEach(g => {
+        const sp = g.label; if(!sp) return;
+        let best = -Infinity, bp = null;
+        g.side.forEach(p => { const d = p.dot(_right); if(d > best){ best = d; bp = p; } });
+        if(bp) sp.position.copy(bp).addScaledVector(_right, 0.012);
+      });
     }
+    // ----- 종목 보기: 그 운동이 쓰는 근육 묶음들만 밝히고 움직인다 (index.html 🦴 3D 근육 단추) -----
+    // list = [{ n:'대퇴사두근', m:[모델 근육 이름…], v:'front'|'back'|'side' }], mode = 'work' | 'stretch'
+    const EX_COL = [0xE8A33D, 0x4FA8C9, 0x5CC08A, 0xE36F8E];
+    const EX_HIDE = ['pectoralismajor.r', 'deltoidmuscle.r', 'trapeziusmuscle.r'];   // 어깨 모델의 "전체" 덩어리 (부분 덩어리와 겹친다)
+    window.body3dShowEx = function(list, mode){
+      window.body3dRegion(null);
+      region = '__ex';
+      boneMeshes.forEach(m => { m.material = dimBone; m.visible = true; });
+      legMuscleMeshes.forEach(m => { m.material = dimMus; m.visible = !EX_HIDE.includes(norm(m.userData.orig)); delete m.userData.anatK; });
+      mirrorMeshes.forEach(m => { m.visible = false; });
+      markers.forEach(s => s.visible = false); lines.visible = false;
+      regionMeshes = [];
+      const groups = [], all = new THREE.Box3();
+      (list || []).forEach((g, gi) => {
+        const ms = legMuscleMeshes.filter(m => (g.m || []).includes(norm(m.userData.orig))); if(!ms.length) return;
+        const col = new THREE.Color(EX_COL[gi % EX_COL.length]);
+        ms.forEach(m => { m.material = new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.4, roughness:0.6 }); m.userData.anatK = 100 + gi; regionMeshes.push(m); all.expandByObject(m); });
+        const sp = textSprite(g.n, '#' + col.getHexString());
+        sp.scale.multiplyScalar(0.55 * 1.3); sp.center.set(0, 0.5); sp.renderOrder = 21; body.add(sp); labelSprites.push(sp);
+        groups.push(makeGroup(ms, sp));
+      });
+      if(!groups.length) return null;
+      sel = { k:-1, mode: (mode === 'stretch' || mode === 'release') ? mode : 'work', t:0, phase:'mid', groups };
+      const c = all.getCenter(new THREE.Vector3()), sz = all.getSize(new THREE.Vector3());
+      cam.ty = c.y; cam.tdist = Math.max(1.1, Math.min(3.4, Math.max(sz.x, sz.y, sz.z) * 2.6));
+      const V = { front:0.5, back:Math.PI - 0.5, side:Math.PI / 2 };
+      auto = false; targetX = 0; targetY = V[(list[0] || {}).v] != null ? V[list[0].v] : 0.5;
+      return { count: groups.length };
+    };
     window.body3dSelect = function(k){ if(k == null) clearSel(); else selectK(k); return !!sel; };
     window.body3dSelPhase = () => sel ? sel.phase : null;
     // 부위마다 근육 덩어리 중심(회전 전에 잰다)
@@ -468,6 +508,7 @@
       const r = renderer.domElement.getBoundingClientRect();
       ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
+      if(region === '__ex') return null;   // 종목 보기에서는 누르기 없음
       if(!region){   // 전체 보기: 표시점(공)을 누르면 그 자리 메모
         const hm = ray.intersectObjects(markers, false)[0];
         if(hm){ const i = markers.indexOf(hm.object); window.body3dFocus(i); return { marker: i, data: hm.object.userData }; }
