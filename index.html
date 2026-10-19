@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=162"></script>
+<script src="exinfo.js?v=163"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1035,7 +1035,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v162</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v163</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -2707,7 +2707,14 @@ function candOrder(theme, last){
   };
 }
 // 회복날 "가동성 영상 따라하기" 자리에 그날 영상 링크를 붙인다
+// 오늘 기록에서 ↻ 로 바꾼 영상 { 종목id: 영상id } — 그날 기록에 vidpick 으로 저장 (2026-10-19)
+let vidPick = {};
 function mobLink(ex, ds, dayKey){
+  // 바꾼 영상이 있으면 그것 (오늘 기록 화면의 그 날짜에서만)
+  if(ex && vidPick[ex.id] && ds === currentEntryDate() && window.EXINFO && EXINFO.vidPool){
+    const v = EXINFO.vidPool(ex.id, dayKey).find(x => x.id === vidPick[ex.id]);
+    if(v) return ` · <a class="pe-vid" href="${v.url}" target="_blank" rel="noopener">▶ ${v.chName ? v.chName + ' · ' : ''}${v.n}</a>`;
+  }
   if(ex && ex.id === 'lacuda30') return ' · <a class="pe-vid" href="https://www.youtube.com/watch?v=PV08L0Dqq9k" target="_blank" rel="noopener">▶ 레드밸런스 · 30분 체형교정 전신 루틴</a>';
   if(ex && /^rv-/.test(ex.id) && window.EXINFO && EXINFO.rehabVideo){
     const v = EXINFO.rehabVideo(ds, ex.id.slice(3));
@@ -3402,6 +3409,7 @@ function renderDayTypeAndForm(){
   const existing = entryForDate(dateStr);
   setCounts = {};
   dailySetCounts = {};
+  vidPick = (existing && existing.vidpick) ? { ...existing.vidpick } : {};
 
   document.getElementById('noteInput').value = existing ? (existing.note||'') : '';
   // 날짜가 바뀌면 세트 시각도 새로 — 그 다음에 기존 기록의 시각을 다시 채운다 (매일 루틴은 renderDaily, 종목은 renderTodayExercises)
@@ -3665,7 +3673,7 @@ function renderTodayExercises(existing){
     div.innerHTML = `
       <div class="today-ex-head">
         <span class="tex-name">${ex.name}<span class="tex-type ${isVid ? 'cardio' : t}">${isVid ? '영상' : tl}</span>${ex.part?` <span style="color:var(--ink-faint);font-weight:400;font-size:12px;">· ${ex.part}</span>`:''}</span>
-        <span class="tex-btns">${swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : ''}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
+        <span class="tex-btns">${isVid && window.EXINFO && EXINFO.vidPool && EXINFO.vidPool(ex.id, WEEK_PLAN[dayOfWeek(currentEntryDate())]).length > 1 ? `<button class="tex-swap" data-vidswap="${ex.id}" title="다른 영상으로">↻</button>` : (swapSlotOf(ex.id, currentEntryDate()) ? `<button class="tex-swap" data-swapex="${ex.id}" title="같은 자리의 다른 종목으로">↻</button>` : '')}<button class="tex-remove" data-rmex="${ex.id}">×</button></span>
       </div>
       ${isVid ? '' : `<div class="tex-img">${EXINFO.imgHTML(ex.name, 60)}</div>`}
       ${ptTipHtml(ex)}
@@ -3711,8 +3719,24 @@ function renderTodayExercises(existing){
       autoSave();
     };
   });
-  list.querySelectorAll('.tex-swap').forEach(btn=>{
+  list.querySelectorAll('.tex-swap[data-swapex]').forEach(btn=>{
     btn.onclick = ()=> swapTodayExercise(btn.dataset.swapex);
+  });
+  // 영상 종목 ↻ = 같은 묶음의 다음 영상 (지금 영상 다음 것 · 끝이면 처음)
+  list.querySelectorAll('.tex-swap[data-vidswap]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.vidswap, ds = currentEntryDate();
+      const pool = EXINFO.vidPool(id, WEEK_PLAN[dayOfWeek(ds)]); if(pool.length < 2) return;
+      const a = btn.closest('.today-ex').querySelector('.vid-today a');
+      const curId = vidPick[id] || ((a && a.href.match(/(?:shorts\/|v=)([\w-]{11})/)) || [])[1];
+      const i = pool.findIndex(v => v.id === curId);
+      const next = pool[(i + 1) % pool.length];
+      const snapshot = buildEntryFromForm();
+      vidPick[id] = next.id; snapshot.vidpick = { ...vidPick };
+      renderTodayExercises(snapshot);
+      autoSave();
+      showToast('다른 영상으로 바꿨어요 · ' + ((i + 1) % pool.length + 1) + '/' + pool.length);
+    };
   });
   list.querySelectorAll('.tex-remove').forEach(btn=>{
     btn.onclick = ()=>{
@@ -4259,6 +4283,7 @@ function buildEntryFromForm(){
     daily: daily,
     morning: collectMorning(),
     bdvid: collectBd(),
+    vidpick: Object.keys(vidPick).length ? { ...vidPick } : undefined,
     missions: missionsDone.length ? missionsDone.slice() : undefined,
     note: note
   };

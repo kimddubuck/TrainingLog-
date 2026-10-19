@@ -690,6 +690,14 @@
     const it = pool[((d * 5) % pool.length + pool.length) % pool.length];
     return { ...it, chName: CH_TAG[it.ch] || '', url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id };
   }
+  // 영상 종목 하나가 고를 수 있는 영상 전부 (↻ 바꾸기용) — exId: rv-무릎 등 · jointvid · mobvid, dayKey: 그날 운동
+  function vidPool(exId, dayKey){
+    const U = it => ({ ...it, chName: it.ch ? (CH_TAG[it.ch] || '') : '', url:'https://www.youtube.com/' + (it.sh ? 'shorts/' : 'watch?v=') + it.id });
+    if(/^rv-/.test(exId)){ const m = vidLookup(); return (REHAB_VID[exId.slice(3)] || []).map(id => m.get(id)).filter(v => v && (!v.gear || v.gear === 'bw')).map(U); }
+    if(exId === 'jointvid'){ const g = BD.groups.find(x => x.t === JOINT_PICK[dayKey]); return g ? g.items.filter(it => !it.wait).map(it => U({ ...it, ch:'BD' })) : []; }
+    if(exId === 'mobvid'){ const gi = MOB_PICK[dayKey]; const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => { if(!it.wait) all.push(U({ ...it, ch:'HB2' })); }); }); return all; }
+    return [];
+  }
   function mobVideo(ds, key){
     const gi = MOB_PICK[key];
     const all = []; HB2.groups.forEach((g, i) => { if(!gi || gi.includes(i)) g.items.forEach(it => all.push(it)); });
@@ -1595,5 +1603,5 @@
         <div class="xi-sci">※ 교정운동은 상필님이 직접 고른 것이고, 결과지(2022-12-28) 항목과 맞춰 적었어요. 아프면 멈추고, 무릎·허리는 선생님·정형외과 말씀이 먼저예요.</div>
       </div></div>`;
   }
-  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
+  window.EXINFO = { SRC, WECK, BASIS, TOOLS, SIDES, SCIENCE, FIX, fixTip, fixHTML, MORNING, morningText, REHAB, rehabHTML, PHILO_DEFAULT, philoHTML, philoMiniHTML, philoFoldHTML, treeHTML, TREE, ANAT, anatHTML, anatPlanHTML, PALP, palpHTML, anatThumbHTML, HB, HB2, HB3, BD, TREE_VIDS, treeVidsHTML, hbHTML, mobVideo, jointVideo, bdDaily, vidPool, rehabVideo, REHAB_VID, MISSIONS, pickMission, vidHTML, ROLE, roleOf, IMG, imgOf, imgHTML, videoUrl, classify, chipsHTML, detailHTML, weckHTML, toolsHTML, howHTML, injectCSS };
 })();
