@@ -128,12 +128,14 @@ function buildPlan(server){
   });
   const entries = Object.keys(byDate).sort().map(d => byDate[d]);
 
+  // 2026-10-26: 종목 목록·매일 루틴은 지금 서버 것 그대로 (백업 것으로 되돌리면 그 뒤에 바꾼 이름·끈 매일 루틴이 되살아난다)
+  //  종목은 서버에 없는 것만 백업에서 더한다
   const exById = {};
-  (server.masterExercises||[]).forEach(x => { exById[x.id] = x; });
-  (backup.masterExercises||[]).forEach(x => { exById[x.id] = x; });   // 백업 우선
+  (backup.masterExercises||[]).forEach(x => { exById[x.id] = x; });
+  (server.masterExercises||[]).forEach(x => { exById[x.id] = x; });   // 서버 우선
   const masterExercises = Object.keys(exById).map(k => exById[k]);
 
-  const dailyItems = (backup.dailyItems && backup.dailyItems.length) ? backup.dailyItems : (server.dailyItems || []);
+  const dailyItems = (server.dailyItems && server.dailyItems.length) ? server.dailyItems : (backup.dailyItems || []);
   return { entries, masterExercises, dailyItems, kept };
 }
 
