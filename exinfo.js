@@ -270,7 +270,8 @@
   function philoMiniHTML(text){
     const t = String(text || '').trim();
     const goal = (!t || t === PHILO_DEFAULT.trim()) ? PHILO.goal : t.split('\n')[0].replace(/^[^\w가-힣]+/, '').replace(/^목적\s*[—-]\s*/, '');
-    return `<div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub">💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>`;   // 사다리 줄(바닥 → 순환 → …)은 머리에서 뺐다 — 자세히 보기 안에 있어요 (2026-10-18)
+    // 상필님 철학 한 줄 (2026-10-26 · 웰니스 강의에서 마음에 든 말을 내 기준으로)
+    return `<div class="pm-quote">생각이 움직임을 이끌고, 그 움직임이 몸의 변화를 만든다.<br>내 몸을 이해하고, 스스로 돌볼 수 있는 기준을 갖는다.</div><div class="pm-goal">🎯 ${esc(goal)}<span class="pm-sub">💰 노후준비를 위한 근테크 · 🔗 연결된 근육까지</span></div>`;   // 사다리 줄(바닥 → 순환 → …)은 머리에서 뺐다 — 자세히 보기 안에 있어요 (2026-10-18)
   }
   // 직접 고친 글이면 문단으로, 기본 글이면 인포그래픽으로
   function philoHTML(text){
@@ -1671,6 +1672,7 @@
     .pf-goal{text-align:center;padding:4px 0 2px;}
     .pf-gt{font-size:16px;font-weight:800;color:var(--accent-a);word-break:keep-all;}
     .pf-gs{font-size:12px;color:var(--ink-dim);margin:2px 0 8px;word-break:keep-all;} .pf-gs b{color:var(--accent-a);} .pf-gs small{color:var(--ink-faint);font-size:10.5px;}
+    .pm-quote{font-size:.8em;font-weight:500;font-style:italic;color:var(--ink-dim);line-height:1.5;margin:0 0 4px;padding-left:8px;border-left:3px solid var(--accent, #E8A33D);}
     .pm-sub{display:block;font-size:.82em;font-weight:600;color:var(--ink-dim);}
     .pf-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;}
     .pf-tags span{font-size:11px;color:var(--ink);background:rgba(242,240,234,0.05);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
