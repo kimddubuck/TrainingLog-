@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=185"></script>
+<script src="exinfo.js?v=187"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -332,6 +332,9 @@ if(!window.EXINFO) window.EXINFO = (function(){
   .dp-done{font-size:11px;color:var(--accent-b);}
   .routine-list .pc-time{font-size:11.5px;color:var(--ink-dim);margin:2px 0 4px;}
   .routine-list .pc-time b{color:var(--accent-b);font-size:12.5px;}
+  .routine-list .rt-busy{margin-left:6px;font:inherit;font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid var(--border-strong);background:transparent;color:var(--ink-dim);cursor:pointer;}
+  .routine-list .rt-busy.on{border-color:var(--accent-b);color:var(--accent-b);font-weight:700;}
+  .routine-list .pc-busy-note{font-size:11.5px;color:var(--ink-dim);margin:0 0 6px;word-break:keep-all;}
   .plan-card .pc-ex.extra{opacity:.55;}
   .plan-card .pc-ex.warm .pe-name{color:var(--ink-dim);font-weight:500;}
   .plan-card .pc-ex.warm .pe-why{color:var(--accent-a);}
@@ -1068,7 +1071,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v185</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v187</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -1546,6 +1549,8 @@ const DEFAULT_MASTER = [
   {id:'relmap-upper', name:'근육 풀기 — 허리·어깨 (3D 지도)',  part:'허리·어깨',   type:'bodyweight'},
   {id:'sidelunge',   name:'사이드 런지',   part:'하체', type:'bodyweight'},   // 하체날 🧩 옆으로 움직이기 (2026-10-20)
   {id:'sidesquat',   name:'사이드 스쿼트', part:'하체', type:'bodyweight'},
+  {id:'pushup-fast', name:'빠른 푸쉬업',         part:'가슴', type:'bodyweight'},   // ⚡ 빠르게 들기 (2026-11-19 · ACSM 2026 근력운동 지침: 순발력)
+  {id:'dbpress-fast',name:'빠른 덤벨 숄더프레스', part:'어깨', type:'strength'},
   {id:'fx-quadstand',name:'서서 허벅지 앞 늘리기',      part:'허벅지 앞', type:'bodyweight'},   // 회복날 ② 스트레칭 (2026-10-19)
   {id:'fx-piri',     name:'이상근 스트레칭 (4자)',      part:'엉덩이',    type:'bodyweight'},
   {id:'fx-ballcalf', name:'마사지볼 풀기 — 종아리·정강이 앞', part:'종아리', type:'bodyweight'},
@@ -2511,12 +2516,16 @@ const PLAN = {
                { why:'🧩 기능성 — 코어 안티 모션 (8초만 · 코어는 8초가 한계, 넘으면 다른 근육이 대신 씀)', sets:1, reps:'8초 × 8', label:'8초 버티고 2초 쉬기 × 8',
                  options:['플랭크','바디컨트롤 전면 코어','수트케이스 캐리 (한 손 케틀벨 들고 걷기)','시소프레스'],
                  labels:{ '수트케이스 캐리 (한 손 케틀벨 들고 걷기)':'좌우 30초 × 2', '바디컨트롤 전면 코어':'10회 × 2세트', '시소프레스':'좌우 8회 × 2세트 (가볍게)' } },
-               { why:'🏋️ 중량 — 하체 주운동 (통제되는 깊이까지 · 첫 세트는 가볍게)', sets:4, reps:'10~12회',
-                 options:['스쿼트','가블릿 스쿼트','스티프 데드리프트','데드리프트'] },
+               // 2026-11-19 ACSM 2026 근력운동 지침 (상필님 OK): 순발력 = 가볍게, 올릴 때만 빠르게 · 지치기 전(중량 앞)에
+               { why:'🧩 기능성 — ⚡ 빠르게 들기 (순발력 · 엉덩이로 빠르게 튕기고 천천히 내리기 · 넘어질 때 몸을 잡아 주는 힘)', sets:3, reps:'8회', label:'8회 × 3세트 (빠르게)',
+                 options:['케틀벨 스윙'] },
+               // 힘 키우기: 첫 세트 가볍게 → 3세트 무겁게(최대의 약 80%) · 몸이 흔들리지 않는 종목으로
+               { why:'🏋️ 중량 — 힘 키우기: 첫 세트는 가볍게, 나머지 3세트는 무겁게 (1~2개 더 할 수 있을 때 멈추기 · 끝까지 짜내지 않기)', sets:4, reps:'6~8회',
+                 options:['레그프레스','가블릿 스쿼트'] },
                { why:'🏋️ 중량 — 한 다리: 덤벨 런지로 고관절 바르게 (중요)', sets:3, reps:'좌우 12회',
                  options:['런지','프론트런지'] },
-               { why:'🏋️ 중량 — 머신 (레그프레스는 손잡이 잡고 코어)', sets:3, reps:'15회',
-                 options:['레그프레스','이너타이 머신','레그 익스텐션','라잉 레그컬'] },
+               { why:'🏋️ 중량 — 근육 키우기 (통제되는 깊이까지 · 레그프레스는 손잡이 잡고 코어)', sets:3, reps:'15회',
+                 options:['스쿼트','레그프레스','이너타이 머신','레그 익스텐션','라잉 레그컬'] },
              ] },
   shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔 · 어깨 가동성 · 기능성 → 중량',
              tip:'내 몸풀기 먼저 · 🔥 가슴 앞 열고 → 🧩 어깨 가동성(영상 · 케틀벨 암바) → 🏋️ 중량 · 팔은 마지막에 · 어깨 재활은 토요일 회복날에',
@@ -2530,10 +2539,13 @@ const PLAN = {
                // 선생님 2026-10-18: 팔꿈치를 골반 쪽으로 찍어 누르며 반대쪽이 길어지게 프레스 — 옆 몸통으로 프레스를 잇는다
                { why:'🧩 기능성 — 옆 몸통으로 프레스 잇기 (시소프레스 · 쌤 · 팔꿈치는 골반 쪽으로, 반대쪽은 길게)', sets:2, reps:'좌우 8회', label:'좌우 8회 × 2세트 (가볍게)',
                  options:['시소프레스'] },
-               { why:'🏋️ 중량 — 어깨 주운동 (첫 세트는 가볍게)', sets:4, reps:'12~15회',
-                 options:['오버헤드프레스','밀리터리 프레스'] },
-               { why:'🏋️ 중량 — 덤벨 숄더프레스 (좌우 높이 보기)', sets:3, reps:'15회',
+               // 2026-11-19 ACSM 2026 근력운동 지침 (상필님 OK): 순발력 · 힘 키우기
+               { why:'🧩 기능성 — ⚡ 빠르게 들기 (순발력 · 가벼운 덤벨을 올릴 때만 빠르게, 내릴 때는 천천히)', sets:3, reps:'6회', label:'6회 × 3세트 (가볍게 · 빠르게)',
+                 options:['빠른 덤벨 숄더프레스'] },
+               { why:'🏋️ 중량 — 힘 키우기: 덤벨 숄더프레스 · 첫 세트는 가볍게, 나머지 3세트는 무겁게 (좌우 높이 보기 · 1~2개 남기고 멈추기)', sets:4, reps:'6~8회',
                  options:['덤벨 숄더프레스'] },
+               { why:'🏋️ 중량 — 어깨 근육 키우기', sets:3, reps:'12~15회',
+                 options:['오버헤드프레스','밀리터리 프레스'] },
                { why:'🏋️ 중량 — 어깨 옆·뒤 당기기 (끝까지 올려 2초)', sets:3, reps:'15회',
                  options:['후면 리어 델토이드 플라이','업라이트로우'] },
                { why:'🏋️ 중량 — 팔 이두', sets:3, reps:'20회',
@@ -2552,7 +2564,10 @@ const PLAN = {
                  options:['푸쉬업(팔굽혀펴기)','인버티드로우'] },
                { why:'🧩 기능성 — 회전: 한 팔 당기며 몸통 꼬기 (불균형 교정)', sets:3, reps:'15회씩', label:'15회씩 × 3세트',
                  options:['원암 케이블 회전 로우 (불균형 교정)'] },
-               { why:'🏋️ 중량 — 가슴 주운동 (첫 세트는 가볍게)', sets:4, reps:'10~12회',
+               // 2026-11-19 ACSM 2026 근력운동 지침 (상필님 OK): 순발력 · 힘 키우기
+               { why:'🧩 기능성 — ⚡ 빠르게 들기 (순발력 · 올라갈 때만 빠르게, 내려갈 때는 천천히 · 힘들면 무릎 대고)', sets:3, reps:'5회', label:'5회 × 3세트 (빠르게)',
+                 options:['빠른 푸쉬업'] },
+               { why:'🏋️ 중량 — 힘 키우기: 첫 세트는 가볍게, 나머지 3세트는 무겁게 (1~2개 남기고 멈추기 · 혼자면 덤벨로)', sets:4, reps:'6~8회',
                  options:['벤치프레스','인클라인 덤벨프레스'] },
                { why:'🏋️ 중량 — 가슴 두 번째', sets:3, reps:'12~15회',
                  options:['덤벨 벤치프레스','케이블 플라이','딥스'] },
@@ -3020,7 +3035,7 @@ function buildWeekProgram(W){
     const rows = warm.concat(orderedRoutine(base, W, { extraLast, asOf: ds, exclude: warmIds }).map(r=>{
       if(r.id && ds >= W.today) extraLast[r.id] = ds;
       const when = r.ago == null ? '처음' : (r.ago === 0 ? '오늘' : r.ago + '일 전');
-      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), stage:r.stage,
+      return { name:r.name, set:(r.label || (r.sets + '세트 × ' + r.reps)), stage:r.stage, reps:r.reps,
                why:(r.care ? '⚠ ' + r.care : r.why + ' · 지난번 ' + when),
                care:r.care,
                // 오늘 것만 직접 바꿀 수 있게 한다 (다른 날은 그날 가서 바꾸면 된다)
@@ -3028,6 +3043,18 @@ function buildWeekProgram(W){
     }));
     // 앞에서부터 시간을 더해 가다가 60분을 넘으면 그 뒤는 "시간 남으면"으로 표시한다
     // 심폐(유산소)는 1순위라 시간을 먼저 떼어 두고, 절대 "시간 남으면"으로 밀지 않는다 (2026-10-18)
+    // ⏱ 바쁜 날 30분 (2026-11-19 · ACSM 2026 지침 "건너뛰지 않는 게 제일 중요"):
+    //    몸풀기 → 앞의 기능성 2개 → 앞의 중량 2종목 × 3세트만. 나머지는 "시간 남으면"으로
+    const busy = isWorkout && busyDay === ds;
+    if(busy){
+      let nf = 0, nw = 0;
+      rows.forEach(r=>{
+        if(r.warm) return;
+        if(r.stage === '🏋️ 중량'){
+          if(nw++ < 2){ if(r.reps) r.set = '3세트 × ' + r.reps; } else r.busyCut = true;
+        } else if(nf++ >= 2) r.busyCut = true;
+      });
+    }
     const isCardio = r => r.stage === '🫀 심폐';
     let acc = MIN_SETUP + rows.filter(isCardio).reduce((n, r) => n + slotMinutes(r), 0);
     rows.forEach(r=>{
@@ -3035,16 +3062,19 @@ function buildWeekProgram(W){
       r.min = m;
       if(isCardio(r)){ r.extra = false; return; }
       acc += m;
-      r.extra = acc > TIME_BUDGET;
+      r.extra = busy ? !!r.busyCut : acc > TIME_BUDGET;
     });
     const core = rows.filter(r=>!r.extra).reduce((n,r)=>n+r.min, MIN_SETUP);
     out.push({ ds, kind: PLAN[key].kind, title: planTitle(key, ds), rows,
-               minutes: Math.round(acc), core: Math.round(core) });
+               minutes: Math.round(acc), core: Math.round(core), busyable: isWorkout, busy });
   }
   return out;
 }
 
 let programDay = null;   // 프로그램 탭에서 고른 날 (기본은 오늘)
+// ⏱ 바쁜 날 30분으로 볼 날짜 (이 기기에서만 기억 · 그날 하루만)
+let busyDay = '';
+try{ busyDay = localStorage.getItem('busyDay') || ''; }catch(e){}
 // 프로그램 줄의 유튜브 링크 — 영상 종목(그날 영상이 이미 붙음)·근육 풀기 지도·유산소는 빼고 (2026-10-19 상필님)
 // 내 몸풀기 줄: 8가지 이름과 시간(초)을 한 줄에 하나씩 (2026-10-19 상필님)
 function planStepsHTML(r){
@@ -3101,7 +3131,8 @@ function renderRoutineTab(){
           </div>`; }).join('') || '<div class="pc-ex"><span class="pe-name" style="font-weight:400;color:var(--ink-faint);">기록 없음</span></div>';
         return `<div class="plan-card ${day.kind}${day.ds===W.today?' on':''}">
           <div class="pc-head"><span><b>${dow}</b> ${md} · ${day.title}</span>${mark}</div>
-          ${day.minutes ? `<div class="pc-time">약 <b>${day.core}분</b>${day.minutes > day.core ? ' · 다 하면 ' + day.minutes + '분' : ''}</div>` : ''}
+          ${day.minutes ? `<div class="pc-time">약 <b>${day.core}분</b>${day.minutes > day.core ? ' · 다 하면 ' + day.minutes + '분' : ''}${day.busyable ? ` <button class="rt-busy${day.busy ? ' on' : ''}" data-busy="${day.ds}" title="몸풀기 → 기능성 2개 → 중량 2종목 × 3세트만">${day.busy ? '⏱ 바쁜 날 30분 ✓ (끄기)' : '⏱ 바쁜 날 30분'}</button>` : ''}</div>` : ''}
+          ${day.busy ? '<div class="pc-busy-note">오늘은 짧게 — 몸풀기 → 기능성 2개 → 중량 2종목 × 3세트. 건너뛰는 것보다 짧게라도 하는 게 훨씬 나아요.</div>' : ''}
           <div class="pc-exlist">${rows}</div>
         </div>`;
       }).join('')
@@ -3135,6 +3166,13 @@ function renderRoutineTab(){
   wrap.querySelectorAll('details.algo').forEach((d, i)=>{ if(algoOpen[i]) d.open = true; });
   wrap.querySelectorAll('.rt-day').forEach(btn=>{
     btn.onclick = ()=>{ programDay = btn.dataset.pday; renderRoutineTab(); };
+  });
+  wrap.querySelectorAll('.rt-busy').forEach(btn=>{
+    btn.onclick = ()=>{
+      busyDay = (busyDay === btn.dataset.busy) ? '' : btn.dataset.busy;
+      try{ localStorage.setItem('busyDay', busyDay); }catch(e){}
+      renderRoutineTab();
+    };
   });
   // 종목 줄을 누르면 설명이 펼쳐진다 (↻ 단추는 빼고)
   wrap.querySelectorAll('.pc-ex.xi-row').forEach(row=>{
