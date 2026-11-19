@@ -49,7 +49,7 @@ window.__chartReady = false;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 종목 사전: 기구·한쪽/양쪽·기능성/재활/중량 (report.html 도 같이 씀) -->
-<script src="exinfo.js?v=187"></script>
+<script src="exinfo.js?v=188"></script>
 <script>
 // exinfo.js 를 못 불러와도(인터넷 끊김 등) 앱은 그대로 돌게 — 딱지·설명만 빠진다
 if(!window.EXINFO) window.EXINFO = (function(){
@@ -1071,7 +1071,7 @@ if(!window.EXINFO) window.EXINFO = (function(){
 <div class="vo-bar">👀 보기 전용 · 상필님 기록을 보기만 해요 · 바꿔도 저장되지 않아요</div>
 <div class="app">
 <!-- 맨 윗줄 오른쪽: 선생님 링크 · 버전 · 로그아웃 (작게) -->
-<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v187</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
+<div class="topbar"><button class="share-btn" id="shareReportBtn" title="선생님 열람용 링크 공유">🔗 선생님 링크</button><span class="hd-ver">· v188</span><span class="logout-btn" id="logoutBtn">로그아웃</span></div>
 
   <div class="header">
     <p class="eyebrow">HUMETRO · PERSONAL TRAINING</p>
@@ -2528,7 +2528,7 @@ const PLAN = {
                  options:['스쿼트','레그프레스','이너타이 머신','레그 익스텐션','라잉 레그컬'] },
              ] },
   shoulderarm: { tag:'어깨팔', kind:'B', title:'어깨·팔 · 어깨 가동성 · 기능성 → 중량',
-             tip:'내 몸풀기 먼저 · 🔥 가슴 앞 열고 → 🧩 어깨 가동성(영상 · 케틀벨 암바) → 🏋️ 중량 · 팔은 마지막에 · 어깨 재활은 토요일 회복날에',
+             tip:'내 몸풀기 먼저 · 🔥 가슴 앞 열고 → 🧩 어깨 가동성(영상 · 케틀벨 암바) → 🏋️ 중량 · 가슴 한 종목 보태기 · 팔은 마지막에 · 어깨 재활은 토요일 회복날에',
              routine:[
                { why:'🔥 열 내기 — 어깨 가동성: 가슴 앞 늘리고(30초) 그 끝에서 5초 버티기 × 3', sets:2, reps:'좌우 30초', label:'좌우 30초 → 끝 5초×3 · 2세트',
                  options:['문틀 가슴 스트레칭'] },
@@ -2548,6 +2548,10 @@ const PLAN = {
                  options:['오버헤드프레스','밀리터리 프레스'] },
                { why:'🏋️ 중량 — 어깨 옆·뒤 당기기 (끝까지 올려 2초)', sets:3, reps:'15회',
                  options:['후면 리어 델토이드 플라이','업라이트로우'] },
+               // 2026-11-19 상필님 OK: 가슴이 주 7세트(수요일)뿐이라 목요일에 3세트 보태 주 10세트 (ACSM 2026: 부위당 주 약 10세트)
+               // 팔 앞에 둔다 — 60분을 넘으면 맨 아래(팔)부터 "시간 남으면"으로 밀리게
+               { why:'🏋️ 중량 — 가슴 한 번 더 (주 10세트 채우기 · 가볍게 · 늘어날 때 집중)', sets:3, reps:'12~15회',
+                 options:['케이블 플라이','덤벨 벤치프레스'] },
                { why:'🏋️ 중량 — 팔 이두', sets:3, reps:'20회',
                  options:['바벨 컬','덤벨 해머컬'] },
                { why:'🏋️ 중량 — 팔 삼두', sets:3, reps:'20회',
